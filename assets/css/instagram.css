@@ -1,0 +1,196 @@
+/* =============================================================
+   Events — the Instagram profile card and the pinned post grid.
+   Built by assets/js/instagram.js. Scoped to #instagram so nothing
+   reaches the other pages.
+
+   Instagram's script replaces each blockquote's contents with its own
+   iframe and sets inline styles on it, so the rules here stay on the
+   outside of that: the card around it, and the stand-in shown until it
+   arrives.
+   ============================================================= */
+
+#instagram { display: block; }
+
+/* ---------- the account itself ---------- */
+
+/* mark | handle | Follow, with the blurb under the handle — and under
+   the whole lot once there is no room beside it */
+#instagram .ig-profile {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 1rem;
+  row-gap: 0.15rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid hsl(var(--hue) 45% 55% / 0.35);
+  border-radius: 16px;
+  background: hsl(var(--hue) 45% 50% / 0.1);
+  text-decoration: none;
+  color: inherit;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease);
+}
+
+#instagram .ig-profile:hover {
+  background: hsl(var(--hue) 50% 50% / 0.2);
+  border-color: hsl(var(--hue) 60% 60% / 0.6);
+}
+
+#instagram .ig-profile__mark {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 14px;
+  background: hsl(var(--hue) 55% 50% / 0.18);
+}
+
+#instagram .ig-profile__mark svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  fill: none;
+  stroke: hsl(var(--hue) 65% var(--label-l));
+  stroke-width: 1.7;
+}
+
+#instagram .ig-profile__dot { fill: hsl(var(--hue) 65% var(--label-l)); stroke: none; }
+
+#instagram .ig-profile__handle {
+  grid-column: 2;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+#instagram .ig-profile__blurb {
+  grid-column: 2;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--fg-soft);
+}
+
+#instagram .ig-profile__go {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  justify-self: end;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: hsl(var(--hue) 60% 52%);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  #instagram .ig-profile__mark,
+  #instagram .ig-profile__go { grid-row: 1; }
+  #instagram .ig-profile__blurb { grid-column: 1 / -1; margin-top: 0.5rem; }
+}
+
+/* ---------- the pinned posts ---------- */
+
+#instagram .ig-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(326px, 1fr));
+  align-items: start;
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+#instagram .ig-card { min-width: 0; }
+
+/* Instagram's own minimum is 326px, so one column below that */
+@media (max-width: 400px) {
+  #instagram .ig-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+#instagram .instagram-media {
+  margin: 0 !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+/* the card as it reads before — or without — Instagram's own frame */
+#instagram .ig-card__stand-in {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1.15rem 1.25rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+#instagram .ig-card__title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--fg);
+}
+
+#instagram .ig-card__when {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(var(--hue) 55% var(--label-l));
+}
+
+#instagram .ig-card__note {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: var(--fg-soft);
+}
+
+#instagram .ig-card__link {
+  justify-self: start;
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* ---------- the lines underneath ---------- */
+
+#instagram .ig-empty {
+  margin: 1.5rem 0 0;
+  padding: 2.5rem;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  text-align: center;
+  color: var(--fg-soft);
+}
+
+#instagram .ig-consent { margin: 1.25rem 0 0; }
+
+#instagram .ig-consent__go {
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--fg);
+  background: hsl(var(--hue) 45% 50% / 0.16);
+  border: 1px solid hsl(var(--hue) 50% 55% / 0.4);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 200ms var(--ease);
+}
+
+#instagram .ig-consent__go:hover { background: hsl(var(--hue) 55% 50% / 0.3); }
+
+#instagram .ig-foot {
+  margin: 0.9rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--fg-soft);
+  opacity: 0.8;
+}
+
+#instagram.is-unreachable .ig-foot { opacity: 1; }

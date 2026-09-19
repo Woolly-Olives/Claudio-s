@@ -224,6 +224,10 @@
     if (stage) { stage.setAttribute("inert", ""); }
     openId = id;
 
+    /* a section's own script can wait for this rather than doing work,
+       or fetching from anywhere, before anyone has asked to see it */
+    document.dispatchEvent(new CustomEvent("biosoc:page", { detail: { id: id } }));
+
     var title = panel.querySelector(".page__title");
     if (title) { title.focus({ preventScroll: true }); }
   }

@@ -8,7 +8,9 @@ into its slice instead (see below).
 
 The seven sections are **Essential Links**, **Study Resources**,
 **Customise Your Degree**, **Opportunities**, **Connect** and **Events**, plus
-**Join BioSoc**. All seven pages are currently empty, ready for content.
+**Join BioSoc**. Essential Links, Study Resources, Customise Your Degree,
+Opportunities and Events have content; Connect and Join BioSoc are still empty,
+ready for it.
 
 ## Running it
 
@@ -33,6 +35,8 @@ pick the branch and the `/ (root)` folder.
 | `assets/js/app.js` | Builds the wheel, handles the reveals, and routes `#section-id` URLs. |
 | `assets/data/links.js` | The Essential Links content. |
 | `assets/js/arc.js`, `assets/css/arc.css` | The Essential Links arc and its zoom. |
+| `assets/data/instagram.js` | The Instagram account and the posts pinned to Events. |
+| `assets/js/instagram.js`, `assets/css/instagram.css` | The Events profile card and post grid. |
 
 ## Adding your content
 
@@ -160,6 +164,60 @@ rows). **Keep the spans tiling the four-column grid exactly**, or the layout
 leaves holes; the current eight tiles fill four rows with nothing left over. The
 grid drops to two columns below 900px and one below 560px, where all spans are
 ignored.
+
+## Instagram (Events)
+
+The Events page carries **[@biosoc.leics](https://www.instagram.com/biosoc.leics/)**
+two ways: a card that links straight to the account, and whichever posts the
+committee pins, embedded.
+
+**There is no way to embed a whole profile.** Instagram's only supported embed
+is one post at a time — the blockquote and script you get from the **Embed**
+item on a post. A live grid of the latest posts needs the Instagram Graph API
+and an access token, which a static site on GitHub Pages has nowhere safe to
+keep and which expires anyway. (See Meta's
+[Instagram Platform documentation](https://developers.facebook.com/docs/instagram-platform/)
+if you ever want to go that way: it would mean a token, somewhere to keep it,
+and a scheduled job to refresh it — a GitHub Action committing a JSON file
+would do it.) What is here needs none of that and cannot break on a token
+expiry.
+
+### Pinning a post
+
+Open the post on Instagram, copy its address, and add it to `posts` in
+**`assets/data/instagram.js`**, newest first:
+
+```js
+{ permalink: "https://www.instagram.com/p/CyAbC1dEfGh/",
+  title: "Freshers' social",
+  date:  "2026-10-02",
+  note:  "Tuesday 7pm, The Font. Everyone welcome." }
+```
+
+Only a post, reel or video address works (`/p/…`, `/reel/…`, `/tv/…`); a profile
+address cannot be embedded, and the console says so if one is used by mistake.
+Any query string on the end is stripped, so pasting the sharing link is fine.
+
+`title`, `date` and `note` are shown until Instagram's script has drawn the post
+— **and for good if it never does**, because Instagram is blocked, down, or the
+visitor's browser refuses it. So write them as if they were the whole card,
+because sometimes they are. Leave `posts` empty and the page simply points at
+the account; nothing looks broken.
+
+### Two settings, both in the same file
+
+- `consent: true` puts a **Show the posts** button in front of the embeds, so
+  nothing is fetched from Instagram — and no Instagram cookie is set — until the
+  visitor asks. Worth considering: it is their cookies, not ours, and a society
+  page has no particular need to hand Meta a record of everyone who reads it.
+  `false` (the default) loads the posts when the section is opened.
+- `captions: true` includes each post's own Instagram caption in its embed. Off
+  by default, because caption lengths vary wildly and pull the grid about.
+
+Either way **nothing is fetched from Instagram until someone opens Events** —
+the landing page and the other six sections never touch it. `app.js` fires a
+`biosoc:page` event when a section opens, and `assets/js/instagram.js` waits for
+it.
 
 ## The module map (Customise Your Degree)
 
