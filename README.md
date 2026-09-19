@@ -108,6 +108,48 @@ source (the university, the students' union, the funder) rather than a summary
 of it, and re-check dates and deadlines each year — a stale hub is worse than no
 hub. Consider adding a "last checked" line to pages that carry deadlines.
 
+## The module map (Customise Your Degree)
+
+That page is an app rather than prose, so its content lives in one data file:
+**`assets/data/curriculum.js`**. Nothing in `index.html` needs touching.
+
+Every module in the School sits on one screen. Six columns run left to right,
+Year 1 Semester 1 through Year 3 Semester 2; within a column the modules stack
+top to bottom, and each box is as tall as it is heavy — a 30-credit module is
+drawn exactly double a 15-credit one, the gap between boxes included.
+
+Three clicks do everything, and nothing needs more:
+
+| One click on | Does |
+| --- | --- |
+| a degree button | recolours the whole board for that degree |
+| a module box | takes or drops an optional module |
+| a module's **i** | opens its details |
+
+States are shown by fill *and* shape, not colour alone: **core** is solid,
+**chosen** has a heavy border and a tick, **optional** is a dashed outline, and
+**not available** is hatched and struck through. Each column counts its credits
+against the 60-credit cap and refuses anything that would breach it.
+
+### Putting real data in
+
+It ships with **sample data** — placeholders with a realistic shape, so the map
+can be seen working. They are not the School's real catalogue. To replace them:
+
+1. Replace the `modules` and `degrees` arrays (the schema is documented in
+   comments at the top of the file).
+2. Set `meta.sampleData` to `false`. The warning line on the page disappears.
+
+A module is `{ code, title, credits, year, semester, theme, about? }`, where
+`credits` is 15 or 30. A degree lists its required modules per semester slot
+(`y1s1` … `y3s2`) and may list `excluded` modules it cannot take; anything
+neither core nor excluded is optional. Adding a degree or a module needs no code
+changes.
+
+Plans live in the URL's query string, so a student can send someone their plan as
+a link. Codes a shared link names that the chosen degree cannot take are dropped,
+and the URL is rewritten to match.
+
 ## Renaming, reordering or changing the number of sections
 
 1. Edit the `SECTIONS` array at the top of `assets/js/app.js` — each entry has an
