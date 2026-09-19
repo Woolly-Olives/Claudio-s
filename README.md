@@ -8,9 +8,7 @@ into its slice instead (see below).
 
 The seven sections are **Essential Links**, **Study Resources**,
 **Customise Your Degree**, **Opportunities**, **Connect** and **Events**, plus
-**Join BioSoc**. Essential Links, Study Resources, Customise Your Degree,
-Opportunities and Events have content; Connect and Join BioSoc are still empty,
-ready for it.
+**Join BioSoc**. Only **Connect** is still empty, ready for content.
 
 ## Running it
 
@@ -37,6 +35,8 @@ pick the branch and the `/ (root)` folder.
 | `assets/js/arc.js`, `assets/css/arc.css` | The Essential Links arc and its zoom. |
 | `assets/data/instagram.js` | The Instagram account and the posts pinned to Events. |
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Events profile card and post grid. |
+| `assets/data/union.js` | The Students' Union hand-off on Join BioSoc. |
+| `assets/js/union.js`, `assets/css/union.css` | How that page is built. |
 
 ## Adding your content
 
@@ -218,6 +218,42 @@ Either way **nothing is fetched from Instagram until someone opens Events** —
 the landing page and the other six sections never touch it. `app.js` fires a
 `biosoc:page` event when a section opens, and `assets/js/instagram.js` waits for
 it.
+
+## The Students' Union (Join BioSoc)
+
+Membership is the Union's, not ours, so that page hands over to
+[BioSoc on leicesterunion.com](https://www.leicesterunion.com/sportsandsocs/societies/biosoc/)
+rather than pretending to take a signup itself: one large action card, the steps
+in order, an optional strip of facts, and a couple of related Union pages.
+Everything is in **`assets/data/union.js`**.
+
+### The "confirm" tags
+
+Lines marked `check: true` carry a small dashed **confirm** tag on the page.
+They were written without sight of the Union's page, so they are plausible
+rather than known — the tag is there so nothing unverified is put to students as
+fact. **Read each one against the Union's page, correct it, and delete its
+`check` flag**; the tag then disappears. The `facts` strip ships empty for the
+same reason: add the membership price and the rest only once you have checked
+them, and until then the page simply does not draw that strip.
+
+### Framing the Union's page
+
+`embed: true` puts the Union's page in a frame below the action card. It ships
+**off**, because most Students' Union sites refuse to be framed by another
+domain — the browser then shows an empty box, and says why only in its console,
+where no student will look. Nothing on our side can detect that: a cross-origin
+frame that the other site refuses is silent to script.
+
+So try it rather than assume: switch it on, open Join BioSoc, and look. If the
+Union's page appears, keep it. If the box is blank, the Union blocks framing,
+and the hand-off is the honest version of the same thing. Either way the action
+card above the frame always opens the real page, and a line beneath it tells
+anyone staring at an empty panel what to do.
+
+The frame's address is not set until someone opens Join BioSoc, so the Union is
+not fetched for visitors who never go there — the same `biosoc:page` event the
+Instagram embeds wait for.
 
 ## The module map (Customise Your Degree)
 
