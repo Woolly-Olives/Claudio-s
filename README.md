@@ -131,20 +131,48 @@ States are shown by fill *and* shape, not colour alone: **core** is solid,
 **not available** is hatched and struck through. Each column counts its credits
 against the 60-credit cap and refuses anything that would breach it.
 
+### The degree buttons
+
+`meta.degreeLayout` sets how they are arranged — one inner array per column,
+listed top to bottom. It currently pairs each subject with its Medical
+counterpart, with Biological Sciences alone in the first column, spanning both
+rows. A degree missing from the layout is appended rather than dropped.
+
+Nothing above the board changes height between degrees, so the boxes stay
+exactly where they are when you switch. Keep it that way: anything that appears
+for one degree and not another belongs in a module's details panel, not here.
+
+### Year-long modules
+
+A module split across two semesters is two entries sharing a `linked` group id.
+They are drawn as one connected shape: both lead their columns so they start at
+the same height, and a bridge spans the gap between the columns. Taking or
+dropping one takes or drops the whole group, and the details panel reports the
+combined credits.
+
+The Research Project is the example — 45 credits, 30 in Semester 1 and 15 in
+Semester 2, drawn as a single step-shaped form.
+
 ### Putting real data in
 
-It ships with **sample data** — placeholders with a realistic shape, so the map
-can be seen working. They are not the School's real catalogue. To replace them:
+Year 1 carries the real module codes and credits. Their **titles are not
+recorded yet**: a module with no `title` draws as its code with *"Title to be
+added"* beneath it, so the gap is visible rather than invented. Fill the titles
+in and that treatment disappears on its own.
+
+Years 2 and 3, and the degree structures, are still **sample data** —
+placeholders with a realistic shape. To replace them:
 
 1. Replace the `modules` and `degrees` arrays (the schema is documented in
    comments at the top of the file).
 2. Set `meta.sampleData` to `false`. The warning line on the page disappears.
 
-A module is `{ code, title, credits, year, semester, theme, about? }`, where
-`credits` is 15 or 30. A degree lists its required modules per semester slot
-(`y1s1` … `y3s2`) and may list `excluded` modules it cannot take; anything
-neither core nor excluded is optional. Adding a degree or a module needs no code
-changes.
+A module is `{ code, title?, credits, year, semester, theme, about?, display?,
+linked? }`, where `credits` is 15 or 30. A degree lists its required modules per
+semester slot (`y1s1` … `y3s2`) and may list `excluded` modules it cannot take;
+anything neither core nor excluded is optional. Where two modules are
+alternatives — as BS1070 and MB1080 are, the latter for the four Medical degrees
+only — make each core for the degrees that take it and excluded for the rest.
 
 Plans live in the URL's query string, so a student can send someone their plan as
 a link. Codes a shared link names that the chosen degree cannot take are dropped,

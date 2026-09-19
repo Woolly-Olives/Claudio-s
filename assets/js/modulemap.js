@@ -50,6 +50,26 @@
     });
   }
 
+  /** Modules with no recorded title say so, rather than showing a gap. */
+  function titleOf(m) { return m.title || "Title to be added"; }
+
+  /** Members of a linked group, in column order. */
+  function linkGroup(m) {
+    if (!m.linked) { return [m]; }
+    return DATA.modules.filter(function (x) { return x.linked === m.linked; })
+      .sort(function (a, b) { return (a.year - b.year) || (a.semester - b.semester); });
+  }
+
+  /** Which end of a linked shape this box is, if any. */
+  function linkClass(m) {
+    if (!m.linked) { return ""; }
+    var group = linkGroup(m);
+    if (group.length < 2) { return ""; }
+    if (group[0].code === m.code) { return " box--link-start"; }
+    if (group[group.length - 1].code === m.code) { return " box--link-end"; }
+    return " box--link-mid";
+  }
+
   /** core | selected | optional | unavailable, for the degree on screen. */
   function statusOf(m) {
     var d = degree();
@@ -121,12 +141,39 @@
 
   /* ---------- rendering ---------- */
 
+  function degreeById(id) {
+    return DATA.degrees.filter(function (d) { return d.id === id; })[0];
+  }
+
+  /**
+   * Buttons sit in the columns meta.degreeLayout asks for, each column
+   * pairing a subject with its Medical counterpart. A column holding one
+   * degree spans both rows rather than leaving a hole. Anything the layout
+   * forgets is appended, so a new degree never vanishes from the page.
+   */
   function degreeButtons() {
-    return DATA.degrees.map(function (d) {
-      var on = d.id === state.degree;
-      return '<button class="dbtn' + (on ? " is-on" : "") + '" type="button" role="tab"' +
-             ' aria-selected="' + on + '" data-degree="' + d.id + '" style="--dh:' + d.hue + '">' +
-             esc(d.name) + '</button>';
+    var layout = (DATA.meta.degreeLayout || []).map(function (col) {
+      return col.filter(degreeById);
+    }).filter(function (col) { return col.length; });
+
+    var placed = {};
+    layout.forEach(function (col) { col.forEach(function (id) { placed[id] = true; }); });
+    var missed = DATA.degrees.filter(function (d) { return !placed[d.id]; });
+    if (missed.length) {
+      missed.forEach(function (d) { layout.push([d.id]); });
+    }
+
+    var rows = layout.reduce(function (n, col) { return Math.max(n, col.length); }, 1);
+
+    return layout.map(function (col) {
+      return '<div class="dcol">' + col.map(function (id) {
+        var d = degreeById(id);
+        var on = d.id === state.degree;
+        var span = (col.length === 1 && rows > 1) ? ' dbtn--tall' : '';
+        return '<button class="dbtn' + (on ? " is-on" : "") + span + '" type="button" role="tab"' +
+               ' aria-selected="' + on + '" data-degree="' + d.id + '" style="--dh:' + d.hue + '">' +
+               esc(d.name) + '</button>';
+      }).join("") + '</div>';
     }).join("");
   }
 
@@ -143,16 +190,21 @@
     /* ● core, ✓ chosen, ✕ not available — so the state reads without colour */
     var glyph = { core: "\u25CF", selected: "\u2713", unavailable: "\u2715", optional: "" }[st];
 
-    return '<li class="cell" style="--units:' + units + ';--clamp:' + (units === 2 ? 5 : 2) + '">' +
-      '<button class="box box--' + st + (wouldOverflow ? " box--tight" : "") + '" type="button"' +
+    var link = linkClass(m);
+    var shown = m.display || m.code;
+
+    return '<li class="cell' + (link ? " cell--linked" : "") +
+      '" style="--units:' + units + ';--clamp:' + (units === 2 ? 5 : 2) + '">' +
+      '<button class="box box--' + st + (wouldOverflow ? " box--tight" : "") + link + '" type="button"' +
         ' data-toggle="' + m.code + '"' +
         (interactive ? ' aria-pressed="' + (st === "selected") + '"' : ' disabled') +
-        ' title="' + esc(m.code + " — " + m.title + " · " + m.credits + " credits · " + label) + '">' +
+        ' title="' + esc(shown + " — " + titleOf(m) + " · " + m.credits + " credits · " + label) + '">' +
         '<span class="box__head">' +
-          '<span class="box__code">' + esc(m.code) + '</span>' +
+          '<span class="box__code">' + esc(shown) + '</span>' +
           '<span class="box__cr">' + m.credits + '</span>' +
         '</span>' +
-        '<span class="box__title">' + esc(m.title) + '</span>' +
+        '<span class="box__title' + (m.title ? "" : " box__title--missing") + '">' +
+          esc(titleOf(m)) + '</span>' +
         '<span class="box__state"' + (glyph ? '' : ' hidden') + ' aria-hidden="true">' + glyph + '</span>' +
         '<span class="visually-hidden">' + label + '</span>' +
       '</button>' +
@@ -165,7 +217,10 @@
     var used = creditsIn(col.id);
     var status = used === CAP ? "full" : (used > CAP ? "over" : "under");
     var mods = modulesIn(col).slice().sort(function (a, b) {
-      return b.credits - a.credits || a.code.localeCompare(b.code);
+      /* a linked module leads its column, so the two halves of a year-long
+         module sit at the same height and read as one shape */
+      return (b.linked ? 1 : 0) - (a.linked ? 1 : 0) ||
+             b.credits - a.credits || a.code.localeCompare(b.code);
     });
     return '<section class="col" data-col="' + col.id + '">' +
              '<header class="col__head">' +
@@ -184,18 +239,27 @@
     var needs = requiredBy(m.code);
     var label = { core: "Core for this degree", selected: "Chosen",
                   optional: "Optional for this degree", unavailable: "Not available on this degree" }[st];
+    var group = linkGroup(m);
+    var whole = group.reduce(function (a, x) { return a + x.credits; }, 0);
+    var split = group.length > 1
+      ? group.map(function (x) { return x.credits + " in Semester " + x.semester; }).join(", ")
+      : "";
 
     return '<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">' +
       '<div class="sheet__card">' +
         '<button class="sheet__close" type="button" data-close aria-label="Close">&times;</button>' +
-        '<p class="sheet__eyebrow">' + esc(m.code) + ' &middot; Year ' + m.year + ', Semester ' + m.semester + '</p>' +
-        '<h3 class="sheet__title" id="sheet-title" tabindex="-1">' + esc(m.title) + '</h3>' +
+        '<p class="sheet__eyebrow">' + esc(m.display || m.code) +
+          ' &middot; Year ' + m.year + ', Semester ' + m.semester + '</p>' +
+        '<h3 class="sheet__title" id="sheet-title" tabindex="-1">' + esc(titleOf(m)) + '</h3>' +
         '<p class="sheet__tags">' +
           '<span class="tag tag--' + st + '">' + label + '</span>' +
-          '<span class="tag">' + m.credits + ' credits</span>' +
+          '<span class="tag">' + (group.length > 1 ? whole + ' credits over the year' : m.credits + ' credits') + '</span>' +
           '<span class="tag">' + esc(themeLabel[m.theme] || "") + '</span>' +
         '</p>' +
+        (split ? '<p class="sheet__about"><strong>Year-long module</strong> &mdash; ' +
+                 esc(split) + '.</p>' : "") +
         (m.about ? '<p class="sheet__about">' + esc(m.about) + '</p>' : "") +
+        (m.title ? "" : '<p class="sheet__about">The title for this module is not recorded here yet.</p>') +
         '<p class="sheet__req"><strong>Required by:</strong> ' +
           (needs.length ? needs.map(function (d) { return esc(d.name); }).join(", ")
                         : "no degree — it is optional throughout") + '</p>' +
@@ -211,8 +275,9 @@
         ? '<p class="mm__sample"><strong>Sample data</strong> &mdash; placeholder modules, not the ' +
           'School’s real catalogue. Replace <code>assets/data/curriculum.js</code>.</p>'
         : "") +
+      /* nothing here may vary in height between degrees, or the board
+         shifts under the pointer when you switch */
       '<div class="mm__degrees" role="tablist" aria-label="Degree">' + degreeButtons() + '</div>' +
-      (d.note ? '<p class="mm__note">' + esc(d.note) + '</p>' : "") +
       '<div class="mm__legend">' +
         '<span class="key key--core">Core</span>' +
         '<span class="key key--selected">Chosen</span>' +
@@ -252,17 +317,27 @@
     if (t && (t.hasAttribute("data-close"))) { closeSheet(); return; }
     if (t && t.dataset.toggle) {
       var m = byCode[t.dataset.toggle];
-      var slot = slotOf(m);
-      var at = state.picks[slot].indexOf(m.code);
-      if (at !== -1) {
-        state.picks[slot].splice(at, 1);
-        say(m.code + " dropped");
-      } else if (creditsIn(slot) + m.credits > CAP) {
-        say(m.code + " would take " + slot.toUpperCase() + " over " + CAP + " credits");
-        return;
+      /* a year-long module is one decision, not two */
+      var group = linkGroup(m);
+      var name = m.display || m.code;
+
+      if (state.picks[slotOf(m)].indexOf(m.code) !== -1) {
+        group.forEach(function (x) {
+          var list = state.picks[slotOf(x)];
+          var at = list.indexOf(x.code);
+          if (at !== -1) { list.splice(at, 1); }
+        });
+        say(name + " dropped");
       } else {
-        state.picks[slot].push(m.code);
-        say(m.code + " taken");
+        var noRoom = group.filter(function (x) { return creditsIn(slotOf(x)) + x.credits > CAP; });
+        if (noRoom.length) {
+          say(name + " would take " + slotOf(noRoom[0]).toUpperCase() + " over " + CAP + " credits");
+          return;
+        }
+        group.forEach(function (x) {
+          if (state.picks[slotOf(x)].indexOf(x.code) === -1) { state.picks[slotOf(x)].push(x.code); }
+        });
+        say(name + " taken");
       }
       writeUrl();
       render();
