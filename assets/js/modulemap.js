@@ -239,6 +239,59 @@
     }).join("");
   }
 
+  /** The groups this module belongs to, on the degree being shown. */
+  function groupsFor(code) {
+    return (degree().groups || []).filter(function (g) { return g.members.indexOf(code) !== -1; });
+  }
+
+  /** How many of a group's modules are currently taken. */
+  function takenIn(g) {
+    return g.members.filter(function (c) {
+      var m = byCode[c];
+      return m && state.picks[slotOf(m)].indexOf(c) !== -1;
+    }).length;
+  }
+
+  /**
+   * The handbooks' "choose three or four from ..." rules. A group's modules are
+   * scattered across both Year 3 columns, so the rule cannot live in a column:
+   * it gets its own bar. The bar is always present and always one line tall, so
+   * the board does not shift when the degree changes.
+   */
+  function ruleBar() {
+    var groups = degree().groups || [];
+    var inner;
+
+    if (!groups.length) {
+      inner = '<span class="rule rule--none">No grouped choice in Year 3 &mdash; past the core, ' +
+              'fill each semester to ' + CAP + ' credits from whatever is open.</span>';
+    } else {
+      inner = groups.map(function (g) {
+        var n = takenIn(g);
+        var fit = n < g.min ? "under" : (n > g.max ? "over" : "met");
+        var range = g.min === g.max ? String(g.min) : g.min + "\u2013" + g.max;
+        var chips = g.members.map(function (c) {
+          var m = byCode[c];
+          var st = statusOf(m);
+          var live = st === "optional" || st === "selected";
+          return '<button class="rchip rchip--' + st + '" type="button" data-toggle="' + c + '"' +
+                 (live ? ' aria-pressed="' + (st === "selected") + '"' : ' disabled') +
+                 ' title="' + esc(c + " \u2014 " + titleOf(m) + " \u00b7 Year " + m.year +
+                                  ", Semester " + m.semester) + '">' +
+                   '<span class="rchip__code">' + esc(c) + '</span>' +
+                   '<span class="rchip__where">S' + m.semester + '</span>' +
+                 '</button>';
+        }).join("");
+        return '<span class="rule rule--' + fit + '">' +
+                 '<span class="rule__label">' + esc(g.label) + '</span>' +
+                 '<span class="rule__chips">' + chips + '</span>' +
+                 '<span class="rule__tally"><strong>' + n + '</strong> of ' + range + '</span>' +
+               '</span>';
+      }).join("");
+    }
+    return '<div class="rulebar"><div class="rulebar__inner">' + inner + '</div></div>';
+  }
+
   function box(m) {
     var st = statusOf(m);
     var units = m.credits / 15;
@@ -256,11 +309,12 @@
 
     var link = linkClass(m);
     var shown = m.display || m.code;
+    var grouped = groupsFor(m.code).length ? " box--grouped" : "";
 
     return '<li class="cell' + (link ? " cell--linked" : "") +
       '" style="--units:' + units + ';--clamp:' + (units === 2 ? 5 : 2) + '">' +
-      '<button class="box box--' + st + (wouldOverflow ? " box--tight" : "") + link + '" type="button"' +
-        ' data-toggle="' + m.code + '"' +
+      '<button class="box box--' + st + (wouldOverflow ? " box--tight" : "") + grouped + link +
+        '" type="button" data-code="' + m.code + '" data-toggle="' + m.code + '"' +
         (interactive ? ' aria-pressed="' + (st === "selected") + '"' : ' disabled') +
         ' title="' + esc(shown + " — " + titleOf(m) + " · " + m.credits + " credits · " + label) + '">' +
         '<span class="box__head">' +
@@ -361,9 +415,11 @@
         '<span class="key key--selected">Chosen</span>' +
         '<span class="key key--optional">Optional</span>' +
         '<span class="key key--blocked">Clashes with a choice</span>' +
+        '<span class="key key--grouped">In a grouped choice</span>' +
         '<span class="key key--unavailable">Not available</span>' +
         '<span class="mm__hint">Click a module to take it &middot; “i” for details</span>' +
       '</div>' +
+      ruleBar() +
       '<div class="mm__board">' + COLUMNS.map(column).join("") + '</div>' +
       details() +
       '<p class="mm__live" role="status" aria-live="polite">' + esc(root.dataset.say || "") + '</p>';
@@ -426,6 +482,25 @@
     }
     /* a click on the backdrop, outside the card, closes the details */
     if (state.open && event.target.classList.contains("sheet")) { closeSheet(); }
+  });
+
+  /* hovering or focusing a chip points at that module on the board */
+  function spotlight(code) {
+    Array.prototype.forEach.call(root.querySelectorAll(".box.is-spotlit"),
+      function (b) { b.classList.remove("is-spotlit"); });
+    if (!code) { return; }
+    var box = root.querySelector('.box[data-code="' + code + '"]');
+    if (box) { box.classList.add("is-spotlit"); }
+  }
+
+  root.addEventListener("pointerover", function (event) {
+    var chip = event.target.closest(".rchip");
+    spotlight(chip ? chip.dataset.toggle : null);
+  });
+  root.addEventListener("pointerleave", function () { spotlight(null); });
+  root.addEventListener("focusin", function (event) {
+    var chip = event.target.closest(".rchip");
+    if (chip) { spotlight(chip.dataset.toggle); }
   });
 
   function closeSheet() {

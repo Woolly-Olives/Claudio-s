@@ -180,9 +180,26 @@ yet**: a module with no `title` draws as its code with *"Title to be added"*
 beneath it, so the gap is visible rather than invented. Fill them in and that
 treatment disappears on its own.
 
-`groups` records each degree's "choose three or four from …" sets. They are
-shown in a module's details panel but are **not enforced** by the credit
-arithmetic — the 60-credit cap and the clash rules are.
+### Grouped Year 3 choices
+
+Seven of the eleven degrees carry a handbook rule of the form "choose three or
+four from …", and five of those groups straddle both Year 3 semesters — which is
+why the rule cannot live inside a column. It gets its own bar above the board,
+showing the requirement, every member module with the semester it falls in, and
+a live tally that reads amber below the minimum, green inside the range and red
+above the maximum. Members are marked on the board with an amber edge; hovering
+a chip in the bar lights up the matching box, and clicking one takes or drops it
+like clicking the box itself.
+
+The bar is rendered for every degree — the four with no grouped choice get a
+line saying so — and is a fixed single line tall, so switching degree never
+moves the board.
+
+Each group is `{label, min, max, members}` in the degree's `groups` array. The
+tally **reports** compliance rather than enforcing it: the 60-credit cap and the
+clash rules are what actually block a selection. A plan can therefore show
+"0 of 1" in amber, which is the honest signal that the semester has been filled
+leaving no room for a compulsory group choice.
 
 ### Regenerating the data
 

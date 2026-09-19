@@ -22,7 +22,7 @@
               core      required per slot, keyed y1s1 … y3s2
               options   what the handbook lists as choosable in that slot
               coreOneOf alternatives of which exactly one is compulsory
-              groups    the handbook's "choose N from" sets, for reference
+              groups    the handbook's "choose N from" sets: {label, min, max, members}
    A module that is neither core nor in `options` is not available to
    that degree. `clashes` lists pairs the handbooks' clash grids mark as
    untimetableable together.
@@ -191,7 +191,7 @@ window.BIOSOC_CURRICULUM = {
                  y2s2: ["BS2004", "BS2014", "BS2032", "BS2033", "BS2040", "BS2078"],
                  y3s1: ["BS3038", "BS3064", "BS3000", "BS3010", "BS3015", "BS3031", "BS3054", "BS3055", "BS3068", "BS3070", "NT3100"],
                  y3s2: ["BS3003", "BS3011", "BS3013", "BS3016", "BS3033", "BS3056", "BS3069", "BS3080", "NT3200"] },
-      groups: [{"label": "Choose one from", "members": ["BS3038", "BS3064"]}] },
+      groups: [{"label": "Choose one from", "min": 1, "max": 1, "members": ["BS3038", "BS3064"]}] },
     { id: "neuroscience", name: "Neuroscience", hue: 264,
       core: { y1s1: ["BS1030", "BS1040"],
               y1s2: ["BS1050", "BS1060", "BS1070"],
@@ -218,7 +218,7 @@ window.BIOSOC_CURRICULUM = {
                  y2s2: ["BS2004", "BS2026", "BS2032", "BS2033", "BS2040", "BS2066", "BS2077", "BS2078", "BS2091", "BS2092"],
                  y3s1: ["BS3055", "BS3000", "BS3010", "BS3015", "BS3031", "BS3038", "BS3064", "BS3068", "BS3070", "NT3100"],
                  y3s2: ["BS3033", "MB3057", "BS3003", "BS3011", "BS3013", "BS3016", "BS3069", "BS3073", "BS3080", "NT3200"] },
-      groups: [{"label": "Choose two or three from", "members": ["BS3055", "BS3033", "MB3057"]}] },
+      groups: [{"label": "Choose two or three from", "min": 2, "max": 3, "members": ["BS3055", "BS3033", "MB3057"]}] },
     { id: "medical-physiology", name: "Medical Physiology", hue: 20,
       core: { y1s1: ["BS1030", "BS1040"],
               y1s2: ["BS1050", "BS1060", "MB1080"],
@@ -232,7 +232,7 @@ window.BIOSOC_CURRICULUM = {
                  y2s2: ["BS2004", "BS2026", "BS2032", "BS2033", "BS2040", "BS2066", "BS2077", "BS2092"],
                  y3s1: ["BS3054", "BS3055", "BS3000", "BS3010", "BS3015", "BS3031", "BS3038", "BS3064", "BS3068", "BS3070", "NT3100"],
                  y3s2: ["BS3033", "BS3056", "BS3003", "BS3011", "BS3013", "BS3016", "BS3069", "BS3073", "BS3080", "NT3200"] },
-      groups: [{"label": "Choose three or four from", "members": ["BS3054", "BS3055", "BS3033", "BS3056"]}] },
+      groups: [{"label": "Choose three or four from", "min": 3, "max": 4, "members": ["BS3054", "BS3055", "BS3033", "BS3056"]}] },
     { id: "biochemistry", name: "Biochemistry", hue: 202,
       core: { y1s1: ["BS1030", "BS1040"],
               y1s2: ["BS1050", "BS1060", "BS1070"],
@@ -259,7 +259,7 @@ window.BIOSOC_CURRICULUM = {
                  y2s2: ["BS2004", "BS2014", "BS2026", "BS2032", "BS2033", "BS2040", "BS2066", "BS2077", "BS2078"],
                  y3s1: ["BS3070", "BS3000", "BS3015", "BS3031", "BS3038", "BS3054", "BS3055", "BS3064", "BS3068", "NT3100"],
                  y3s2: ["BS3003", "BS3011", "BS3013", "BS3016", "BS3033", "BS3056", "BS3069", "NT3200"] },
-      groups: [{"label": "Choose one or two from", "members": ["BS3070", "BS3003"]}] },
+      groups: [{"label": "Choose one or two from", "min": 1, "max": 2, "members": ["BS3070", "BS3003"]}] },
     { id: "genetics", name: "Genetics", hue: 168,
       core: { y1s1: ["BS1030", "BS1040"],
               y1s2: ["BS1050", "BS1060", "BS1070"],
@@ -273,7 +273,7 @@ window.BIOSOC_CURRICULUM = {
                  y2s2: ["BS2004", "BS2014", "BS2032", "BS2033", "BS2066", "BS2077", "BS2078", "BS2091", "BS2092"],
                  y3s1: [],
                  y3s2: ["BS3011", "BS3073", "BS3003", "BS3013", "BS3016", "BS3033", "BS3056", "BS3069", "BS3080", "NT3200"] },
-      groups: [{"label": "Choose one or two from", "members": ["BS3011", "BS3073"]}] },
+      groups: [{"label": "Choose one or two from", "min": 1, "max": 2, "members": ["BS3011", "BS3073"]}] },
     { id: "medical-genetics", name: "Medical Genetics", hue: 286,
       core: { y1s1: ["BS1030", "BS1040"],
               y1s2: ["BS1050", "BS1060", "MB1080"],
@@ -301,7 +301,7 @@ window.BIOSOC_CURRICULUM = {
                  y3s1: ["BS3015", "BS3068", "BS3000", "BS3010", "BS3031", "BS3038", "BS3054", "BS3055", "BS3064", "BS3070", "NT3100"],
                  y3s2: ["BS3011", "BS3013", "BS3003", "BS3016", "BS3033", "BS3056", "BS3069", "BS3073", "BS3080", "NT3200"] },
       coreOneOf: {"y2s2": [["BS2032", "BS2033"]]},
-      groups: [{"label": "Choose three or four from", "members": ["BS3015", "BS3068", "BS3011", "BS3013"]}] },
+      groups: [{"label": "Choose three or four from", "min": 3, "max": 4, "members": ["BS3015", "BS3068", "BS3011", "BS3013"]}] },
     { id: "medical-microbiology", name: "Medical Microbiology", hue: 306,
       core: { y1s1: ["BS1030", "BS1040"],
               y1s2: ["BS1050", "BS1060", "MB1080"],
@@ -316,6 +316,6 @@ window.BIOSOC_CURRICULUM = {
                  y3s1: ["BS3015", "BS3068", "BS3000", "BS3010", "BS3031", "BS3038", "BS3054", "BS3055", "BS3064", "BS3070", "NT3100"],
                  y3s2: ["BS3011", "BS3013", "BS3003", "BS3016", "BS3033", "BS3056", "BS3069", "NT3200"] },
       coreOneOf: {"y2s2": [["BS2032", "BS2033"]]},
-      groups: [{"label": "Choose three or four from", "members": ["BS3015", "BS3068", "BS3011", "BS3013"]}] }
+      groups: [{"label": "Choose three or four from", "min": 3, "max": 4, "members": ["BS3015", "BS3068", "BS3011", "BS3013"]}] }
   ]
 };

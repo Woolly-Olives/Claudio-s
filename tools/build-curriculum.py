@@ -105,7 +105,7 @@ D = {
   y2s2c=["BS2000","BS2014"], y2s2o=["BS2004","BS2026","BS2032","BS2033","BS2040","BS2066","BS2077","BS2078","BS2091","BS2092"],
   y3s1c=["BS3054"], y3s1o=["BS3055","BS3000","BS3010","BS3015","BS3031","BS3038","BS3064","BS3068","BS3070","NT3100"],
   y3s2c=["BS3056"], y3s2o=["BS3033","MB3057","BS3003","BS3011","BS3013","BS3016","BS3069","BS3073","BS3080","NT3200"],
-  groups=[dict(label="Choose two or three from", members=["BS3055","BS3033","MB3057"])]),
+  groups=[dict(label="Choose two or three from", min=2, max=3, members=["BS3055","BS3033","MB3057"])]),
  "neuroscience": dict(
   y2s1c=["BS2200","BS2013","BS2015"], y2s1o=["BS2009","BS2030","BS2059","BS2093","BS2094","MB2020"],
   y2s2c=["BS2000","BS2066"], y2s2o=["BS2004","BS2014","BS2026","BS2032","BS2033","BS2040","BS2078","BS2091","BS2092"],
@@ -121,26 +121,26 @@ D = {
   y2s2c=["BS2000","BS2026","BS2040"], y2s2o=["BS2004","BS2014","BS2032","BS2033","BS2066","BS2077","BS2078","BS2091","BS2092"],
   y3s1c=["BS3000","BS3031"], y3s1o=[],
   y3s2c=[], y3s2o=["BS3011","BS3073","BS3003","BS3013","BS3016","BS3033","BS3056","BS3069","BS3080","NT3200"],
-  groups=[dict(label="Choose one or two from", members=["BS3011","BS3073"])]),
+  groups=[dict(label="Choose one or two from", min=1, max=2, members=["BS3011","BS3073"])]),
  "microbiology": dict(
   y2s1c=["BS2200","BS2030","MB2020"], y2s1o=["BS2009","BS2013","BS2015","BS2059","BS2093","BS2094"],
   y2s2c=["BS2000"], y2s2alt=[["BS2032","BS2033"]],
   y2s2o=["BS2004","BS2014","BS2026","BS2040","BS2066","BS2077","BS2091","BS2092"],
   y3s1c=[], y3s1o=["BS3015","BS3068","BS3000","BS3010","BS3031","BS3038","BS3054","BS3055","BS3064","BS3070","NT3100"],
   y3s2c=[], y3s2o=["BS3011","BS3013","BS3003","BS3016","BS3033","BS3056","BS3069","BS3073","BS3080","NT3200"],
-  groups=[dict(label="Choose three or four from", members=["BS3015","BS3068","BS3011","BS3013"])]),
+  groups=[dict(label="Choose three or four from", min=3, max=4, members=["BS3015","BS3068","BS3011","BS3013"])]),
  "zoology": dict(
   y2s1c=["BS2200","BS2059"], y2s1o=["BS2009","BS2013","BS2015","BS2030","BS2093","BS2094","MB2020"],
   y2s2c=["BS2000","BS2026","BS2077"], y2s2o=["BS2004","BS2014","BS2032","BS2033","BS2040","BS2078"],
   y3s1c=[], y3s1o=["BS3038","BS3064","BS3000","BS3010","BS3015","BS3031","BS3054","BS3055","BS3068","BS3070","NT3100"],
   y3s2c=["BS3073"], y3s2o=["BS3003","BS3011","BS3013","BS3016","BS3033","BS3056","BS3069","BS3080","NT3200"],
-  groups=[dict(label="Choose one from", members=["BS3038","BS3064"])]),
+  groups=[dict(label="Choose one from", min=1, max=1, members=["BS3038","BS3064"])]),
  "medical-biochemistry": dict(
   y2s1c=["BS2200","BS2093","MB2050"], y2s1o=["BS2009","BS2013","BS2015","BS2030","BS2094","MB2020"],
   y2s2c=["BS2000","BS2091","BS2092"], y2s2o=["BS2004","BS2014","BS2026","BS2032","BS2033","BS2040","BS2066","BS2077","BS2078"],
   y3s1c=["BS3010"], y3s1o=["BS3070","BS3000","BS3015","BS3031","BS3038","BS3054","BS3055","BS3064","BS3068","NT3100"],
   y3s2c=["MB3001"], y3s2o=["BS3003","BS3011","BS3013","BS3016","BS3033","BS3056","BS3069","NT3200"],
-  groups=[dict(label="Choose one or two from", members=["BS3070","BS3003"])]),
+  groups=[dict(label="Choose one or two from", min=1, max=2, members=["BS3070","BS3003"])]),
  "medical-genetics": dict(
   y2s1c=["BS2200","BS2009","MB2051"], y2s1o=["BS2013","BS2015","BS2030","BS2093","BS2094","MB2020"],
   y2s2c=["BS2000","BS2026","BS2040"], y2s2o=["BS2004","BS2014","BS2032","BS2033","BS2066","BS2077","BS2091","BS2092"],
@@ -152,13 +152,13 @@ D = {
   y2s2o=["BS2004","BS2014","BS2026","BS2040","BS2066","BS2077","BS2091","BS2092"],
   y3s1c=[], y3s1o=["BS3015","BS3068","BS3000","BS3010","BS3031","BS3038","BS3054","BS3055","BS3064","BS3070","NT3100"],
   y3s2c=["MB3020"], y3s2o=["BS3011","BS3013","BS3003","BS3016","BS3033","BS3056","BS3069","NT3200"],
-  groups=[dict(label="Choose three or four from", members=["BS3015","BS3068","BS3011","BS3013"])]),
+  groups=[dict(label="Choose three or four from", min=3, max=4, members=["BS3015","BS3068","BS3011","BS3013"])]),
  "medical-physiology": dict(
   y2s1c=["BS2200","BS2013","BS2015"], y2s1o=["BS2009","BS2059","BS2093","BS2094","MB2020"],
   y2s2c=["BS2000","BS2014","MB2080"], y2s2o=["BS2004","BS2026","BS2032","BS2033","BS2040","BS2066","BS2077","BS2092"],
   y3s1c=[], y3s1o=["BS3054","BS3055","BS3000","BS3010","BS3015","BS3031","BS3038","BS3064","BS3068","BS3070","NT3100"],
   y3s2c=["MB3057"], y3s2o=["BS3033","BS3056","BS3003","BS3011","BS3013","BS3016","BS3069","BS3073","BS3080","NT3200"],
-  groups=[dict(label="Choose three or four from", members=["BS3054","BS3055","BS3033","BS3056"])]),
+  groups=[dict(label="Choose three or four from", min=3, max=4, members=["BS3054","BS3055","BS3033","BS3056"])]),
 }
 
 SLOTS = ["y1s1","y1s2","y2s1","y2s2","y3s1","y3s2"]
@@ -201,7 +201,7 @@ out = ['''/* =============================================================
               core      required per slot, keyed y1s1 … y3s2
               options   what the handbook lists as choosable in that slot
               coreOneOf alternatives of which exactly one is compulsory
-              groups    the handbook's "choose N from" sets, for reference
+              groups    the handbook's "choose N from" sets: {label, min, max, members}
    A module that is neither core nor in `options` is not available to
    that degree. `clashes` lists pairs the handbooks' clash grids mark as
    untimetableable together.
