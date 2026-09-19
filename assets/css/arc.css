@@ -1,0 +1,190 @@
+/* =============================================================
+   Essential Links — the wheel's slice, zoomed to fill the page.
+   Geometry is computed in assets/js/arc.js; this is presentation
+   only. Scoped to #links-arc so nothing leaks into the other pages.
+   ============================================================= */
+
+/* the arc wants the whole page, not the reading column */
+.page__bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
+#links-arc {
+  position: relative;
+  display: block;
+  width: 100%;
+  transform-origin: 50% 88%;
+}
+
+/* zooming in on the slice as the page opens */
+#links-arc {
+  opacity: 0;
+  transform: scale(0.13) translateY(7%);
+  transition: transform 980ms var(--ease) 80ms, opacity 520ms var(--ease) 80ms;
+}
+
+.page.is-open #links-arc,
+.page.is-settled #links-arc {
+  opacity: 1;
+  transform: none;
+}
+
+#links-arc .arc__svg { display: block; width: 100%; overflow: visible; }
+
+/* ---------- the segments ---------- */
+
+#links-arc .seg { cursor: pointer; }
+
+#links-arc .seg__path {
+  /* the middle of the arc holds the most-used links, so it sits stronger */
+  fill: hsl(var(--hue) 62% 46% / calc(0.30 - var(--k, 0) * 0.13));
+  stroke: hsl(var(--hue) 68% 58% / calc(0.72 - var(--k, 0) * 0.28));
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  transition: fill 200ms var(--ease), stroke 200ms var(--ease);
+}
+
+#links-arc .seg:hover .seg__path,
+#links-arc .seg.is-hot .seg__path,
+#links-arc .seg:focus-visible .seg__path {
+  fill: hsl(var(--hue) 68% 50% / 0.5);
+  stroke: hsl(var(--hue) 80% 66% / 0.95);
+}
+
+#links-arc .seg:focus { outline: none; }
+#links-arc .seg:focus-visible .seg__path { stroke-width: 2.4; }
+
+/* ---------- the labels that ride on the segments ---------- */
+
+#links-arc .arc__labels { position: absolute; inset: 0; }
+
+#links-arc .seg-label {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 220ms var(--ease);
+}
+
+#links-arc .seg-label:hover { transform: translate(-50%, -54%) rotate(var(--tilt, 0deg)); }
+
+#links-arc .seg-label__n {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid hsl(var(--hue) 55% 58% / 0.55);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: hsl(var(--hue) 60% var(--label-l));
+}
+
+#links-arc .seg-label__name {
+  font-size: clamp(0.82rem, 1.05vw, 1rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  text-wrap: balance;
+}
+
+#links-arc .seg-label--more .seg-label__name { margin-bottom: 0.1rem; }
+
+#links-arc .seg-label__more {
+  display: grid;
+  gap: 0.2rem;
+  justify-items: stretch;
+  width: 100%;
+}
+
+#links-arc .seg-label__more a {
+  padding: 0.16rem 0.3rem;
+  border: 1px solid hsl(var(--hue) 45% 55% / 0.35);
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--fg-soft);
+  text-decoration: none;
+  transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+
+#links-arc .seg-label__more a:hover {
+  background: hsl(var(--hue) 55% 50% / 0.22);
+  color: var(--fg);
+}
+
+/* ---------- the hub everything fans out of ---------- */
+
+#links-arc .arc__hub {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border: 2px solid hsl(var(--hue) 60% 55% / 0.75);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px hsl(0 0% 0% / 0.3);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease);
+}
+
+#links-arc .arc__hub::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: hsl(var(--hue) 65% 52%);
+}
+
+#links-arc .arc__hub:hover { border-color: hsl(var(--hue) 70% 60%); }
+
+#links-arc .arc__hub__name {
+  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+/* ---------- the line that names whatever you are pointing at ---------- */
+
+#links-arc .arc__readout {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(42rem, 88%);
+  margin: 0;
+  text-align: center;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--fg-soft);
+  min-height: 2.6em;
+}
+
+/* ---------- narrow screens keep the plain list ---------- */
+
+.links-fallback { display: none; }
+
+@media (max-width: 820px) {
+  #links-arc { display: none; }
+  .links-fallback { display: block; }
+}
+
+.no-js #links-arc { display: none; }
+.no-js .links-fallback { display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  #links-arc { transition-duration: 1ms; transform: none; }
+  #links-arc .seg__path, #links-arc .seg-label { transition-duration: 1ms; }
+  #links-arc .seg-label:hover { transform: translate(-50%, -50%) rotate(var(--tilt, 0deg)); }
+}

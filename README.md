@@ -108,6 +108,47 @@ source (the university, the students' union, the funder) rather than a summary
 of it, and re-check dates and deadlines each year — a stale hub is worse than no
 hub. Consider adding a "last checked" line to pages that carry deadlines.
 
+## The Essential Links arc
+
+That page shows the menu wheel's own Essential Links slice, zoomed until its
+outer edge spans the page, then cut into one segment per link. The angle
+(360/7), the width and the curvature are the wheel's exactly; only the depth is
+trimmed, because a true zoom would run well past the fold and leave nine very
+narrow slivers.
+
+Content lives in **`assets/data/links.js`**, not in `index.html`:
+
+- `hub` is remote.le.ac.uk, drawn as a pill below the narrow end of the fan,
+  which every other link fans out of.
+- each entry in `links` has an `n` (the number shown, following the order the
+  committee listed them in) and a `rank`. **`rank` is what places a link on the
+  arc**: rank 1 goes in the middle, which is the most prominent spot, and the
+  rest fan out alternately left and right. Change a `rank` to move a link.
+- `more` holds nested links — the Students' Union's three — drawn as small pills
+  inside its segment.
+- `note` is shown in the readout line under the arc when you point at a segment.
+
+Segments nearer the middle are drawn a shade stronger, so the weighting is
+visible as well as positional.
+
+**Below 820px, and with JavaScript off, the arc is hidden and the plain list in
+`index.html` takes over.** The two hold the same links, so they have to be kept
+in step — if you add a link to the data file, add it to that list too.
+
+## Bento tiles (Opportunities)
+
+A grid of differently sized tiles, for a section that is a launchpad rather than
+a document. Plain HTML in `index.html`: an `.bento` wrapper of `.bento__tile`
+links, each with an eyebrow, a title, an optional note, and a
+`.bento__tag` marking it a placeholder — delete that tag as each tile is filled
+in.
+
+Size comes from `.bento__tile--wide` (two columns) and `.bento__tile--tall` (two
+rows). **Keep the spans tiling the four-column grid exactly**, or the layout
+leaves holes; the current eight tiles fill four rows with nothing left over. The
+grid drops to two columns below 900px and one below 560px, where all spans are
+ignored.
+
 ## The module map (Customise Your Degree)
 
 That page is an app rather than prose, so its content lives in one data file:

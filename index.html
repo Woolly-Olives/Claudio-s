@@ -9,6 +9,7 @@
 <meta name="color-scheme" content="dark light">
 <link rel="stylesheet" href="assets/css/styles.css">
 <link rel="stylesheet" href="assets/css/modulemap.css">
+<link rel="stylesheet" href="assets/css/arc.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='none' stroke='%234ccf9a' stroke-width='10'/><circle cx='50' cy='50' r='12' fill='%234ccf9a'/></svg>">
 <script>document.documentElement.classList.remove('no-js');</script>
 </head>
@@ -74,6 +75,12 @@
         <h1 class="page__title" id="h-essential-links" tabindex="-1">Essential Links</h1>
       </header>
       <div class="page__body">
+        <!-- The arc is built by assets/js/arc.js from assets/data/links.js.
+             The list below is what narrow screens and no-JS visitors get,
+             so the two must be kept in step. -->
+        <div class="page__bleed"><div id="links-arc"></div></div>
+
+        <div class="links-fallback">
         <h2>Start here</h2>
 
         <a class="link-hero" href="https://remote.le.ac.uk/">
@@ -115,6 +122,7 @@
             <a href="https://opentimetable.le.ac.uk/"><strong>Open Timetable</strong><span>Timetables for all rooms, modules and courses across the university</span></a>
           </li>
         </ol>
+        </div>
       </div>
     </div>
   </div>
@@ -411,8 +419,70 @@
         <h1 class="page__title" id="h-opportunities" tabindex="-1">Opportunities</h1>
       </header>
       <div class="page__body">
-        <!-- CONTENT: Opportunities — add resources here -->
-        <p class="page__empty">Content coming soon.</p>
+        <!-- CONTENT: Opportunities
+             Placeholder tiles. Replace each href and the text; drop the
+             <span class="bento__tag">Placeholder</span> as each one is filled
+             in. Tile size is set by the bento__tile--* classes. Keep the spans
+             tiling the 4-column grid exactly, or the layout leaves holes. -->
+        <div class="bento">
+          <a class="bento__tile bento__tile--wide bento__tile--tall" href="#">
+            <span class="bento__eyebrow">Between years</span>
+            <strong class="bento__title">Placements and industrial years</strong>
+            <span class="bento__note">Year-in-industry schemes, how to apply, and who to
+            talk to in the School before you commit.</span>
+            <span class="bento__tag">Placeholder</span>
+          </a>
+
+          <a class="bento__tile bento__tile--tall" href="#">
+            <span class="bento__eyebrow">Summer</span>
+            <strong class="bento__title">Summer research</strong>
+            <span class="bento__note">Funded studentships and lab placements.</span>
+            <span class="bento__tag">Placeholder</span>
+          </a>
+
+          <a class="bento__tile bento__tile--tall" href="#">
+            <span class="bento__eyebrow">After the degree</span>
+            <strong class="bento__title">PhD and postgraduate routes</strong>
+            <span class="bento__note">Where Leicester graduates go, and how to find a
+            supervisor.</span>
+            <span class="bento__tag">Placeholder</span>
+          </a>
+
+          <a class="bento__tile bento__tile--wide" href="#">
+            <span class="bento__eyebrow">Applications</span>
+            <strong class="bento__title">CVs, cover letters and interviews</strong>
+            <span class="bento__note">Templates, the Careers Service booking page, and
+            what a science CV should look like.</span>
+            <span class="bento__tag">Placeholder</span>
+          </a>
+
+          <a class="bento__tile" href="#">
+            <span class="bento__eyebrow">Money</span>
+            <strong class="bento__title">Funding and bursaries</strong>
+            <span class="bento__tag">Placeholder</span>
+          </a>
+
+          <a class="bento__tile" href="#">
+            <span class="bento__eyebrow">Experience</span>
+            <strong class="bento__title">Volunteering</strong>
+            <span class="bento__tag">Placeholder</span>
+          </a>
+
+          <a class="bento__tile bento__tile--wide" href="#">
+            <span class="bento__eyebrow">Get involved</span>
+            <strong class="bento__title">Talks, conferences and competitions</strong>
+            <span class="bento__note">What is coming up, and what BioSoc can fund.</span>
+            <span class="bento__tag">Placeholder</span>
+          </a>
+
+          <a class="bento__tile bento__tile--wide" href="#">
+            <span class="bento__eyebrow">Ask someone</span>
+            <strong class="bento__title">Careers Service</strong>
+            <span class="bento__note">One-to-one appointments, and the events they run
+            for science students.</span>
+            <span class="bento__tag">Placeholder</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -481,7 +551,9 @@
   </div>
 </section>
 
+<script src="assets/data/links.js"></script>
 <script src="assets/data/curriculum.js"></script>
+<script src="assets/js/arc.js"></script>
 <script src="assets/js/modulemap.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
