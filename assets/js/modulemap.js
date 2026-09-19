@@ -70,6 +70,45 @@
     return " box--link-mid";
   }
 
+  /* ---------- subject-stream colours ---------- */
+
+  var STREAMS = (DATA.meta && DATA.meta.streams) || [];
+  var NEUTRAL = (DATA.meta && DATA.meta.neutral) || { core: "#bfbfbf", plain: "#f2f2f2" };
+  var UNCOLOURED = (DATA.meta && DATA.meta.uncoloured) || [];
+
+  function isCoreFor(d, code) {
+    return Object.keys(d.core).some(function (s) { return d.core[s].indexOf(code) !== -1; }) ||
+      Object.keys(d.coreOneOf || {}).some(function (s) {
+        return (d.coreOneOf[s] || []).some(function (g) { return g.indexOf(code) !== -1; });
+      });
+  }
+
+  /**
+   * The stream a module belongs to, by the School's own colour key. Where a
+   * module is core for several streams the first match wins, and STREAMS is
+   * held in the agreed precedence order. Modules core for every degree carry
+   * no stream: colouring them would say nothing about specialisation.
+   */
+  var streamCache = {};
+  function streamOf(code) {
+    if (streamCache.hasOwnProperty(code)) { return streamCache[code]; }
+    var m = byCode[code], found = null;
+    if (m && m.year !== 1 && UNCOLOURED.indexOf(code) === -1) {
+      for (var i = 0; i < STREAMS.length && !found; i++) {
+        if (STREAMS[i].degrees.some(function (id) {
+          var d = DATA.degrees.filter(function (x) { return x.id === id; })[0];
+          return d && isCoreFor(d, code);
+        })) { found = STREAMS[i]; }
+      }
+    }
+    streamCache[code] = found;
+    return found;
+  }
+
+  function streamForDegree(id) {
+    return STREAMS.filter(function (st) { return st.degrees.indexOf(id) !== -1; })[0] || null;
+  }
+
   /* pairs the handbooks' clash grids mark as impossible to timetable together */
   var CLASH = {};
   (DATA.clashes || []).forEach(function (pair) {
@@ -232,8 +271,10 @@
         var d = degreeById(id);
         var on = d.id === state.degree;
         var span = (col.length === 1 && rows > 1) ? ' dbtn--tall' : '';
+        var st = streamForDegree(d.id);
         return '<button class="dbtn' + (on ? " is-on" : "") + span + '" type="button" role="tab"' +
-               ' aria-selected="' + on + '" data-degree="' + d.id + '" style="--dh:' + d.hue + '">' +
+               ' aria-selected="' + on + '" data-degree="' + d.id + '"' +
+               ' style="--sc:' + (st ? st.colour : NEUTRAL.core) + '">' +
                esc(d.name) + '</button>';
       }).join("") + '</div>';
     }).join("");
@@ -310,10 +351,13 @@
     var link = linkClass(m);
     var shown = m.display || m.code;
     var grouped = groupsFor(m.code).length ? " box--grouped" : "";
+    var stream = streamOf(m.code);
 
     return '<li class="cell' + (link ? " cell--linked" : "") +
-      '" style="--units:' + units + ';--clamp:' + (units === 2 ? 5 : 2) + '">' +
-      '<button class="box box--' + st + (wouldOverflow ? " box--tight" : "") + grouped + link +
+      '" style="--units:' + units + ';--clamp:' + (units === 2 ? 5 : 2) +
+      ';--sc:' + (stream ? stream.colour : NEUTRAL.core) + '">' +
+      '<button class="box box--' + st + (stream ? " box--streamed" : "") +
+        (wouldOverflow ? " box--tight" : "") + grouped + link +
         '" type="button" data-code="' + m.code + '" data-toggle="' + m.code + '"' +
         (interactive ? ' aria-pressed="' + (st === "selected") + '"' : ' disabled') +
         ' title="' + esc(shown + " — " + titleOf(m) + " · " + m.credits + " credits · " + label) + '">' +
@@ -401,7 +445,6 @@
 
   function render() {
     var d = degree();
-    root.style.setProperty("--dh", d.hue);
     root.innerHTML =
       (DATA.meta.sampleData
         ? '<p class="mm__sample"><strong>Sample data</strong> &mdash; placeholder modules, not the ' +
@@ -410,6 +453,12 @@
       /* nothing here may vary in height between degrees, or the board
          shifts under the pointer when you switch */
       '<div class="mm__degrees" role="tablist" aria-label="Degree">' + degreeButtons() + '</div>' +
+      '<div class="mm__streams"><b>Stream colours</b>' +
+        STREAMS.map(function (st) {
+          return '<span class="skey" style="--sc:' + st.colour + '">' + esc(st.label) + '</span>';
+        }).join("") +
+        '<span class="skey" style="--sc:' + NEUTRAL.core + '">Core for every degree</span>' +
+      '</div>' +
       '<div class="mm__legend">' +
         '<span class="key key--core">Core</span>' +
         '<span class="key key--selected">Chosen</span>' +
@@ -420,7 +469,10 @@
         '<span class="mm__hint">Click a module to take it &middot; “i” for details</span>' +
       '</div>' +
       ruleBar() +
-      '<div class="mm__board">' + COLUMNS.map(column).join("") + '</div>' +
+      '<div class="mm__board">' + COLUMNS.map(column).join("") +
+        '<svg class="mm__links" aria-hidden="true"></svg>' +
+        '<div class="mm__hub" hidden></div>' +
+      '</div>' +
       details() +
       '<p class="mm__live" role="status" aria-live="polite">' + esc(root.dataset.say || "") + '</p>';
 
@@ -428,6 +480,93 @@
       var h = root.querySelector(".sheet__title");
       if (h) { h.focus({ preventScroll: true }); }
     }
+    scheduleLinks();
+  }
+
+  /**
+   * Draw the grouped choice as lines from each member module converging on a
+   * single hub, which states how many of them must be taken. Members sit in
+   * both Year 3 columns, so the hub goes in the widened gap between them.
+   * Purely decorative: the SVG takes no pointer events.
+   */
+  function drawLinks() {
+    var board = root.querySelector(".mm__board");
+    var svg = root.querySelector(".mm__links");
+    var hub = root.querySelector(".mm__hub");
+    if (!board || !svg || !hub) { return; }
+
+    svg.innerHTML = "";
+    hub.hidden = true;
+
+    var groups = degree().groups || [];
+    if (!groups.length) { return; }
+    var g = groups[0];
+
+    var c1 = board.querySelector('[data-col="y3s1"]');
+    var c2 = board.querySelector('[data-col="y3s2"]');
+    if (!c1 || !c2) { return; }
+
+    var br = board.getBoundingClientRect();
+    var ox = board.scrollLeft - br.left;
+    var r1 = c1.getBoundingClientRect(), r2 = c2.getBoundingClientRect();
+    var cx = (r1.right + r2.left) / 2 + ox;
+
+    var pts = [];
+    g.members.forEach(function (code) {
+      var box = board.querySelector('.box[data-code="' + code + '"]');
+      if (!box) { return; }
+      var rb = box.getBoundingClientRect();
+      var onLeft = (rb.right + ox) < cx;
+      pts.push({
+        code: code,
+        x: (onLeft ? rb.right : rb.left) + ox,
+        y: rb.top + rb.height / 2 - br.top,
+        dir: onLeft ? 1 : -1
+      });
+    });
+    if (!pts.length) { return; }
+
+    var W = board.scrollWidth, H = board.scrollHeight;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("width", W);
+    svg.setAttribute("height", H);
+
+    var cy = pts.reduce(function (a, q) { return a + q.y; }, 0) / pts.length;
+    cy = Math.max(46, Math.min(H - 46, cy));
+
+    var NS = "http://www.w3.org/2000/svg";
+    pts.forEach(function (q) {
+      var path = document.createElementNS(NS, "path");
+      /* leave the box horizontally, then bend in to the hub */
+      var midx = q.x + q.dir * Math.max(14, Math.abs(cx - q.x) * 0.45);
+      path.setAttribute("d", "M " + q.x + " " + q.y +
+        " C " + midx + " " + q.y + ", " + (cx - q.dir * 26) + " " + cy + ", " + cx + " " + cy);
+      path.setAttribute("class", "mm__link" +
+        (statusOf(byCode[q.code]) === "selected" ? " is-taken" : ""));
+      svg.appendChild(path);
+
+      var dot = document.createElementNS(NS, "circle");
+      dot.setAttribute("cx", q.x); dot.setAttribute("cy", q.y); dot.setAttribute("r", 3);
+      dot.setAttribute("class", "mm__linkdot");
+      svg.appendChild(dot);
+    });
+
+    var n = takenIn(g);
+    var range = g.min === g.max ? String(g.min) : g.min + "\u2013" + g.max;
+    var fit = n < g.min ? "under" : (n > g.max ? "over" : "met");
+    hub.className = "mm__hub mm__hub--" + fit;
+    hub.innerHTML = '<span class="mm__hub__take">take</span>' +
+                    '<span class="mm__hub__n">' + range + '</span>' +
+                    '<span class="mm__hub__of">' + n + ' chosen</span>';
+    hub.style.left = cx + "px";
+    hub.style.top = cy + "px";
+    hub.hidden = false;
+  }
+
+  var linkFrame = null;
+  function scheduleLinks() {
+    if (linkFrame) { cancelAnimationFrame(linkFrame); }
+    linkFrame = requestAnimationFrame(function () { linkFrame = null; drawLinks(); });
   }
 
   function say(msg) {
@@ -531,6 +670,13 @@
   }
   window.addEventListener("hashchange", reassert);
   window.addEventListener("popstate", reassert);
+
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(scheduleLinks);
+    ro.observe(root);
+  } else {
+    window.addEventListener("resize", scheduleLinks);
+  }
 
   readUrl();
   if (location.search) { writeUrl(); }   // normalise anything the link got wrong

@@ -11,10 +11,15 @@
    ============================================================= */
 
 #module-map {
+  /* One fixed accent for the furniture. It used to follow the selected
+     degree; it no longer does, so that the only colour that moves is the
+     subject-stream colour carried by the buttons and the module outlines. */
   --dh: 192;
+  --sc: #bfbfbf;         /* this element's stream colour, set inline by the JS */
   --u: 4rem;             /* height of a 15-credit box */
   --gap: 0.375rem;       /* between boxes down a column */
-  --col-gap: 0.6rem;     /* between columns — the width a linked shape bridges */
+  --col-gap: 1.6rem;     /* between columns — the width a linked shape bridges */
+  --y3-gap: 7rem;        /* extra room between the Year 3 semesters, for the hub */
 }
 
 /* the map needs more width than the reading column — not scoped, it is
@@ -75,14 +80,15 @@
 
 #module-map .dbtn:hover {
   color: var(--fg);
-  border-color: hsl(var(--dh) 55% 55% / 0.45);
+  border-color: var(--sc);
+  background: color-mix(in srgb, var(--sc) 14%, transparent);
 }
 
 #module-map .dbtn.is-on {
-  color: var(--fg);
+  color: #10201a;
   font-weight: 700;
-  background: hsl(var(--dh) 60% 50% / 0.26);
-  border-color: hsl(var(--dh) 65% 58% / 0.7);
+  background: var(--sc);
+  border-color: var(--sc);
 }
 
 /* ---------- legend ---------- */
@@ -112,13 +118,13 @@
 }
 
 #module-map .key--core::before {
-  background: hsl(var(--dh) 62% 48%);
-  border-color: hsl(var(--dh) 65% 58%);
+  background: #bfbfbf;
+  border-color: #bfbfbf;
 }
 
 #module-map .key--selected::before {
-  background: hsl(var(--dh) 55% 50% / 0.42);
-  border-color: hsl(var(--dh) 65% 60%);
+  background: hsl(0 0% 75% / 0.4);
+  border-color: #bfbfbf;
   border-width: 2px;
 }
 
@@ -144,14 +150,49 @@
   font-style: italic;
 }
 
+/* ---------- which colour means which subject stream ---------- */
+
+#module-map .mm__streams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  align-items: center;
+  margin: 0 0 0.85rem;
+  font-size: 0.76rem;
+  color: var(--fg-soft);
+}
+
+#module-map .mm__streams b {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  color: var(--fg-soft);
+}
+
+#module-map .skey { display: inline-flex; align-items: center; gap: 0.35rem; }
+
+#module-map .skey::before {
+  content: "";
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+  background: var(--sc);
+}
+
 /* ---------- the board ---------- */
 
 #module-map .mm__board {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(6, minmax(9.5rem, 1fr));
+  /* five columns, then a spacer, then Year 3 Semester 2: the spacer is where
+     the grouped-choice hub sits, so its lines do not cross any module */
+  grid-template-columns: repeat(5, minmax(9.5rem, 1fr)) var(--y3-gap) minmax(9.5rem, 1fr);
   gap: var(--col-gap);
   align-items: start;
 }
+
+#module-map .col[data-col="y3s2"] { grid-column: 7; }
 
 #module-map .col { min-width: 0; }
 
@@ -280,35 +321,41 @@
 }
 
 /* core — filled solid in the degree's colour */
+/* core for the degree on screen — filled in its stream's colour */
 #module-map .box--core {
-  background: hsl(var(--dh) 58% 42%);
-  border: 1px solid hsl(var(--dh) 62% 55%);
-  color: #fff;
+  background: var(--sc);
+  border: 2px solid var(--sc);
+  color: #10201a;
   cursor: default;
 }
 
 /* optional — an empty slot waiting to be filled */
 #module-map .box--optional {
-  background: hsl(var(--dh) 25% 50% / 0.06);
-  border: 1px dashed hsl(var(--dh) 35% 55% / 0.5);
+  background: color-mix(in srgb, var(--sc) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sc) 30%, transparent);
   color: var(--fg-soft);
 }
 
+/* a module that is core for no stream should recede */
+#module-map .box--optional.box--streamed {
+  border-color: color-mix(in srgb, var(--sc) 70%, transparent);
+}
+
 #module-map .box--optional:hover {
-  background: hsl(var(--dh) 40% 50% / 0.16);
-  border-color: hsl(var(--dh) 55% 58% / 0.8);
+  background: color-mix(in srgb, var(--sc) 20%, transparent);
+  border-color: var(--sc);
   color: var(--fg);
   transform: translateY(-1px);
 }
 
 /* chosen — clearly taken, but distinct from core */
 #module-map .box--selected {
-  background: hsl(var(--dh) 55% 50% / 0.34);
-  border: 2px solid hsl(var(--dh) 65% 60%);
+  background: color-mix(in srgb, var(--sc) 34%, transparent);
+  border: 2px solid var(--sc);
   color: var(--fg);
 }
 
-#module-map .box--selected:hover { background: hsl(var(--dh) 55% 50% / 0.45); }
+#module-map .box--selected:hover { background: color-mix(in srgb, var(--sc) 48%, transparent); }
 
 /* would not fit in the credits left in its semester */
 #module-map .box--tight { opacity: 0.45; }
@@ -336,7 +383,7 @@
 #module-map .box--unavailable .box__title { text-decoration: line-through; }
 
 #module-map .box:focus-visible {
-  outline: 2px solid hsl(var(--dh) 80% 62%);
+  outline: 2px solid var(--sc);
   outline-offset: 2px;
 }
 
@@ -369,8 +416,9 @@
 }
 
 #module-map .box--core + .box__info {
-  color: #fff;
-  border-color: hsl(0 0% 100% / 0.4);
+  color: #10201a;
+  background: hsl(0 0% 100% / 0.4);
+  border-color: hsl(0 0% 0% / 0.25);
 }
 
 /* ---------- the "choose three or four from ..." rule bar ----------
@@ -482,6 +530,75 @@
   outline: 2px solid hsl(42 85% 60%);
   outline-offset: 2px;
 }
+
+/* ---------- grouped choice: lines converging on a hub ----------
+   Drawn by drawLinks() after every render. The overlay is decorative and
+   takes no pointer events, so it can never sit between a click and a box. */
+
+#module-map .mm__links {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+}
+
+#module-map .mm__link {
+  fill: none;
+  stroke: hsl(42 80% 55% / 0.5);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+#module-map .mm__link.is-taken {
+  stroke: hsl(42 90% 60%);
+  stroke-width: 2.2;
+  stroke-dasharray: none;
+}
+
+#module-map .mm__linkdot { fill: hsl(42 85% 58%); }
+
+#module-map .mm__hub {
+  position: absolute;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.05rem;
+  min-width: 5.6rem;
+  padding: 0.4rem 0.5rem;
+  border: 2px solid hsl(42 80% 55%);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px hsl(0 0% 0% / 0.4);
+  text-align: center;
+  pointer-events: none;
+}
+
+#module-map .mm__hub__take {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+
+#module-map .mm__hub__n {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+
+#module-map .mm__hub__of { font-size: 0.66rem; color: var(--fg-soft); }
+
+#module-map .mm__hub--under { border-color: hsl(42 80% 55%); }
+#module-map .mm__hub--met   { border-color: hsl(150 60% 48%); }
+#module-map .mm__hub--over  { border-color: hsl(8 68% 55%); }
+#module-map .mm__hub--met .mm__hub__of  { color: hsl(150 55% 50%); }
+#module-map .mm__hub--over .mm__hub__of { color: hsl(8 70% 60%); }
 
 /* ---------- details panel ---------- */
 
@@ -631,7 +748,8 @@
   right: 100%;
   top: -1px;
   bottom: -1px;
-  width: calc(var(--col-gap) + 2px);
+  /* the only linked pair runs Y3S1 -> Y3S2, across both gaps and the spacer */
+  width: calc(var(--col-gap) * 2 + var(--y3-gap) + 2px);
   box-sizing: border-box;
   background: inherit;
   border-top: 1px solid;
@@ -658,7 +776,7 @@
     overflow-x: auto;
     overscroll-behavior-x: contain;
     padding-bottom: 0.6rem;
-    grid-template-columns: repeat(6, 10.5rem);
+    grid-template-columns: repeat(5, 10.5rem) var(--y3-gap) 10.5rem;
   }
   #module-map .mm__hint { margin-left: 0; }
 }

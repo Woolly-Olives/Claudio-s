@@ -180,6 +180,36 @@ yet**: a module with no `title` draws as its code with *"Title to be added"*
 beneath it, so the gap is visible rather than invented. Fill them in and that
 treatment disappears on its own.
 
+### Colour
+
+Colour means **subject stream**, and nothing else. The palette is sampled from
+the School's own module key:
+
+| Stream | | Degrees |
+| --- | --- | --- |
+| Physiology | `#ff99ff` | Physiology with Pharmacology, Medical Physiology |
+| Neuroscience | `#9999ff` | Neuroscience |
+| Biochemistry | `#66ffcc` | Biochemistry, Medical Biochemistry |
+| Genetics | `#ff9966` | Genetics, Medical Genetics |
+| Microbiology | `#ccff66` | Microbiology, Medical Microbiology |
+| Zoology | `#33cc33` | Zoology |
+| — | `#bfbfbf` | core for every degree, or core for none |
+
+A degree and its Medical counterpart share a colour. Where a module is core for
+more than one stream the first match in `meta.streams` wins, and that array is
+held in the agreed precedence order: physiology, neuroscience, biochemistry,
+genetics, microbiology, zoology.
+
+`meta.uncoloured` lists modules that take no stream colour despite being core —
+BS2200, BS2000, both halves of the Research Project, plus BS2004 and BS2094.
+Year 1 is excluded wholesale. These are core for everyone, so colouring them
+would say nothing about specialisation.
+
+**Selecting a degree no longer recolours anything.** A module's outline is a
+fixed property of the module, so you can see that BS2014 belongs to Physiology
+while looking at Zoology. What the selected degree changes is the *fill*: solid
+for core, tinted for chosen, empty for optional, hatched for unavailable.
+
 ### Grouped Year 3 choices
 
 Seven of the eleven degrees carry a handbook rule of the form "choose three or
@@ -194,6 +224,12 @@ like clicking the box itself.
 The bar is rendered for every degree — the four with no grouped choice get a
 line saying so — and is a fixed single line tall, so switching degree never
 moves the board.
+
+On the board itself the same rule is drawn as lines from each member module
+converging on a hub that states how many must be taken and how many are chosen.
+Lines to modules already taken are solid, the rest dashed. The hub needs room,
+so the gap between the two Year 3 semesters is a dedicated spacer column
+(`--y3-gap`); the year-long project's connecting bridge spans it.
 
 Each group is `{label, min, max, members}` in the degree's `groups` array. The
 tally **reports** compliance rather than enforcing it: the 60-credit cap and the

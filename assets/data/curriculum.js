@@ -33,6 +33,31 @@ window.BIOSOC_CURRICULUM = {
     school: "School of Biological Sciences",
     session: "2026-27",
     creditsPerSemester: 60,
+
+    /* Subject-stream colours, sampled from the School's own module key.
+       Listed in the precedence order used when a module is core for more
+       than one stream: physiology, neuroscience, biochemistry, genetics,
+       microbiology, zoology. A stream's Medical counterpart shares its
+       colour. `uncoloured` names modules that take no stream colour even
+       though they are core — they are core for everyone, so colouring them
+       would say nothing about the stream. Year 1 is excluded wholesale. */
+    streams: [
+      { id: "physiology",   label: "Physiology",   colour: "#ff99ff",
+        degrees: ["physiology-pharmacology", "medical-physiology"] },
+      { id: "neuroscience", label: "Neuroscience", colour: "#9999ff",
+        degrees: ["neuroscience"] },
+      { id: "biochemistry", label: "Biochemistry", colour: "#66ffcc",
+        degrees: ["biochemistry", "medical-biochemistry"] },
+      { id: "genetics",     label: "Genetics",     colour: "#ff9966",
+        degrees: ["genetics", "medical-genetics"] },
+      { id: "microbiology", label: "Microbiology", colour: "#ccff66",
+        degrees: ["microbiology", "medical-microbiology"] },
+      { id: "zoology",      label: "Zoology",      colour: "#33cc33",
+        degrees: ["zoology"] }
+    ],
+    neutral: { core: "#bfbfbf", plain: "#f2f2f2" },
+    uncoloured: ["BS2200", "BS2000", "BS3PROJ", "BS3PROJB", "BS2004", "BS2094"],
+
     degreeLayout: [
       ["biological-sciences"],
       ["zoology", "neuroscience"],
