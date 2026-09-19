@@ -18,8 +18,7 @@
   --sc: #bfbfbf;         /* this element's stream colour, set inline by the JS */
   --u: 4rem;             /* height of a 15-credit box */
   --gap: 0.375rem;       /* between boxes down a column */
-  --col-gap: 1.6rem;     /* between columns — the width a linked shape bridges */
-  --y3-gap: 7rem;        /* extra room between the Year 3 semesters, for the hub */
+  --col-gap: 2.75rem;    /* between every pair of columns — the width a linked shape bridges */
 }
 
 /* the map needs more width than the reading column — not scoped, it is
@@ -185,14 +184,10 @@
 #module-map .mm__board {
   position: relative;
   display: grid;
-  /* five columns, then a spacer, then Year 3 Semester 2: the spacer is where
-     the grouped-choice hub sits, so its lines do not cross any module */
-  grid-template-columns: repeat(5, minmax(9.5rem, 1fr)) var(--y3-gap) minmax(9.5rem, 1fr);
+  grid-template-columns: repeat(6, minmax(9.5rem, 1fr));
   gap: var(--col-gap);
   align-items: start;
 }
-
-#module-map .col[data-col="y3s2"] { grid-column: 7; }
 
 #module-map .col { min-width: 0; }
 
@@ -331,8 +326,8 @@
 
 /* optional — an empty slot waiting to be filled */
 #module-map .box--optional {
-  background: color-mix(in srgb, var(--sc) 7%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sc) 30%, transparent);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--sc) 38%, transparent);
   color: var(--fg-soft);
 }
 
@@ -421,116 +416,6 @@
   border-color: hsl(0 0% 0% / 0.25);
 }
 
-/* ---------- the "choose three or four from ..." rule bar ----------
-   Always rendered, always exactly one line tall, whatever the degree —
-   a bar that changed height would shove the board about on every switch. */
-
-#module-map .rulebar {
-  height: 2.6rem;
-  margin: 0 0 0.75rem;
-  overflow: hidden;
-  border: 1px solid var(--line-soft);
-  border-radius: 12px;
-  background: hsl(var(--dh) 25% 50% / 0.05);
-}
-
-#module-map .rulebar__inner {
-  display: flex;
-  align-items: center;
-  gap: 1.4rem;
-  height: 100%;
-  padding: 0 0.85rem;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
-  scrollbar-width: thin;
-}
-
-#module-map .rule {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-size: 0.82rem;
-}
-
-#module-map .rule--none { color: var(--fg-soft); font-style: italic; }
-
-#module-map .rule__label { font-weight: 700; color: var(--fg); }
-
-#module-map .rule__chips { display: inline-flex; gap: 0.3rem; }
-
-#module-map .rchip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.3rem;
-  padding: 0.2rem 0.5rem;
-  font: inherit;
-  font-size: 0.74rem;
-  font-weight: 650;
-  color: var(--fg-soft);
-  background: none;
-  border: 1px dashed hsl(42 60% 55% / 0.55);
-  border-radius: 7px;
-  cursor: pointer;
-  transition: background 150ms var(--ease), color 150ms var(--ease), border-color 150ms var(--ease);
-}
-
-#module-map .rchip__where { font-size: 0.66rem; font-weight: 600; opacity: 0.7; }
-
-#module-map .rchip:hover:not(:disabled) { color: var(--fg); border-color: hsl(42 80% 60%); }
-
-#module-map .rchip--selected {
-  color: var(--fg);
-  background: hsl(42 75% 52% / 0.28);
-  border-style: solid;
-  border-color: hsl(42 80% 58%);
-}
-
-#module-map .rchip--selected .rchip__code::before { content: "\2713 "; }
-
-#module-map .rchip--core {
-  border-style: solid;
-  color: var(--fg);
-  background: hsl(var(--dh) 50% 50% / 0.25);
-}
-
-#module-map .rchip--unavailable,
-#module-map .rchip--blocked {
-  opacity: 0.45;
-  text-decoration: line-through;
-  cursor: default;
-  border-style: dotted;
-}
-
-#module-map .rule__tally {
-  padding: 0.16rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-#module-map .rule__tally strong { font-weight: 700; }
-
-/* short of the minimum, inside the range, past the maximum */
-#module-map .rule--under .rule__tally { background: hsl(42 70% 50% / 0.2);  color: hsl(42 80% var(--label-l)); }
-#module-map .rule--met   .rule__tally { background: hsl(150 60% 45% / 0.22); color: hsl(150 60% var(--label-l)); }
-#module-map .rule--over  .rule__tally { background: hsl(8 65% 52% / 0.22);  color: hsl(8 70% var(--label-l)); }
-
-/* the same amber marks a group's modules on the board itself */
-#module-map .key--grouped::before {
-  background: none;
-  border-color: hsl(42 75% 55%);
-  border-left-width: 4px;
-}
-
-#module-map .box--grouped { box-shadow: inset 3px 0 0 hsl(42 80% 55%); }
-
-#module-map .box.is-spotlit {
-  outline: 2px solid hsl(42 85% 60%);
-  outline-offset: 2px;
-}
-
 /* ---------- grouped choice: lines converging on a hub ----------
    Drawn by drawLinks() after every render. The overlay is decorative and
    takes no pointer events, so it can never sit between a click and a box. */
@@ -559,6 +444,10 @@
 
 #module-map .mm__linkdot { fill: hsl(42 85% 58%); }
 
+/* `display: grid` below outranks the [hidden] attribute's UA rule, which left
+   an empty hub parked at the top-left of the board on degrees with no group */
+#module-map .mm__hub[hidden] { display: none; }
+
 #module-map .mm__hub {
   position: absolute;
   z-index: 3;
@@ -566,8 +455,8 @@
   display: grid;
   justify-items: center;
   gap: 0.05rem;
-  min-width: 5.6rem;
-  padding: 0.4rem 0.5rem;
+  min-width: 4.4rem;
+  padding: 0.3rem 0.45rem;
   border: 2px solid hsl(42 80% 55%);
   border-radius: 12px;
   background: var(--surface);
@@ -585,7 +474,7 @@
 }
 
 #module-map .mm__hub__n {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.05;
   color: var(--fg);
@@ -748,8 +637,7 @@
   right: 100%;
   top: -1px;
   bottom: -1px;
-  /* the only linked pair runs Y3S1 -> Y3S2, across both gaps and the spacer */
-  width: calc(var(--col-gap) * 2 + var(--y3-gap) + 2px);
+  width: calc(var(--col-gap) + 2px);
   box-sizing: border-box;
   background: inherit;
   border-top: 1px solid;
@@ -776,7 +664,7 @@
     overflow-x: auto;
     overscroll-behavior-x: contain;
     padding-bottom: 0.6rem;
-    grid-template-columns: repeat(5, 10.5rem) var(--y3-gap) 10.5rem;
+    grid-template-columns: repeat(6, 10.5rem);
   }
   #module-map .mm__hint { margin-left: 0; }
 }
@@ -784,7 +672,6 @@
 @media (prefers-reduced-motion: reduce) {
   #module-map .box,
   #module-map .dbtn,
-  #module-map .rchip,
   #module-map .box__info { transition-duration: 1ms; }
   #module-map .box--optional:hover { transform: none; }
   #module-map .sheet { animation: none; }

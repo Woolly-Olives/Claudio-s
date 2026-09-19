@@ -6,9 +6,7 @@
      Year 2 Medical Sciences 2026-27 (v2)
      Year 3 Biological Sciences 2026-27 (v3)
      Year 3 Medical Sciences 2026-27 (v2.1)
-   Year 1 codes and credits came from the society. Year 1 TITLES ARE
-   NOT RECORDED YET — a module with no `title` draws as its code with
-   "Title to be added" beneath it.
+   Year 1 codes, credits and titles came from the society.
 
    Where the handbooks disagree, the Year 3 handbooks were taken as
    authoritative for Year 3 (the Year 2 booklets label their third-year
@@ -17,7 +15,9 @@
    SCHEMA
    ------
    module:  { code, title?, credits, year, semester, theme, about?,
-              display?, linked?, field? }
+              display?, linked?, field?, stream? }
+              stream   names a stream colour outright, instead of deriving it
+                       from which degrees hold the module as core
    degree:  { id, name, hue, core, options, coreOneOf?, groups? }
               core      required per slot, keyed y1s1 … y3s2
               options   what the handbook lists as choosable in that slot
@@ -123,13 +123,13 @@ window.BIOSOC_CURRICULUM = {
   ],
 
   modules: [
-    { code: "BS1030", credits: 30, year: 1, semester: 1, theme: "year1" },
-    { code: "BS1040", credits: 30, year: 1, semester: 1, theme: "year1" },
-    { code: "BS1050", credits: 15, year: 1, semester: 2, theme: "year1" },
-    { code: "BS1060", credits: 30, year: 1, semester: 2, theme: "year1" },
-    { code: "BS1070", credits: 15, year: 1, semester: 2, theme: "year1",
+    { code: "BS1030", title: "The Molecules of Life — An Introduction to Biochemistry and Molecular Biology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "biochemistry" },
+    { code: "BS1040", title: "The Cell — An Introduction to Cell Biology and Microbiology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "microbiology" },
+    { code: "BS1050", title: "From Individuals to Populations — An Introduction to Genetics", credits: 15, year: 1, semester: 2, theme: "year1", stream: "genetics" },
+    { code: "BS1060", title: "Multicellular Organisation — An Introduction to Physiology, Pharmacology and Neuroscience", credits: 30, year: 1, semester: 2, theme: "year1", stream: "physiology" },
+    { code: "BS1070", title: "Biodiversity and Behaviour — An Introduction to Zoology", credits: 15, year: 1, semester: 2, theme: "year1", stream: "zoology",
       about: "Taken by every degree except the four Medical Sciences streams, which take MB1080 instead." },
-    { code: "MB1080", credits: 15, year: 1, semester: 2, theme: "year1",
+    { code: "MB1080", title: "Introduction to Medical Bioscience", credits: 15, year: 1, semester: 2, theme: "year1",
       about: "Taken only by the four Medical Sciences streams, in place of BS1070." },
     { code: "BS2009", title: "Genomes", credits: 15, year: 2, semester: 1, theme: "genetics" },
     { code: "BS2013", title: "Physiology and Pharmacology", credits: 15, year: 2, semester: 1, theme: "physiology" },

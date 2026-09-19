@@ -93,6 +93,13 @@
   function streamOf(code) {
     if (streamCache.hasOwnProperty(code)) { return streamCache[code]; }
     var m = byCode[code], found = null;
+    if (m && m.stream) {
+      /* named outright in the data — Year 1, where every module is core for
+         every degree and so has no stream to derive */
+      found = STREAMS.filter(function (st) { return st.id === m.stream; })[0] || null;
+      streamCache[code] = found;
+      return found;
+    }
     if (m && m.year !== 1 && UNCOLOURED.indexOf(code) === -1) {
       for (var i = 0; i < STREAMS.length && !found; i++) {
         if (STREAMS[i].degrees.some(function (id) {
@@ -294,43 +301,37 @@
   }
 
   /**
-   * The handbooks' "choose three or four from ..." rules. A group's modules are
-   * scattered across both Year 3 columns, so the rule cannot live in a column:
-   * it gets its own bar. The bar is always present and always one line tall, so
-   * the board does not shift when the degree changes.
+   * Could the degree still reach every grouped-choice minimum if `extra` were
+   * taken as well? A student who fills a semester with free options can strand
+   * a choice the handbook requires, so that selection is refused outright.
    */
-  function ruleBar() {
-    var groups = degree().groups || [];
-    var inner;
+  function groupStaysReachable(extra) {
+    return (degree().groups || []).every(function (g) {
+      var need = g.min - takenIn(g) - (g.members.indexOf(extra) !== -1 ? 1 : 0);
+      if (need <= 0) { return true; }
+      var fits = 0;
+      COLUMNS.forEach(function (col) {
+        var room = CAP - creditsIn(col.id);
+        if (extra && slotOf(byCode[extra]) === col.id) { room -= byCode[extra].credits; }
+        var open = g.members.filter(function (code) {
+          var m = byCode[code];
+          if (!m || slotOf(m) !== col.id) { return false; }
+          if (code === extra) { return false; }
+          if (state.picks[col.id].indexOf(code) !== -1) { return false; }
+          if (extra && clashesWith(code).indexOf(extra) !== -1) { return false; }
+          return statusOf(m) === "optional";
+        });
+        fits += Math.min(open.length, Math.floor(Math.max(0, room) / 15));
+      });
+      return fits >= need;
+    });
+  }
 
-    if (!groups.length) {
-      inner = '<span class="rule rule--none">No grouped choice in Year 3 &mdash; past the core, ' +
-              'fill each semester to ' + CAP + ' credits from whatever is open.</span>';
-    } else {
-      inner = groups.map(function (g) {
-        var n = takenIn(g);
-        var fit = n < g.min ? "under" : (n > g.max ? "over" : "met");
-        var range = g.min === g.max ? String(g.min) : g.min + "\u2013" + g.max;
-        var chips = g.members.map(function (c) {
-          var m = byCode[c];
-          var st = statusOf(m);
-          var live = st === "optional" || st === "selected";
-          return '<button class="rchip rchip--' + st + '" type="button" data-toggle="' + c + '"' +
-                 (live ? ' aria-pressed="' + (st === "selected") + '"' : ' disabled') +
-                 ' title="' + esc(c + " \u2014 " + titleOf(m) + " \u00b7 Year " + m.year +
-                                  ", Semester " + m.semester) + '">' +
-                   '<span class="rchip__code">' + esc(c) + '</span>' +
-                   '<span class="rchip__where">S' + m.semester + '</span>' +
-                 '</button>';
-        }).join("");
-        return '<span class="rule rule--' + fit + '">' +
-                 '<span class="rule__label">' + esc(g.label) + '</span>' +
-                 '<span class="rule__chips">' + chips + '</span>' +
-                 '<span class="rule__tally"><strong>' + n + '</strong> of ' + range + '</span>' +
-               '</span>';
-      }).join("");
-    }
-    return '<div class="rulebar"><div class="rulebar__inner">' + inner + '</div></div>';
+  /** Taking this module would put a group past the maximum the handbook allows. */
+  function groupOverfull(code) {
+    return (degree().groups || []).some(function (g) {
+      return g.members.indexOf(code) !== -1 && takenIn(g) >= g.max;
+    });
   }
 
   function box(m) {
@@ -380,9 +381,9 @@
     var status = used === CAP ? "full" : (used > CAP ? "over" : "under");
     var mods = modulesIn(col).slice().sort(function (a, b) {
       /* a linked module leads its column, so the two halves of a year-long
-         module sit at the same height and read as one shape */
-      return (b.linked ? 1 : 0) - (a.linked ? 1 : 0) ||
-             b.credits - a.credits || a.code.localeCompare(b.code);
+         module sit at the same height and read as one shape; everything else
+         runs in code order, as the School's own module lists do */
+      return (b.linked ? 1 : 0) - (a.linked ? 1 : 0) || a.code.localeCompare(b.code);
     });
     return '<section class="col" data-col="' + col.id + '">' +
              '<header class="col__head">' +
@@ -468,7 +469,6 @@
         '<span class="key key--unavailable">Not available</span>' +
         '<span class="mm__hint">Click a module to take it &middot; “i” for details</span>' +
       '</div>' +
-      ruleBar() +
       '<div class="mm__board">' + COLUMNS.map(column).join("") +
         '<svg class="mm__links" aria-hidden="true"></svg>' +
         '<div class="mm__hub" hidden></div>' +
@@ -610,6 +610,14 @@
         }
         var bad = group.filter(function (x) { return statusOf(x) === "blocked" || statusOf(x) === "unavailable"; });
         if (bad.length) { say(name + " \u2014 " + reasonFor(bad[0])); return; }
+        if (groupOverfull(m.code)) {
+          say(name + " would take more than this degree's grouped choice allows");
+          return;
+        }
+        if (!groupStaysReachable(m.code)) {
+          say(name + " would leave no room for the modules this degree must take from its grouped choice");
+          return;
+        }
         group.forEach(function (x) {
           if (state.picks[slotOf(x)].indexOf(x.code) === -1) { state.picks[slotOf(x)].push(x.code); }
         });
@@ -621,25 +629,6 @@
     }
     /* a click on the backdrop, outside the card, closes the details */
     if (state.open && event.target.classList.contains("sheet")) { closeSheet(); }
-  });
-
-  /* hovering or focusing a chip points at that module on the board */
-  function spotlight(code) {
-    Array.prototype.forEach.call(root.querySelectorAll(".box.is-spotlit"),
-      function (b) { b.classList.remove("is-spotlit"); });
-    if (!code) { return; }
-    var box = root.querySelector('.box[data-code="' + code + '"]');
-    if (box) { box.classList.add("is-spotlit"); }
-  }
-
-  root.addEventListener("pointerover", function (event) {
-    var chip = event.target.closest(".rchip");
-    spotlight(chip ? chip.dataset.toggle : null);
-  });
-  root.addEventListener("pointerleave", function () { spotlight(null); });
-  root.addEventListener("focusin", function (event) {
-    var chip = event.target.closest(".rchip");
-    if (chip) { spotlight(chip.dataset.toggle); }
   });
 
   function closeSheet() {

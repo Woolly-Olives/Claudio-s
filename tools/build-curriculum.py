@@ -6,9 +6,27 @@ import json, pathlib
 M = {}   # code -> (title, credits, year, semester, theme, flags)
 def mod(code, title, cr, yr, sem, theme, **kw): M[code] = dict(title=title, credits=cr, year=yr, semester=sem, theme=theme, **kw)
 
-# ---- Year 1: codes and credits given by the society; titles not yet recorded
-for c, cr, s in [("BS1030",30,1),("BS1040",30,1),("BS1050",15,2),("BS1060",30,2),("BS1070",15,2),("MB1080",15,2)]:
-    M[c] = dict(title=None, credits=cr, year=1, semester=s, theme="year1")
+# ---- Year 1. Year 1 takes no stream colour by derivation (every module is core
+# for every degree), so each one carries an explicit `stream` instead, named for
+# the subject it introduces. MB1080 is deliberately left without one.
+y1 = [
+ ("BS1030", 30, 1, "biochemistry",
+  "The Molecules of Life \u2014 An Introduction to Biochemistry and Molecular Biology"),
+ ("BS1040", 30, 1, "microbiology",
+  "The Cell \u2014 An Introduction to Cell Biology and Microbiology"),
+ ("BS1050", 15, 2, "genetics",
+  "From Individuals to Populations \u2014 An Introduction to Genetics"),
+ ("BS1060", 30, 2, "physiology",
+  "Multicellular Organisation \u2014 An Introduction to Physiology, Pharmacology and Neuroscience"),
+ ("BS1070", 15, 2, "zoology",
+  "Biodiversity and Behaviour \u2014 An Introduction to Zoology"),
+ ("MB1080", 15, 2, None,
+  "Introduction to Medical Bioscience"),
+]
+for c, cr, sem, stream, title in y1:
+    M[c] = dict(title=title, credits=cr, year=1, semester=sem, theme="year1")
+    if stream:
+        M[c]["stream"] = stream
 M["BS1070"]["about"] = "Taken by every degree except the four Medical Sciences streams, which take MB1080 instead."
 M["MB1080"]["about"] = "Taken only by the four Medical Sciences streams, in place of BS1070."
 
@@ -185,9 +203,7 @@ out = ['''/* =============================================================
      Year 2 Medical Sciences 2026-27 (v2)
      Year 3 Biological Sciences 2026-27 (v3)
      Year 3 Medical Sciences 2026-27 (v2.1)
-   Year 1 codes and credits came from the society. Year 1 TITLES ARE
-   NOT RECORDED YET — a module with no `title` draws as its code with
-   "Title to be added" beneath it.
+   Year 1 codes, credits and titles came from the society.
 
    Where the handbooks disagree, the Year 3 handbooks were taken as
    authoritative for Year 3 (the Year 2 booklets label their third-year
@@ -196,7 +212,9 @@ out = ['''/* =============================================================
    SCHEMA
    ------
    module:  { code, title?, credits, year, semester, theme, about?,
-              display?, linked?, field? }
+              display?, linked?, field?, stream? }
+              stream   names a stream colour outright, instead of deriving it
+                       from which degrees hold the module as core
    degree:  { id, name, hue, core, options, coreOneOf?, groups? }
               core      required per slot, keyed y1s1 … y3s2
               options   what the handbook lists as choosable in that slot
@@ -269,6 +287,7 @@ for code in sorted(M, key=lambda c: (M[c]["year"], M[c]["semester"], "0" if M[c]
     if m["title"]: parts.append("title: %s" % jd(m["title"]))
     parts += ["credits: %d" % m["credits"], "year: %d" % m["year"], "semester: %d" % m["semester"],
               "theme: %s" % jd(m["theme"])]
+    if m.get("stream"): parts.append("stream: %s" % jd(m["stream"]))
     if m.get("linked"): parts.append("linked: %s" % jd(m["linked"]))
     if m.get("field"): parts.append("field: true")
     line = "    { " + ", ".join(parts)

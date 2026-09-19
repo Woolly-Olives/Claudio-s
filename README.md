@@ -175,10 +175,10 @@ authoritative for Year 3 — the Year 2 booklets label their third-year tables
 "provisional". The differences, and the errors found in the handbooks
 themselves, are listed in `docs/handbook-issues.md`.
 
-Year 1 codes and credits came from the society. **Year 1 titles are not recorded
-yet**: a module with no `title` draws as its code with *"Title to be added"*
-beneath it, so the gap is visible rather than invented. Fill them in and that
-treatment disappears on its own.
+Year 1 codes, credits and titles came from the society. Year 1 is core for every
+degree, so there is no stream to derive from the degree tables — each Year 1
+module instead names its colour outright with a `stream` field. MB1080 has none
+yet, and shows in the neutral grey.
 
 ### Colour
 
@@ -221,21 +221,19 @@ above the maximum. Members are marked on the board with an amber edge; hovering
 a chip in the bar lights up the matching box, and clicking one takes or drops it
 like clicking the box itself.
 
-The bar is rendered for every degree — the four with no grouped choice get a
-line saying so — and is a fixed single line tall, so switching degree never
-moves the board.
+The rule is drawn on the board as lines from each member module converging on a
+hub that states how many must be taken and how many are chosen. Lines to modules
+already taken are solid, the rest dashed. The hub sits in the gap between the
+Year 3 columns and overlaps them slightly; it is an overlay and takes no pointer
+events, so it can never come between a click and a module.
 
-On the board itself the same rule is drawn as lines from each member module
-converging on a hub that states how many must be taken and how many are chosen.
-Lines to modules already taken are solid, the rest dashed. The hub needs room,
-so the gap between the two Year 3 semesters is a dedicated spacer column
-(`--y3-gap`); the year-long project's connecting bridge spans it.
+**The rules are enforced, not just reported.** A module is refused if taking it
+would push a group past its maximum, or leave too little room for the minimum —
+so you cannot fill a semester with free options and strand a choice the degree
+requires. What is *not* enforced is finishing: a plan may sit below the minimum
+while you are still building it, and the hub says so.
 
-Each group is `{label, min, max, members}` in the degree's `groups` array. The
-tally **reports** compliance rather than enforcing it: the 60-credit cap and the
-clash rules are what actually block a selection. A plan can therefore show
-"0 of 1" in amber, which is the honest signal that the semester has been filled
-leaving no room for a compulsory group choice.
+Each group is `{label, min, max, members}` in the degree's `groups` array.
 
 ### Regenerating the data
 
