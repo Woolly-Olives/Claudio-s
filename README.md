@@ -193,7 +193,8 @@ the School's own module key:
 | Genetics | `#ff9966` | Genetics, Medical Genetics |
 | Microbiology | `#ccff66` | Microbiology, Medical Microbiology |
 | Zoology | `#33cc33` | Zoology |
-| — | `#bfbfbf` | core for every degree, or core for none |
+| — | `#1b6b3a` | core for **every** degree (dark green) |
+| — | `#bfbfbf` | core for none, or no colour agreed yet |
 
 A degree and its Medical counterpart share a colour. Where a module is core for
 more than one stream the first match in `meta.streams` wins, and that array is
@@ -202,8 +203,19 @@ genetics, microbiology, zoology.
 
 `meta.uncoloured` lists modules that take no stream colour despite being core —
 BS2200, BS2000, both halves of the Research Project, plus BS2004 and BS2094.
-Year 1 is excluded wholesale. These are core for everyone, so colouring them
-would say nothing about specialisation.
+Colouring them by stream would say nothing about specialisation. Those of them
+that every degree must take are marked `schoolCore` by the generator and drawn
+in the dark green instead; the rest stay neutral. MB1080 has no colour agreed
+yet and so stays neutral too.
+
+Every box states its standing in words in its lower-right corner — **Core**,
+**Chosen**, **Clash** or **Not offered** — so there is no status legend to
+cross-reference. A module's `i` panel always lists the modules it clashes with,
+or says it has none.
+
+Degree buttons carry a thin outline in their own stream colour and fill with it
+when selected. Biological Sciences, which specialises in nothing, takes a
+rainbow.
 
 **Selecting a degree no longer recolours anything.** A module's outline is a
 fixed property of the module, so you can see that BS2014 belongs to Physiology
@@ -221,7 +233,8 @@ above the maximum. Members are marked on the board with an amber edge; hovering
 a chip in the bar lights up the matching box, and clicking one takes or drops it
 like clicking the box itself.
 
-The rule is drawn on the board as lines from each member module converging on a
+Modules in a grouped choice are ringed in amber on the board. The rule itself is
+drawn as lines from each member module converging on a
 hub that states how many must be taken and how many are chosen. Lines to modules
 already taken are solid, the rest dashed. The hub sits in the gap between the
 Year 3 columns and overlaps them slightly; it is an overlay and takes no pointer

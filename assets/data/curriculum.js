@@ -18,6 +18,7 @@
               display?, linked?, field?, stream? }
               stream   names a stream colour outright, instead of deriving it
                        from which degrees hold the module as core
+              schoolCore  true when every degree holds it as core (generated)
    degree:  { id, name, hue, core, options, coreOneOf?, groups? }
               core      required per slot, keyed y1s1 … y3s2
               options   what the handbook lists as choosable in that slot
@@ -55,7 +56,8 @@ window.BIOSOC_CURRICULUM = {
       { id: "zoology",      label: "Zoology",      colour: "#33cc33",
         degrees: ["zoology"] }
     ],
-    neutral: { core: "#bfbfbf", plain: "#f2f2f2" },
+    /* `school` is for modules every single degree must take */
+    neutral: { core: "#bfbfbf", plain: "#f2f2f2", school: "#1b6b3a", schoolInk: "#eaf5ee" },
     uncoloured: ["BS2200", "BS2000", "BS3PROJ", "BS3PROJB", "BS2004", "BS2094"],
 
     degreeLayout: [
@@ -123,10 +125,10 @@ window.BIOSOC_CURRICULUM = {
   ],
 
   modules: [
-    { code: "BS1030", title: "The Molecules of Life — An Introduction to Biochemistry and Molecular Biology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "biochemistry" },
-    { code: "BS1040", title: "The Cell — An Introduction to Cell Biology and Microbiology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "microbiology" },
-    { code: "BS1050", title: "From Individuals to Populations — An Introduction to Genetics", credits: 15, year: 1, semester: 2, theme: "year1", stream: "genetics" },
-    { code: "BS1060", title: "Multicellular Organisation — An Introduction to Physiology, Pharmacology and Neuroscience", credits: 30, year: 1, semester: 2, theme: "year1", stream: "physiology" },
+    { code: "BS1030", title: "The Molecules of Life — An Introduction to Biochemistry and Molecular Biology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "biochemistry", schoolCore: true },
+    { code: "BS1040", title: "The Cell — An Introduction to Cell Biology and Microbiology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "microbiology", schoolCore: true },
+    { code: "BS1050", title: "From Individuals to Populations — An Introduction to Genetics", credits: 15, year: 1, semester: 2, theme: "year1", stream: "genetics", schoolCore: true },
+    { code: "BS1060", title: "Multicellular Organisation — An Introduction to Physiology, Pharmacology and Neuroscience", credits: 30, year: 1, semester: 2, theme: "year1", stream: "physiology", schoolCore: true },
     { code: "BS1070", title: "Biodiversity and Behaviour — An Introduction to Zoology", credits: 15, year: 1, semester: 2, theme: "year1", stream: "zoology",
       about: "Taken by every degree except the four Medical Sciences streams, which take MB1080 instead." },
     { code: "MB1080", title: "Introduction to Medical Bioscience", credits: 15, year: 1, semester: 2, theme: "year1",
@@ -139,11 +141,11 @@ window.BIOSOC_CURRICULUM = {
     { code: "BS2093", title: "Protein Structure and Function", credits: 15, year: 2, semester: 1, theme: "biochem" },
     { code: "BS2094", title: "Introduction to Python Programming for Bioscientists", credits: 15, year: 2, semester: 1, theme: "skills",
       about: "Capped at 30 students, allocated first come first served." },
-    { code: "BS2200", title: "Research Skills 1", credits: 15, year: 2, semester: 1, theme: "skills" },
+    { code: "BS2200", title: "Research Skills 1", credits: 15, year: 2, semester: 1, theme: "skills", schoolCore: true },
     { code: "MB2020", title: "Medical Microbiology", credits: 15, year: 2, semester: 1, theme: "micro" },
     { code: "MB2050", title: "Biochemical Approaches to Therapeutic Development", credits: 15, year: 2, semester: 1, theme: "biochem" },
     { code: "MB2051", title: "Current Issues in Medical Genetics", credits: 15, year: 2, semester: 1, theme: "genetics" },
-    { code: "BS2000", title: "Research Skills 2", credits: 15, year: 2, semester: 2, theme: "skills" },
+    { code: "BS2000", title: "Research Skills 2", credits: 15, year: 2, semester: 2, theme: "skills", schoolCore: true },
     { code: "BS2004", title: "Contemporary Techniques in Biological Data Analysis", credits: 15, year: 2, semester: 2, theme: "skills" },
     { code: "BS2014", title: "Exercise Physiology and Pharmacology", credits: 15, year: 2, semester: 2, theme: "physiology" },
     { code: "BS2026", title: "Genes, Development and Inheritance", credits: 15, year: 2, semester: 2, theme: "genetics" },
@@ -157,7 +159,7 @@ window.BIOSOC_CURRICULUM = {
     { code: "BS2091", title: "From Genes to Proteins", credits: 15, year: 2, semester: 2, theme: "biochem" },
     { code: "BS2092", title: "Molecular and Cell Biology", credits: 15, year: 2, semester: 2, theme: "biochem" },
     { code: "MB2080", title: "Pathophysiology of Disease", credits: 15, year: 2, semester: 2, theme: "physiology" },
-    { code: "BS3PROJ", display: "Project", title: "Research Project", credits: 30, year: 3, semester: 1, theme: "skills", linked: "project",
+    { code: "BS3PROJ", display: "Project", title: "Research Project", credits: 30, year: 3, semester: 1, theme: "skills", schoolCore: true, linked: "project",
       about: "45 credits across the year. The handbooks describe it as a 15-credit practical module plus a 30-credit written and oral module that runs across both semesters, assessed entirely in semester 2." },
     { code: "BS3000", title: "Evolutionary Genetics", credits: 15, year: 3, semester: 1, theme: "genetics" },
     { code: "BS3010", title: "Gene Expression: Molecular Basis & Medical Relevance", credits: 15, year: 3, semester: 1, theme: "genetics" },
@@ -170,7 +172,7 @@ window.BIOSOC_CURRICULUM = {
     { code: "BS3068", title: "Microbial Biotechnology", credits: 15, year: 3, semester: 1, theme: "micro" },
     { code: "BS3070", title: "Structural Biology", credits: 15, year: 3, semester: 1, theme: "biochem" },
     { code: "NT3100", title: "Sustainability Enterprise Partnership Project", credits: 15, year: 3, semester: 1, theme: "skills" },
-    { code: "BS3PROJB", display: "Project", title: "Research Project", credits: 15, year: 3, semester: 2, theme: "skills", linked: "project",
+    { code: "BS3PROJB", display: "Project", title: "Research Project", credits: 15, year: 3, semester: 2, theme: "skills", schoolCore: true, linked: "project",
       about: "The semester 2 half of the 45-credit year-long project." },
     { code: "BS3003", title: "Cancer Cell and Molecular Biology", credits: 15, year: 3, semester: 2, theme: "biochem" },
     { code: "BS3011", title: "Microbial Pathogenesis and Genomics", credits: 15, year: 3, semester: 2, theme: "micro" },

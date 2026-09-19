@@ -112,6 +112,15 @@
     return found;
   }
 
+  /** The fill/outline colour for a module, and whether it needs light ink. */
+  function paintOf(code) {
+    var st = streamOf(code);
+    if (st) { return { colour: st.colour, dark: false }; }
+    var m = byCode[code];
+    if (m && m.schoolCore) { return { colour: NEUTRAL.school, dark: true }; }
+    return { colour: NEUTRAL.core, dark: false };
+  }
+
   function streamForDegree(id) {
     return STREAMS.filter(function (st) { return st.degrees.indexOf(id) !== -1; })[0] || null;
   }
@@ -279,7 +288,9 @@
         var on = d.id === state.degree;
         var span = (col.length === 1 && rows > 1) ? ' dbtn--tall' : '';
         var st = streamForDegree(d.id);
-        return '<button class="dbtn' + (on ? " is-on" : "") + span + '" type="button" role="tab"' +
+        /* the unspecialised degree draws on every stream, so its outline does too */
+        var rainbow = st ? "" : " dbtn--rainbow";
+        return '<button class="dbtn' + (on ? " is-on" : "") + span + rainbow + '" type="button" role="tab"' +
                ' aria-selected="' + on + '" data-degree="' + d.id + '"' +
                ' style="--sc:' + (st ? st.colour : NEUTRAL.core) + '">' +
                esc(d.name) + '</button>';
@@ -334,6 +345,19 @@
     });
   }
 
+  /** What the corner of the box says about this module, for this degree. */
+  function statusText(m, st) {
+    if (st === "core") { return m.schoolCore ? "Core" : "Core"; }
+    if (st === "selected") { return "Chosen"; }
+    if (st === "blocked") { return "Clash"; }
+    if (st === "unavailable") {
+      var d = degree(), slot = slotOf(m);
+      var hard = (d.core[slot] || []).some(function (c) { return clashesWith(m.code).indexOf(c) !== -1; });
+      return hard ? "Clash" : "Not offered";
+    }
+    return "";
+  }
+
   function box(m) {
     var st = statusOf(m);
     var units = m.credits / 15;
@@ -345,19 +369,17 @@
       blocked: "Clashes", unavailable: "Not available"
     }[st];
 
-    /* ● core, ✓ chosen, ✕ not available — so the state reads without colour */
-    var glyph = { core: "\u25CF", selected: "\u2713", unavailable: "\u2715",
-                  blocked: "\u2298", optional: "" }[st];
-
     var link = linkClass(m);
     var shown = m.display || m.code;
     var grouped = groupsFor(m.code).length ? " box--grouped" : "";
-    var stream = streamOf(m.code);
+    var paint = paintOf(m.code);
+    var corner = statusText(m, st);
 
     return '<li class="cell' + (link ? " cell--linked" : "") +
+      (link === " box--link-end" ? " cell--link-end" : "") +
       '" style="--units:' + units + ';--clamp:' + (units === 2 ? 5 : 2) +
-      ';--sc:' + (stream ? stream.colour : NEUTRAL.core) + '">' +
-      '<button class="box box--' + st + (stream ? " box--streamed" : "") +
+      ';--sc:' + paint.colour + '">' +
+      '<button class="box box--' + st + (paint.dark ? " box--dark" : "") +
         (wouldOverflow ? " box--tight" : "") + grouped + link +
         '" type="button" data-code="' + m.code + '" data-toggle="' + m.code + '"' +
         (interactive ? ' aria-pressed="' + (st === "selected") + '"' : ' disabled') +
@@ -368,7 +390,7 @@
         '</span>' +
         '<span class="box__title' + (m.title ? "" : " box__title--missing") + '">' +
           esc(titleOf(m)) + '</span>' +
-        '<span class="box__state"' + (glyph ? '' : ' hidden') + ' aria-hidden="true">' + glyph + '</span>' +
+        '<span class="box__state"' + (corner ? '' : ' hidden') + '>' + esc(corner) + '</span>' +
         '<span class="visually-hidden">' + label + '</span>' +
       '</button>' +
       '<button class="box__info" type="button" data-info="' + m.code + '"' +
@@ -383,7 +405,9 @@
       /* a linked module leads its column, so the two halves of a year-long
          module sit at the same height and read as one shape; everything else
          runs in code order, as the School's own module lists do */
-      return (b.linked ? 1 : 0) - (a.linked ? 1 : 0) || a.code.localeCompare(b.code);
+      return (b.linked ? 1 : 0) - (a.linked ? 1 : 0) ||
+             (b.schoolCore ? 1 : 0) - (a.schoolCore ? 1 : 0) ||
+             a.code.localeCompare(b.code);
     });
     return '<section class="col" data-col="' + col.id + '">' +
              '<header class="col__head">' +
@@ -433,6 +457,12 @@
         (inGroups.length ? '<p class="sheet__about"><strong>' + esc(inGroups[0].label) + ':</strong> ' +
                  esc(inGroups[0].members.join(", ")) + '.</p>' : "") +
         (m.field ? '<p class="sheet__about">Includes a field course &mdash; check the handbook for dates and costs.</p>' : "") +
+        '<p class="sheet__about"><strong>Timetable clashes:</strong> ' +
+          (clashesWith(m.code).length
+            ? clashesWith(m.code).slice().sort().map(function (c) {
+                return esc(c) + (byCode[c] && byCode[c].title ? " (" + esc(byCode[c].title) + ")" : "");
+              }).join("; ")
+            : "none \u2014 it can be taken alongside any module in its semester") + '</p>' +
         (split ? '<p class="sheet__about"><strong>Year-long module</strong> &mdash; ' +
                  esc(split) + '.</p>' : "") +
         (m.about ? '<p class="sheet__about">' + esc(m.about) + '</p>' : "") +
@@ -459,15 +489,6 @@
           return '<span class="skey" style="--sc:' + st.colour + '">' + esc(st.label) + '</span>';
         }).join("") +
         '<span class="skey" style="--sc:' + NEUTRAL.core + '">Core for every degree</span>' +
-      '</div>' +
-      '<div class="mm__legend">' +
-        '<span class="key key--core">Core</span>' +
-        '<span class="key key--selected">Chosen</span>' +
-        '<span class="key key--optional">Optional</span>' +
-        '<span class="key key--blocked">Clashes with a choice</span>' +
-        '<span class="key key--grouped">In a grouped choice</span>' +
-        '<span class="key key--unavailable">Not available</span>' +
-        '<span class="mm__hint">Click a module to take it &middot; “i” for details</span>' +
       '</div>' +
       '<div class="mm__board">' + COLUMNS.map(column).join("") +
         '<svg class="mm__links" aria-hidden="true"></svg>' +

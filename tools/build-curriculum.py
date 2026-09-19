@@ -181,8 +181,9 @@ D = {
 
 SLOTS = ["y1s1","y1s2","y2s1","y2s2","y3s1","y3s2"]
 degrees = []
-for did in ["biological-sciences","zoology","neuroscience","physiology-pharmacology","medical-physiology",
-            "biochemistry","medical-biochemistry","genetics","medical-genetics","microbiology","medical-microbiology"]:
+DEGREE_IDS = ["biological-sciences","zoology","neuroscience","physiology-pharmacology","medical-physiology",
+              "biochemistry","medical-biochemistry","genetics","medical-genetics","microbiology","medical-microbiology"]
+for did in DEGREE_IDS:
     d = D[did]; med = did in MED
     core = {"y1s1":["BS1030","BS1040"], "y1s2":["BS1050","BS1060","MB1080" if med else "BS1070"],
             "y2s1":d["y2s1c"], "y2s2":d["y2s2c"],
@@ -192,6 +193,13 @@ for did in ["biological-sciences","zoology","neuroscience","physiology-pharmacol
     if "y2s2alt" in d: entry["coreOneOf"] = {"y2s2": d["y2s2alt"]}
     if "groups" in d: entry["groups"] = d["groups"]
     degrees.append(entry)
+
+# a module every degree holds as core is School-wide core, whatever its stream
+for code in M:
+    if all(any(code in d["core"][s] for s in SLOTS) or
+           any(code in g for gs in d.get("coreOneOf", {}).values() for g in gs)
+           for d in degrees):
+        M[code]["schoolCore"] = True
 
 def jd(o): return json.dumps(o, ensure_ascii=False)
 
@@ -215,6 +223,7 @@ out = ['''/* =============================================================
               display?, linked?, field?, stream? }
               stream   names a stream colour outright, instead of deriving it
                        from which degrees hold the module as core
+              schoolCore  true when every degree holds it as core (generated)
    degree:  { id, name, hue, core, options, coreOneOf?, groups? }
               core      required per slot, keyed y1s1 … y3s2
               options   what the handbook lists as choosable in that slot
@@ -252,7 +261,8 @@ window.BIOSOC_CURRICULUM = {
       { id: "zoology",      label: "Zoology",      colour: "#33cc33",
         degrees: ["zoology"] }
     ],
-    neutral: { core: "#bfbfbf", plain: "#f2f2f2" },
+    /* `school` is for modules every single degree must take */
+    neutral: { core: "#bfbfbf", plain: "#f2f2f2", school: "#1b6b3a", schoolInk: "#eaf5ee" },
     uncoloured: ["BS2200", "BS2000", "BS3PROJ", "BS3PROJB", "BS2004", "BS2094"],
 
     degreeLayout: [
@@ -288,6 +298,7 @@ for code in sorted(M, key=lambda c: (M[c]["year"], M[c]["semester"], "0" if M[c]
     parts += ["credits: %d" % m["credits"], "year: %d" % m["year"], "semester: %d" % m["semester"],
               "theme: %s" % jd(m["theme"])]
     if m.get("stream"): parts.append("stream: %s" % jd(m["stream"]))
+    if m.get("schoolCore"): parts.append("schoolCore: true")
     if m.get("linked"): parts.append("linked: %s" % jd(m["linked"]))
     if m.get("field"): parts.append("field: true")
     line = "    { " + ", ".join(parts)
