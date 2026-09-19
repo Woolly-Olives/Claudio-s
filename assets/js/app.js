@@ -261,11 +261,21 @@
 
   function route(animate) {
     var id = currentHashId();
+    if (id === openId) { return; }
     if (id) { openPage(id, animate); }
     else { closeAll(animate); }
   }
 
   window.addEventListener("hashchange", function () { route(true); });
+
+  /*
+   * hashchange only fires when an entry differs from the last purely by
+   * fragment. A page that also writes a query string (the module planner does)
+   * makes back-navigation change both, so the browser fires popstate instead
+   * and the panel would never close. route() ignores a no-op, so handling both
+   * events costs nothing.
+   */
+  window.addEventListener("popstate", function () { route(true); });
 
   document.addEventListener("click", function (event) {
     var back = event.target.closest("[data-back]");

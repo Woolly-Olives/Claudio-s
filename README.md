@@ -108,6 +108,34 @@ source (the university, the students' union, the funder) rather than a summary
 of it, and re-check dates and deadlines each year — a stale hub is worse than no
 hub. Consider adding a "last checked" line to pages that carry deadlines.
 
+## The module planner (Customise Your Degree)
+
+That page is an app rather than prose, so its content lives in one data file:
+**`assets/data/curriculum.js`**. Nothing in `index.html` needs touching.
+
+It currently ships with **sample data** — placeholder modules and degrees with a
+realistic shape, so the planner can be seen working. They are not the School's
+real catalogue. To put real data in:
+
+1. Replace the `modules` and `degrees` arrays (the schema is documented in
+   comments at the top of the file).
+2. Set `meta.sampleData` to `false`. The warning banner on the page disappears.
+
+A module is `{ code, title, credits, year, semester, theme }`, where `year` is 2
+or 3 and `semester` is 1 or 2. A degree lists its required modules per semester
+slot (`y2s1`, `y2s2`, `y3s1`, `y3s2`); everything else in that slot is free to
+choose from the School pool. Add an optional `restrictTo` array of codes to a
+degree if it may only draw from part of the pool.
+
+The planner derives everything else from that: credit meters, which modules are
+locked, which would push a semester over 60 credits, the number of valid ways to
+fill each semester, and the degree-comparison matrix. Adding a degree or a module
+needs no code changes.
+
+Plans are held in the URL's query string, so a student can send someone their
+plan as a link. Codes that a shared link names but the chosen degree cannot take
+are dropped, and the URL is rewritten to match.
+
 ## Renaming, reordering or changing the number of sections
 
 1. Edit the `SECTIONS` array at the top of `assets/js/app.js` — each entry has an
