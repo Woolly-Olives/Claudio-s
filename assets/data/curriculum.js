@@ -1,49 +1,37 @@
 /* =============================================================
-   School of Biological Sciences — module catalogue.
+   School of Biological Sciences — module catalogue, 2026-27.
 
-   >>> PARTLY SAMPLE DATA. <<<
-   Year 1 carries the real module codes and credits. Their titles are
-   not recorded yet — a module with no `title` draws as its code with
-   "Title to be added" beneath, so the gap is visible rather than
-   invented. Years 2 and 3, and the degree structures, are still
-   placeholders with a realistic shape.
+   Years 2 and 3 are transcribed from the four School handbooks:
+     Year 2 Biological Sciences 2026-27
+     Year 2 Medical Sciences 2026-27 (v2)
+     Year 3 Biological Sciences 2026-27 (v3)
+     Year 3 Medical Sciences 2026-27 (v2.1)
+   Year 1 codes and credits came from the society. Year 1 TITLES ARE
+   NOT RECORDED YET — a module with no `title` draws as its code with
+   "Title to be added" beneath it.
 
-   Replace the placeholders and set `sampleData: false` to drop the
-   warning line on the page.
+   Where the handbooks disagree, the Year 3 handbooks were taken as
+   authoritative for Year 3 (the Year 2 booklets label their third-year
+   tables "provisional"). Differences are listed in README.md.
 
    SCHEMA
    ------
    module:  { code, title?, credits, year, semester, theme, about?,
-              display?, linked? }
-              credits  15 or 30 (a 30-credit box is drawn double height)
-              year     1, 2 or 3
-              semester 1 or 2
-              theme    must match an id in `themes`
-              title    omit it if the real title is not known yet
-              display  code to show, when it differs from the key `code`
-              linked   group id. Modules sharing one are drawn as a
-                       single connected shape across adjacent columns —
-                       used for a year-long module split over two
-                       semesters. They are always drawn first in their
-                       column so the two halves line up, and taking or
-                       dropping one takes or drops the whole group.
-
-   degree:  { id, name, hue, core, excluded? }
-              core      required modules per slot, keyed y1s1 … y3s2.
-              excluded  modules this degree may NOT take. Drawn dimmed
-                        and struck through.
-
-   Any module that is neither core nor excluded is optional: open to
-   choose, up to 60 credits per semester.
-
-   `degreeLayout` sets how the degree buttons are arranged — one inner
-   array per column, top to bottom. A degree missing from it is appended
-   after the grid.
+              display?, linked?, field? }
+   degree:  { id, name, hue, core, options, coreOneOf?, groups? }
+              core      required per slot, keyed y1s1 … y3s2
+              options   what the handbook lists as choosable in that slot
+              coreOneOf alternatives of which exactly one is compulsory
+              groups    the handbook's "choose N from" sets, for reference
+   A module that is neither core nor in `options` is not available to
+   that degree. `clashes` lists pairs the handbooks' clash grids mark as
+   untimetableable together.
    ============================================================= */
 window.BIOSOC_CURRICULUM = {
   meta: {
-    sampleData: true,
+    sampleData: false,
     school: "School of Biological Sciences",
+    session: "2026-27",
     creditsPerSemester: 60,
     degreeLayout: [
       ["biological-sciences"],
@@ -66,133 +54,268 @@ window.BIOSOC_CURRICULUM = {
     { id: "skills",     label: "Research & Skills" }
   ],
 
+  /* pairs the handbooks' clash grids mark as impossible to timetable together */
+  clashes: [
+    ["BS2015", "BS2030"],
+    ["BS2093", "MB2020"],
+    ["MB2050", "MB2051"],
+    ["BS2032", "BS2033"],
+    ["BS2032", "BS2066"],
+    ["BS2032", "BS2077"],
+    ["BS2033", "BS2066"],
+    ["BS2033", "BS2077"],
+    ["BS2066", "BS2077"],
+    ["BS2078", "MB2080"],
+    ["BS3000", "BS3010"],
+    ["BS3000", "BS3015"],
+    ["BS3010", "BS3015"],
+    ["BS3000", "BS3054"],
+    ["BS3010", "BS3064"],
+    ["BS3015", "BS3064"],
+    ["BS3031", "BS3038"],
+    ["BS3031", "BS3055"],
+    ["BS3031", "BS3064"],
+    ["BS3031", "BS3068"],
+    ["BS3038", "BS3054"],
+    ["BS3038", "BS3064"],
+    ["BS3054", "BS3068"],
+    ["BS3064", "BS3068"],
+    ["BS3003", "BS3073"],
+    ["BS3003", "BS3080"],
+    ["BS3011", "BS3016"],
+    ["BS3011", "BS3056"],
+    ["BS3011", "BS3080"],
+    ["BS3013", "BS3016"],
+    ["BS3056", "BS3073"],
+    ["BS3056", "BS3080"],
+    ["BS3069", "MB3057"],
+    ["MB3001", "MB3020"],
+    ["MB3001", "MB3050"],
+    ["MB3001", "MB3057"],
+    ["MB3020", "MB3050"],
+    ["MB3020", "MB3057"],
+    ["MB3050", "MB3057"]
+  ],
+
   modules: [
-    /* --- Year 1 --- real codes and credits; titles still to be filled in.
-       BS1070 and MB1080 are alternatives: BS1070 for every degree except
-       the four Medical ones, MB1080 for those four only. --- */
     { code: "BS1030", credits: 30, year: 1, semester: 1, theme: "year1" },
     { code: "BS1040", credits: 30, year: 1, semester: 1, theme: "year1" },
     { code: "BS1050", credits: 15, year: 1, semester: 2, theme: "year1" },
     { code: "BS1060", credits: 30, year: 1, semester: 2, theme: "year1" },
     { code: "BS1070", credits: 15, year: 1, semester: 2, theme: "year1",
-      about: "Taken by every degree except the four Medical ones, which take MB1080 instead." },
+      about: "Taken by every degree except the four Medical Sciences streams, which take MB1080 instead." },
     { code: "MB1080", credits: 15, year: 1, semester: 2, theme: "year1",
-      about: "Taken only by the four Medical degrees, in place of BS1070." },
-
-    /* --- Year 2, Semester 1 --- */
-    { code: "BS2001", title: "Molecular Genetics",          credits: 15, year: 2, semester: 1, theme: "genetics" },
-    { code: "BS2002", title: "Microbial Physiology",        credits: 15, year: 2, semester: 1, theme: "micro" },
-    { code: "BS2003", title: "Cell Signalling",             credits: 15, year: 2, semester: 1, theme: "biochem" },
-    { code: "BS2004", title: "Animal Physiology",           credits: 15, year: 2, semester: 1, theme: "physiology" },
-    { code: "BS2005", title: "Ecology and Conservation",    credits: 15, year: 2, semester: 1, theme: "ecology" },
-    { code: "BS2006", title: "Neurobiology",                credits: 15, year: 2, semester: 1, theme: "neuro" },
-    { code: "BS2007", title: "Research Skills and Statistics", credits: 30, year: 2, semester: 1, theme: "skills",
-      about: "Runs across the semester: experimental design, statistics in R, and scientific writing." },
-    { code: "BS2008", title: "Immunology",                  credits: 15, year: 2, semester: 1, theme: "micro" },
-
-    /* --- Year 2, Semester 2 --- */
-    { code: "BS2011", title: "Genomics and Bioinformatics", credits: 15, year: 2, semester: 2, theme: "genetics" },
-    { code: "BS2012", title: "Medical Microbiology",        credits: 15, year: 2, semester: 2, theme: "micro" },
-    { code: "BS2013", title: "Metabolic Biochemistry",      credits: 15, year: 2, semester: 2, theme: "biochem" },
-    { code: "BS2014", title: "Human Physiology",            credits: 15, year: 2, semester: 2, theme: "physiology" },
-    { code: "BS2015", title: "Evolutionary Biology",        credits: 15, year: 2, semester: 2, theme: "ecology" },
-    { code: "BS2016", title: "Systems Neuroscience",        credits: 15, year: 2, semester: 2, theme: "neuro" },
-    { code: "BS2017", title: "Experimental Design",         credits: 15, year: 2, semester: 2, theme: "skills" },
-    { code: "BS2018", title: "Virology",                    credits: 15, year: 2, semester: 2, theme: "micro" },
-
-    /* --- Year 3, Semester 1 --- */
-    { code: "BS3001", title: "Advanced Genetics",           credits: 15, year: 3, semester: 1, theme: "genetics" },
-    { code: "BS3002", title: "Bacterial Pathogenesis",      credits: 15, year: 3, semester: 1, theme: "micro" },
-    { code: "BS3003", title: "Structural Biology",          credits: 15, year: 3, semester: 1, theme: "biochem" },
-    { code: "BS3004", title: "Cardiovascular Physiology",   credits: 15, year: 3, semester: 1, theme: "physiology" },
-    { code: "BS3005", title: "Behavioural Ecology",         credits: 15, year: 3, semester: 1, theme: "ecology" },
-    { code: "BS3006", title: "Neurodegeneration",           credits: 15, year: 3, semester: 1, theme: "neuro" },
-    { code: "BS3008", title: "Cancer Biology",              credits: 15, year: 3, semester: 1, theme: "biochem" },
-
-    /* --- Year 3, Semester 2 --- */
-    { code: "BS3011", title: "Epigenetics",                 credits: 15, year: 3, semester: 2, theme: "genetics" },
-    { code: "BS3012", title: "Antimicrobial Resistance",    credits: 15, year: 3, semester: 2, theme: "micro" },
-    { code: "BS3013", title: "Drug Discovery",              credits: 15, year: 3, semester: 2, theme: "biochem" },
-    { code: "BS3014", title: "Respiratory Physiology",      credits: 15, year: 3, semester: 2, theme: "physiology" },
-    { code: "BS3015", title: "Global Change Biology",       credits: 15, year: 3, semester: 2, theme: "ecology" },
-    { code: "BS3016", title: "Cognitive Neuroscience",      credits: 15, year: 3, semester: 2, theme: "neuro" },
-    { code: "BS3018", title: "Synthetic Biology",           credits: 15, year: 3, semester: 2, theme: "genetics" },
-
-    /* --- the year-long Research Project: 45 credits, 30 in Semester 1 and
-       15 in Semester 2, drawn as one connected shape across the two --- */
-    { code: "BS3090",  display: "BS3090", title: "Research Project", credits: 30,
-      year: 3, semester: 1, theme: "skills", linked: "project",
-      about: "A year-long project worth 45 credits in total: 30 in Semester 1 and 15 in Semester 2. Supervisors are allocated in the summer before Year 3." },
-    { code: "BS3090B", display: "BS3090", title: "Research Project", credits: 15,
-      year: 3, semester: 2, theme: "skills", linked: "project",
-      about: "The Semester 2 half of the year-long project: the dissertation and a departmental talk." }
+      about: "Taken only by the four Medical Sciences streams, in place of BS1070." },
+    { code: "BS2009", title: "Genomes", credits: 15, year: 2, semester: 1, theme: "genetics" },
+    { code: "BS2013", title: "Physiology and Pharmacology", credits: 15, year: 2, semester: 1, theme: "physiology" },
+    { code: "BS2015", title: "Physiology of Excitable Cells", credits: 15, year: 2, semester: 1, theme: "physiology" },
+    { code: "BS2030", title: "Principles of Microbiology", credits: 15, year: 2, semester: 1, theme: "micro" },
+    { code: "BS2059", title: "Global Change Biology and Conservation", credits: 15, year: 2, semester: 1, theme: "ecology", field: true },
+    { code: "BS2093", title: "Protein Structure and Function", credits: 15, year: 2, semester: 1, theme: "biochem" },
+    { code: "BS2094", title: "Introduction to Python Programming for Bioscientists", credits: 15, year: 2, semester: 1, theme: "skills",
+      about: "Capped at 30 students, allocated first come first served." },
+    { code: "BS2200", title: "Research Skills 1", credits: 15, year: 2, semester: 1, theme: "skills" },
+    { code: "MB2020", title: "Medical Microbiology", credits: 15, year: 2, semester: 1, theme: "micro" },
+    { code: "MB2050", title: "Biochemical Approaches to Therapeutic Development", credits: 15, year: 2, semester: 1, theme: "biochem" },
+    { code: "MB2051", title: "Current Issues in Medical Genetics", credits: 15, year: 2, semester: 1, theme: "genetics" },
+    { code: "BS2000", title: "Research Skills 2", credits: 15, year: 2, semester: 2, theme: "skills" },
+    { code: "BS2004", title: "Contemporary Techniques in Biological Data Analysis", credits: 15, year: 2, semester: 2, theme: "skills" },
+    { code: "BS2014", title: "Exercise Physiology and Pharmacology", credits: 15, year: 2, semester: 2, theme: "physiology" },
+    { code: "BS2026", title: "Genes, Development and Inheritance", credits: 15, year: 2, semester: 2, theme: "genetics" },
+    { code: "BS2032", title: "Immunology and Eukaryotic Microbiology", credits: 15, year: 2, semester: 2, theme: "micro" },
+    { code: "BS2033", title: "Immunology and Eukaryotic Microbiology (with Science Enterprise Trip)", credits: 15, year: 2, semester: 2, theme: "micro", field: true,
+      about: "Limited to 20 students; priority to those taking both BS2030 and MB2020." },
+    { code: "BS2040", title: "Bioinformatics", credits: 15, year: 2, semester: 2, theme: "genetics" },
+    { code: "BS2066", title: "Behavioural Neurobiology", credits: 15, year: 2, semester: 2, theme: "neuro" },
+    { code: "BS2077", title: "Neurobiology and Animal Behaviour", credits: 15, year: 2, semester: 2, theme: "neuro" },
+    { code: "BS2078", title: "A Field Guide to Evolution", credits: 15, year: 2, semester: 2, theme: "ecology", field: true },
+    { code: "BS2091", title: "From Genes to Proteins", credits: 15, year: 2, semester: 2, theme: "biochem" },
+    { code: "BS2092", title: "Molecular and Cell Biology", credits: 15, year: 2, semester: 2, theme: "biochem" },
+    { code: "MB2080", title: "Pathophysiology of Disease", credits: 15, year: 2, semester: 2, theme: "physiology" },
+    { code: "BS3PROJ", display: "Project", title: "Research Project", credits: 30, year: 3, semester: 1, theme: "skills", linked: "project",
+      about: "45 credits across the year. The handbooks describe it as a 15-credit practical module plus a 30-credit written and oral module that runs across both semesters, assessed entirely in semester 2." },
+    { code: "BS3000", title: "Evolutionary Genetics", credits: 15, year: 3, semester: 1, theme: "genetics" },
+    { code: "BS3010", title: "Gene Expression: Molecular Basis & Medical Relevance", credits: 15, year: 3, semester: 1, theme: "genetics" },
+    { code: "BS3015", title: "Molecular & Cellular Immunology", credits: 15, year: 3, semester: 1, theme: "micro" },
+    { code: "BS3031", title: "Human Genetics", credits: 15, year: 3, semester: 1, theme: "genetics" },
+    { code: "BS3038", title: "Biodiversity in Practice", credits: 15, year: 3, semester: 1, theme: "ecology" },
+    { code: "BS3054", title: "Molecular and Cellular Pharmacology", credits: 15, year: 3, semester: 1, theme: "physiology" },
+    { code: "BS3055", title: "Molecular and Cellular Neuroscience", credits: 15, year: 3, semester: 1, theme: "neuro" },
+    { code: "BS3064", title: "Comparative Neurobiology", credits: 15, year: 3, semester: 1, theme: "neuro" },
+    { code: "BS3068", title: "Microbial Biotechnology", credits: 15, year: 3, semester: 1, theme: "micro" },
+    { code: "BS3070", title: "Structural Biology", credits: 15, year: 3, semester: 1, theme: "biochem" },
+    { code: "NT3100", title: "Sustainability Enterprise Partnership Project", credits: 15, year: 3, semester: 1, theme: "skills" },
+    { code: "BS3PROJB", display: "Project", title: "Research Project", credits: 15, year: 3, semester: 2, theme: "skills", linked: "project",
+      about: "The semester 2 half of the 45-credit year-long project." },
+    { code: "BS3003", title: "Cancer Cell and Molecular Biology", credits: 15, year: 3, semester: 2, theme: "biochem" },
+    { code: "BS3011", title: "Microbial Pathogenesis and Genomics", credits: 15, year: 3, semester: 2, theme: "micro" },
+    { code: "BS3013", title: "Human and Environmental Microbiomics", credits: 15, year: 3, semester: 2, theme: "micro",
+      about: "Listed as “Human and Environmental Microbiology” in the degree tables and “… Microbiomics” in the module lists." },
+    { code: "BS3016", title: "Neuroscience Futures", credits: 15, year: 3, semester: 2, theme: "neuro" },
+    { code: "BS3033", title: "Physiology, Pharmacology and Behaviour", credits: 15, year: 3, semester: 2, theme: "physiology" },
+    { code: "BS3056", title: "Cellular Physiology of the Cardiovascular System", credits: 15, year: 3, semester: 2, theme: "physiology" },
+    { code: "BS3069", title: "Introduction to Astrobiology and the Origin of Life", credits: 15, year: 3, semester: 2, theme: "ecology" },
+    { code: "BS3073", title: "Conservation and Ecological Genetics", credits: 15, year: 3, semester: 2, theme: "ecology" },
+    { code: "BS3080", title: "Behavioural Ecology", credits: 15, year: 3, semester: 2, theme: "ecology", field: true },
+    { code: "MB3001", title: "Biochemical Mechanisms of Human Disease", credits: 15, year: 3, semester: 2, theme: "biochem" },
+    { code: "MB3020", title: "Advanced Topics in Medical Microbiology", credits: 15, year: 3, semester: 2, theme: "micro" },
+    { code: "MB3050", title: "Medical Genetics", credits: 15, year: 3, semester: 2, theme: "genetics" },
+    { code: "MB3057", title: "Current and Future Therapeutics", credits: 15, year: 3, semester: 2, theme: "physiology" },
+    { code: "NT3200", title: "Sustainability Enterprise Partnership Project", credits: 15, year: 3, semester: 2, theme: "skills" }
   ],
 
   degrees: [
     { id: "biological-sciences", name: "Biological Sciences", hue: 150,
-      excluded: ["MB1080"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "BS1070"],
-              y2s1: ["BS2007"], y2s2: ["BS2017"],
-              y3s1: ["BS3090"], y3s2: ["BS3090B"] } },
-
-    { id: "genetics", name: "Genetics", hue: 168,
-      excluded: ["MB1080"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "BS1070"],
-              y2s1: ["BS2001", "BS2007"], y2s2: ["BS2011", "BS2017"],
-              y3s1: ["BS3001", "BS3090"], y3s2: ["BS3011", "BS3090B"] } },
-
-    { id: "microbiology", name: "Microbiology", hue: 186,
-      excluded: ["MB1080"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "BS1070"],
-              y2s1: ["BS2002", "BS2007"], y2s2: ["BS2012", "BS2017"],
-              y3s1: ["BS3002", "BS3090"], y3s2: ["BS3012", "BS3090B"] } },
-
-    { id: "biochemistry", name: "Biochemistry", hue: 202,
-      excluded: ["BS2005", "BS3005", "MB1080"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "BS1070"],
-              y2s1: ["BS2003", "BS2007"], y2s2: ["BS2013", "BS2017"],
-              y3s1: ["BS3003", "BS3090"], y3s2: ["BS3013", "BS3090B"] } },
-
-    { id: "physiology-pharmacology", name: "Physiology with Pharmacology", hue: 218,
-      excluded: ["BS2005", "BS3005", "BS3015", "MB1080"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "BS1070"],
-              y2s1: ["BS2004", "BS2007"], y2s2: ["BS2014", "BS2017"],
-              y3s1: ["BS3004", "BS3090"], y3s2: ["BS3014", "BS3090B"] } },
-
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "BS1070"],
+              y2s1: ["BS2200"],
+              y2s2: ["BS2000"],
+              y3s1: ["BS3PROJ"],
+              y3s2: ["BS3PROJB"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2009", "BS2013", "BS2015", "BS2030", "BS2059", "BS2093", "BS2094", "MB2020"],
+                 y2s2: ["BS2004", "BS2014", "BS2026", "BS2032", "BS2033", "BS2040", "BS2066", "BS2077", "BS2078", "BS2091", "BS2092"],
+                 y3s1: ["BS3000", "BS3010", "BS3015", "BS3031", "BS3038", "BS3054", "BS3055", "BS3064", "BS3068", "BS3070", "NT3100"],
+                 y3s2: ["BS3003", "BS3011", "BS3013", "BS3016", "BS3033", "BS3056", "BS3069", "BS3073", "BS3080", "NT3200"] } },
     { id: "zoology", name: "Zoology", hue: 96,
-      excluded: ["BS2012", "BS3008", "BS3013", "MB1080"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "BS1070"],
-              y2s1: ["BS2005", "BS2007"], y2s2: ["BS2015", "BS2017"],
-              y3s1: ["BS3005", "BS3090"], y3s2: ["BS3015", "BS3090B"] } },
-
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "BS1070"],
+              y2s1: ["BS2200", "BS2059"],
+              y2s2: ["BS2000", "BS2026", "BS2077"],
+              y3s1: ["BS3PROJ"],
+              y3s2: ["BS3PROJB", "BS3073"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2009", "BS2013", "BS2015", "BS2030", "BS2093", "BS2094", "MB2020"],
+                 y2s2: ["BS2004", "BS2014", "BS2032", "BS2033", "BS2040", "BS2078"],
+                 y3s1: ["BS3038", "BS3064", "BS3000", "BS3010", "BS3015", "BS3031", "BS3054", "BS3055", "BS3068", "BS3070", "NT3100"],
+                 y3s2: ["BS3003", "BS3011", "BS3013", "BS3016", "BS3033", "BS3056", "BS3069", "BS3080", "NT3200"] },
+      groups: [{"label": "Choose one from", "members": ["BS3038", "BS3064"]}] },
     { id: "neuroscience", name: "Neuroscience", hue: 264,
-      excluded: ["BS2005", "BS3005", "MB1080"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "BS1070"],
-              y2s1: ["BS2006", "BS2007"], y2s2: ["BS2016", "BS2017"],
-              y3s1: ["BS3006", "BS3090"], y3s2: ["BS3016", "BS3090B"] } },
-
-    { id: "medical-genetics", name: "Medical Genetics", hue: 286,
-      excluded: ["BS1070", "BS2005", "BS2015", "BS3005", "BS3015"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "MB1080"],
-              y2s1: ["BS2001", "BS2008"], y2s2: ["BS2011", "BS2012"],
-              y3s1: ["BS3001", "BS3008", "BS3090"], y3s2: ["BS3011", "BS3090B"] } },
-
-    { id: "medical-microbiology", name: "Medical Microbiology", hue: 306,
-      excluded: ["BS1070", "BS2005", "BS2015", "BS3005", "BS3015"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "MB1080"],
-              y2s1: ["BS2002", "BS2008"], y2s2: ["BS2012", "BS2018"],
-              y3s1: ["BS3002", "BS3090"], y3s2: ["BS3012", "BS3090B"] } },
-
-    { id: "medical-biochemistry", name: "Medical Biochemistry", hue: 328,
-      excluded: ["BS1070", "BS2005", "BS2015", "BS3005", "BS3015"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "MB1080"],
-              y2s1: ["BS2003", "BS2008"], y2s2: ["BS2013", "BS2014"],
-              y3s1: ["BS3003", "BS3008", "BS3090"], y3s2: ["BS3013", "BS3090B"] } },
-
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "BS1070"],
+              y2s1: ["BS2200", "BS2013", "BS2015"],
+              y2s2: ["BS2000", "BS2066"],
+              y3s1: ["BS3PROJ", "BS3055"],
+              y3s2: ["BS3PROJB", "BS3016", "BS3033"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2009", "BS2030", "BS2059", "BS2093", "BS2094", "MB2020"],
+                 y2s2: ["BS2004", "BS2014", "BS2026", "BS2032", "BS2033", "BS2040", "BS2078", "BS2091", "BS2092"],
+                 y3s1: ["BS3054", "BS3064"],
+                 y3s2: ["BS3003", "BS3011", "BS3013", "BS3056", "BS3069", "BS3073", "BS3080", "MB3057", "NT3200"] } },
+    { id: "physiology-pharmacology", name: "Physiology with Pharmacology", hue: 218,
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "BS1070"],
+              y2s1: ["BS2200", "BS2013", "BS2015"],
+              y2s2: ["BS2000", "BS2014"],
+              y3s1: ["BS3PROJ", "BS3054"],
+              y3s2: ["BS3PROJB", "BS3056"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2009", "BS2030", "BS2059", "BS2093", "BS2094", "MB2020"],
+                 y2s2: ["BS2004", "BS2026", "BS2032", "BS2033", "BS2040", "BS2066", "BS2077", "BS2078", "BS2091", "BS2092"],
+                 y3s1: ["BS3055", "BS3000", "BS3010", "BS3015", "BS3031", "BS3038", "BS3064", "BS3068", "BS3070", "NT3100"],
+                 y3s2: ["BS3033", "MB3057", "BS3003", "BS3011", "BS3013", "BS3016", "BS3069", "BS3073", "BS3080", "NT3200"] },
+      groups: [{"label": "Choose two or three from", "members": ["BS3055", "BS3033", "MB3057"]}] },
     { id: "medical-physiology", name: "Medical Physiology", hue: 20,
-      excluded: ["BS1070", "BS2005", "BS2015", "BS3005", "BS3015"],
-      core: { y1s1: ["BS1030", "BS1040"], y1s2: ["BS1050", "BS1060", "MB1080"],
-              y2s1: ["BS2004", "BS2008"], y2s2: ["BS2014", "BS2018"],
-              y3s1: ["BS3004", "BS3090"], y3s2: ["BS3014", "BS3090B"] } }
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "MB1080"],
+              y2s1: ["BS2200", "BS2013", "BS2015"],
+              y2s2: ["BS2000", "BS2014", "MB2080"],
+              y3s1: ["BS3PROJ"],
+              y3s2: ["BS3PROJB", "MB3057"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2009", "BS2059", "BS2093", "BS2094", "MB2020"],
+                 y2s2: ["BS2004", "BS2026", "BS2032", "BS2033", "BS2040", "BS2066", "BS2077", "BS2092"],
+                 y3s1: ["BS3054", "BS3055", "BS3000", "BS3010", "BS3015", "BS3031", "BS3038", "BS3064", "BS3068", "BS3070", "NT3100"],
+                 y3s2: ["BS3033", "BS3056", "BS3003", "BS3011", "BS3013", "BS3016", "BS3069", "BS3073", "BS3080", "NT3200"] },
+      groups: [{"label": "Choose three or four from", "members": ["BS3054", "BS3055", "BS3033", "BS3056"]}] },
+    { id: "biochemistry", name: "Biochemistry", hue: 202,
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "BS1070"],
+              y2s1: ["BS2200", "BS2093"],
+              y2s2: ["BS2000", "BS2091", "BS2092"],
+              y3s1: ["BS3PROJ", "BS3010", "BS3070"],
+              y3s2: ["BS3PROJB", "BS3003"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2009", "BS2013", "BS2015", "BS2030", "BS2059", "BS2094", "MB2020"],
+                 y2s2: ["BS2004", "BS2014", "BS2026", "BS2032", "BS2033", "BS2040", "BS2066", "BS2077", "BS2078"],
+                 y3s1: [],
+                 y3s2: ["BS3011", "BS3013", "BS3016", "BS3033", "BS3056", "BS3069", "BS3073", "BS3080", "NT3200"] } },
+    { id: "medical-biochemistry", name: "Medical Biochemistry", hue: 328,
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "MB1080"],
+              y2s1: ["BS2200", "BS2093", "MB2050"],
+              y2s2: ["BS2000", "BS2091", "BS2092"],
+              y3s1: ["BS3PROJ", "BS3010"],
+              y3s2: ["BS3PROJB", "MB3001"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2009", "BS2013", "BS2015", "BS2030", "BS2094", "MB2020"],
+                 y2s2: ["BS2004", "BS2014", "BS2026", "BS2032", "BS2033", "BS2040", "BS2066", "BS2077", "BS2078"],
+                 y3s1: ["BS3070", "BS3000", "BS3015", "BS3031", "BS3038", "BS3054", "BS3055", "BS3064", "BS3068", "NT3100"],
+                 y3s2: ["BS3003", "BS3011", "BS3013", "BS3016", "BS3033", "BS3056", "BS3069", "NT3200"] },
+      groups: [{"label": "Choose one or two from", "members": ["BS3070", "BS3003"]}] },
+    { id: "genetics", name: "Genetics", hue: 168,
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "BS1070"],
+              y2s1: ["BS2200", "BS2009"],
+              y2s2: ["BS2000", "BS2026", "BS2040"],
+              y3s1: ["BS3PROJ", "BS3000", "BS3031"],
+              y3s2: ["BS3PROJB"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2013", "BS2015", "BS2030", "BS2059", "BS2093", "BS2094", "MB2020"],
+                 y2s2: ["BS2004", "BS2014", "BS2032", "BS2033", "BS2066", "BS2077", "BS2078", "BS2091", "BS2092"],
+                 y3s1: [],
+                 y3s2: ["BS3011", "BS3073", "BS3003", "BS3013", "BS3016", "BS3033", "BS3056", "BS3069", "BS3080", "NT3200"] },
+      groups: [{"label": "Choose one or two from", "members": ["BS3011", "BS3073"]}] },
+    { id: "medical-genetics", name: "Medical Genetics", hue: 286,
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "MB1080"],
+              y2s1: ["BS2200", "BS2009", "MB2051"],
+              y2s2: ["BS2000", "BS2026", "BS2040"],
+              y3s1: ["BS3PROJ", "BS3000", "BS3031"],
+              y3s2: ["BS3PROJB", "MB3050", "BS3011"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2013", "BS2015", "BS2030", "BS2093", "BS2094", "MB2020"],
+                 y2s2: ["BS2004", "BS2014", "BS2032", "BS2033", "BS2066", "BS2077", "BS2091", "BS2092"],
+                 y3s1: [],
+                 y3s2: ["BS3003", "BS3013", "BS3016", "BS3033", "BS3056", "BS3069", "NT3200"] } },
+    { id: "microbiology", name: "Microbiology", hue: 186,
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "BS1070"],
+              y2s1: ["BS2200", "BS2030", "MB2020"],
+              y2s2: ["BS2000"],
+              y3s1: ["BS3PROJ"],
+              y3s2: ["BS3PROJB"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2009", "BS2013", "BS2015", "BS2059", "BS2093", "BS2094"],
+                 y2s2: ["BS2004", "BS2014", "BS2026", "BS2040", "BS2066", "BS2077", "BS2091", "BS2092"],
+                 y3s1: ["BS3015", "BS3068", "BS3000", "BS3010", "BS3031", "BS3038", "BS3054", "BS3055", "BS3064", "BS3070", "NT3100"],
+                 y3s2: ["BS3011", "BS3013", "BS3003", "BS3016", "BS3033", "BS3056", "BS3069", "BS3073", "BS3080", "NT3200"] },
+      coreOneOf: {"y2s2": [["BS2032", "BS2033"]]},
+      groups: [{"label": "Choose three or four from", "members": ["BS3015", "BS3068", "BS3011", "BS3013"]}] },
+    { id: "medical-microbiology", name: "Medical Microbiology", hue: 306,
+      core: { y1s1: ["BS1030", "BS1040"],
+              y1s2: ["BS1050", "BS1060", "MB1080"],
+              y2s1: ["BS2200", "BS2030", "MB2020"],
+              y2s2: ["BS2000"],
+              y3s1: ["BS3PROJ"],
+              y3s2: ["BS3PROJB", "MB3020"] },
+      options: { y1s1: [],
+                 y1s2: [],
+                 y2s1: ["BS2009", "BS2013", "BS2059", "BS2093", "BS2094"],
+                 y2s2: ["BS2004", "BS2014", "BS2026", "BS2040", "BS2066", "BS2077", "BS2091", "BS2092"],
+                 y3s1: ["BS3015", "BS3068", "BS3000", "BS3010", "BS3031", "BS3038", "BS3054", "BS3055", "BS3064", "BS3070", "NT3100"],
+                 y3s2: ["BS3011", "BS3013", "BS3003", "BS3016", "BS3033", "BS3056", "BS3069", "NT3200"] },
+      coreOneOf: {"y2s2": [["BS2032", "BS2033"]]},
+      groups: [{"label": "Choose three or four from", "members": ["BS3015", "BS3068", "BS3011", "BS3013"]}] }
   ]
 };

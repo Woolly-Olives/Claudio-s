@@ -70,20 +70,79 @@
     return " box--link-mid";
   }
 
-  /** core | selected | optional | unavailable, for the degree on screen. */
+  /* pairs the handbooks' clash grids mark as impossible to timetable together */
+  var CLASH = {};
+  (DATA.clashes || []).forEach(function (pair) {
+    (CLASH[pair[0]] = CLASH[pair[0]] || []).push(pair[1]);
+    (CLASH[pair[1]] = CLASH[pair[1]] || []).push(pair[0]);
+  });
+  function clashesWith(code) { return CLASH[code] || []; }
+
+  /** Alternatives of which exactly one is compulsory (e.g. BS2032 or BS2033). */
+  function altGroups(d, slot) { return (d.coreOneOf && d.coreOneOf[slot]) || []; }
+
+  function isCoreAlt(d, slot, code) {
+    return altGroups(d, slot).some(function (g) { return g.indexOf(code) !== -1; });
+  }
+
+  /** Every module the degree is certain to be taking in this slot. */
+  function fixedIn(d, slot) {
+    return (d.core[slot] || []).slice();
+  }
+
+  /**
+   * core | selected | optional | blocked | unavailable, for the degree on
+   * screen. "unavailable" is structural — the handbook does not offer it, or
+   * it clashes with something compulsory. "blocked" depends on your own
+   * choices so far, and clears when you drop the module causing it.
+   */
   function statusOf(m) {
     var d = degree();
-    if ((d.core[slotOf(m)] || []).indexOf(m.code) !== -1) { return "core"; }
-    if ((d.excluded || []).indexOf(m.code) !== -1) { return "unavailable"; }
-    return state.picks[slotOf(m)].indexOf(m.code) !== -1 ? "selected" : "optional";
+    var slot = slotOf(m);
+    if ((d.core[slot] || []).indexOf(m.code) !== -1) { return "core"; }
+    if (isCoreAlt(d, slot, m.code)) { return "core"; }
+    var opts = (d.options && d.options[slot]) || [];
+    if (opts.indexOf(m.code) === -1) { return "unavailable"; }
+    if (state.picks[slot].indexOf(m.code) !== -1) { return "selected"; }
+    if (fixedIn(d, slot).some(function (c) { return clashesWith(m.code).indexOf(c) !== -1; })) {
+      return "unavailable";
+    }
+    if (state.picks[slot].some(function (c) { return clashesWith(m.code).indexOf(c) !== -1; })) {
+      return "blocked";
+    }
+    return "optional";
+  }
+
+  /** Plain-English reason a module is not open, for the details panel. */
+  function reasonFor(m) {
+    var d = degree();
+    var slot = slotOf(m);
+    var opts = (d.options && d.options[slot]) || [];
+    if (opts.indexOf(m.code) === -1 && (d.core[slot] || []).indexOf(m.code) === -1
+        && !isCoreAlt(d, slot, m.code)) {
+      return "This degree\u2019s handbook does not list it for this semester.";
+    }
+    var hardClash = fixedIn(d, slot).filter(function (c) { return clashesWith(m.code).indexOf(c) !== -1; });
+    if (hardClash.length) {
+      return "It clashes with " + hardClash.join(", ") + ", which is compulsory for this degree.";
+    }
+    var soft = state.picks[slot].filter(function (c) { return clashesWith(m.code).indexOf(c) !== -1; });
+    if (soft.length) { return "It clashes with " + soft.join(", ") + ", which you have taken."; }
+    return "";
   }
 
   function creditsIn(slot) {
-    return DATA.modules.reduce(function (sum, m) {
-      if (slotOf(m) !== slot) { return sum; }
-      var st = statusOf(m);
-      return (st === "core" || st === "selected") ? sum + m.credits : sum;
+    var d = degree();
+    var sum = (d.core[slot] || []).reduce(function (a, c) {
+      return a + (byCode[c] ? byCode[c].credits : 0);
     }, 0);
+    /* exactly one of each alternatives group is taken, so count it once */
+    altGroups(d, slot).forEach(function (g) {
+      if (g.length && byCode[g[0]]) { sum += byCode[g[0]].credits; }
+    });
+    return state.picks[slot].reduce(function (a, c) {
+      return a + (byCode[c] ? byCode[c].credits : 0);
+    }, sum);
   }
 
   /** Degrees that require this module — shown in the details panel. */
@@ -123,8 +182,9 @@
         var m = byCode[code];
         if (!m || slotOf(m) !== c.id) { return false; }
         var deg = degree();
-        return (deg.core[c.id] || []).indexOf(code) === -1 &&
-               (deg.excluded || []).indexOf(code) === -1;
+        var opts = (deg.options && deg.options[c.id]) || [];
+        return opts.indexOf(code) !== -1 &&
+               !fixedIn(deg, c.id).some(function (x) { return clashesWith(code).indexOf(x) !== -1; });
       });
     });
   }
@@ -133,8 +193,10 @@
   function prunePicks() {
     COLUMNS.forEach(function (c) {
       state.picks[c.id] = state.picks[c.id].filter(function (code) {
-        var st = statusOf(byCode[code]);
-        return st === "selected" || st === "optional";
+        var d = degree();
+        var opts = (d.options && d.options[c.id]) || [];
+        if (opts.indexOf(code) === -1) { return false; }
+        return !fixedIn(d, c.id).some(function (x) { return clashesWith(code).indexOf(x) !== -1; });
       });
     });
   }
@@ -181,14 +243,16 @@
     var st = statusOf(m);
     var units = m.credits / 15;
     var interactive = st === "optional" || st === "selected";
-    var full = creditsIn(slotOf(m)) >= CAP;
     var wouldOverflow = st === "optional" && creditsIn(slotOf(m)) + m.credits > CAP;
-    var label = {
-      core: "Core", selected: "Chosen", optional: "Optional", unavailable: "Not available"
+    var alt = st === "core" && isCoreAlt(degree(), slotOf(m), m.code);
+    var label = alt ? "Core \u2014 one of" : {
+      core: "Core", selected: "Chosen", optional: "Optional",
+      blocked: "Clashes", unavailable: "Not available"
     }[st];
 
     /* ● core, ✓ chosen, ✕ not available — so the state reads without colour */
-    var glyph = { core: "\u25CF", selected: "\u2713", unavailable: "\u2715", optional: "" }[st];
+    var glyph = { core: "\u25CF", selected: "\u2713", unavailable: "\u2715",
+                  blocked: "\u2298", optional: "" }[st];
 
     var link = linkClass(m);
     var shown = m.display || m.code;
@@ -237,8 +301,16 @@
     if (!m) { return ""; }
     var st = statusOf(m);
     var needs = requiredBy(m.code);
-    var label = { core: "Core for this degree", selected: "Chosen",
-                  optional: "Optional for this degree", unavailable: "Not available on this degree" }[st];
+    var altPair = isCoreAlt(degree(), slotOf(m), m.code)
+      ? altGroups(degree(), slotOf(m)).filter(function (g) { return g.indexOf(m.code) !== -1; })[0]
+      : null;
+    var label = altPair ? "Core \u2014 one of these" : { core: "Core for this degree", selected: "Chosen",
+                  optional: "Optional for this degree", blocked: "Clashes with a module you have taken",
+                  unavailable: "Not available on this degree" }[st];
+    var reason = (st === "unavailable" || st === "blocked") ? reasonFor(m) : "";
+    var inGroups = (degree().groups || []).filter(function (g) {
+      return g.members.indexOf(m.code) !== -1;
+    });
     var group = linkGroup(m);
     var whole = group.reduce(function (a, x) { return a + x.credits; }, 0);
     var split = group.length > 1
@@ -256,6 +328,12 @@
           '<span class="tag">' + (group.length > 1 ? whole + ' credits over the year' : m.credits + ' credits') + '</span>' +
           '<span class="tag">' + esc(themeLabel[m.theme] || "") + '</span>' +
         '</p>' +
+        (altPair ? '<p class="sheet__about"><strong>One of ' + esc(altPair.join(" or ")) +
+                   '</strong> is compulsory for this degree \u2014 you take one, not both.</p>' : "") +
+        (reason ? '<p class="sheet__about sheet__why">' + esc(reason) + '</p>' : "") +
+        (inGroups.length ? '<p class="sheet__about"><strong>' + esc(inGroups[0].label) + ':</strong> ' +
+                 esc(inGroups[0].members.join(", ")) + '.</p>' : "") +
+        (m.field ? '<p class="sheet__about">Includes a field course &mdash; check the handbook for dates and costs.</p>' : "") +
         (split ? '<p class="sheet__about"><strong>Year-long module</strong> &mdash; ' +
                  esc(split) + '.</p>' : "") +
         (m.about ? '<p class="sheet__about">' + esc(m.about) + '</p>' : "") +
@@ -282,6 +360,7 @@
         '<span class="key key--core">Core</span>' +
         '<span class="key key--selected">Chosen</span>' +
         '<span class="key key--optional">Optional</span>' +
+        '<span class="key key--blocked">Clashes with a choice</span>' +
         '<span class="key key--unavailable">Not available</span>' +
         '<span class="mm__hint">Click a module to take it &middot; “i” for details</span>' +
       '</div>' +
@@ -334,6 +413,8 @@
           say(name + " would take " + slotOf(noRoom[0]).toUpperCase() + " over " + CAP + " credits");
           return;
         }
+        var bad = group.filter(function (x) { return statusOf(x) === "blocked" || statusOf(x) === "unavailable"; });
+        if (bad.length) { say(name + " \u2014 " + reasonFor(bad[0])); return; }
         group.forEach(function (x) {
           if (state.picks[slotOf(x)].indexOf(x.code) === -1) { state.picks[slotOf(x)].push(x.code); }
         });

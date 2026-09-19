@@ -153,30 +153,42 @@ combined credits.
 The Research Project is the example — 45 credits, 30 in Semester 1 and 15 in
 Semester 2, drawn as a single step-shaped form.
 
-### Putting real data in
+### Where the data comes from
 
-Year 1 carries the real module codes and credits. Their **titles are not
-recorded yet**: a module with no `title` draws as its code with *"Title to be
-added"* beneath it, so the gap is visible rather than invented. Fill the titles
-in and that treatment disappears on its own.
+Years 2 and 3 are transcribed from the School's four 2026-27 handbooks (Year 2
+and Year 3, Biological Sciences and Medical Sciences). For each degree the data
+records three things per semester slot:
 
-Years 2 and 3, and the degree structures, are still **sample data** —
-placeholders with a realistic shape. To replace them:
+- `core` — compulsory modules,
+- `options` — exactly what that degree's handbook table lists as choosable,
+- `coreOneOf` — alternatives of which one is compulsory (BS2032 *or* BS2033).
 
-1. Replace the `modules` and `degrees` arrays (the schema is documented in
-   comments at the top of the file).
-2. Set `meta.sampleData` to `false`. The warning line on the page disappears.
+Anything neither core nor listed as an option is **not available** to that
+degree. `clashes` holds every pair the handbooks' clash grids mark as
+untimetableable together, which produces two further states: a module that
+clashes with something *compulsory* is permanently unavailable, and one that
+clashes with a module **you** have taken shows as *clashes with a choice* and
+clears if you drop that module.
 
-A module is `{ code, title?, credits, year, semester, theme, about?, display?,
-linked? }`, where `credits` is 15 or 30. A degree lists its required modules per
-semester slot (`y1s1` … `y3s2`) and may list `excluded` modules it cannot take;
-anything neither core nor excluded is optional. Where two modules are
-alternatives — as BS1070 and MB1080 are, the latter for the four Medical degrees
-only — make each core for the degrees that take it and excluded for the rest.
+Where the two sets of handbooks disagree, the Year 3 booklets were taken as
+authoritative for Year 3 — the Year 2 booklets label their third-year tables
+"provisional". The differences, and the errors found in the handbooks
+themselves, are listed in `docs/handbook-issues.md`.
 
-Plans live in the URL's query string, so a student can send someone their plan as
-a link. Codes a shared link names that the chosen degree cannot take are dropped,
-and the URL is rewritten to match.
+Year 1 codes and credits came from the society. **Year 1 titles are not recorded
+yet**: a module with no `title` draws as its code with *"Title to be added"*
+beneath it, so the gap is visible rather than invented. Fill them in and that
+treatment disappears on its own.
+
+`groups` records each degree's "choose three or four from …" sets. They are
+shown in a module's details panel but are **not enforced** by the credit
+arithmetic — the 60-credit cap and the clash rules are.
+
+### Regenerating the data
+
+`assets/data/curriculum.js` is generated, so the site cannot drift from the
+transcription. Edit the rules at the top of the generator and re-run it rather
+than hand-editing the output.
 
 ## Renaming, reordering or changing the number of sections
 
