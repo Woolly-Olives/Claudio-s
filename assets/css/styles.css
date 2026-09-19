@@ -462,6 +462,252 @@ body.is-page-open .stage {
 
 .note > :last-child { margin-bottom: 0; }
 
+/* --- assessment table ------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.table-hint {
+  margin: 0 0 1.25rem;
+  font-size: 0.88rem;
+  color: var(--fg-soft);
+  opacity: 0.85;
+}
+
+.assessment-table {
+  width: 100%;
+  margin: 0 0 2rem;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.assessment-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.7rem 0.75rem;
+  background: var(--bg);
+  border-bottom: 2px solid hsl(var(--hue) 55% 50% / 0.5);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+  white-space: nowrap;
+}
+
+.assessment-table tbody th,
+.assessment-table tbody td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: top;
+}
+
+.assessment-table tbody th {
+  font-weight: 650;
+  color: var(--fg);
+}
+
+.assessment-table tbody tr:hover th,
+.assessment-table tbody tr:hover td {
+  background: hsl(var(--hue) 40% 50% / 0.07);
+}
+
+.assessment-table td:first-of-type { min-width: 11rem; }
+
+.mod {
+  display: inline-block;
+  margin: 0 0.25rem 0.25rem 0;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid hsl(var(--mod-h) 55% 50% / 0.4);
+  border-radius: 999px;
+  background: hsl(var(--mod-h) 60% 50% / 0.14);
+  color: hsl(var(--mod-h) 60% var(--label-l));
+  font-size: 0.78rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.mod--bs1030 { --mod-h: 205; }
+.mod--bs1040 { --mod-h: 162; }
+.mod--adbs   { --mod-h: 40; }
+
+.assessment-table .cell { min-width: 0; }
+
+.mod-note {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--fg-soft);
+}
+
+.deadline--fixed {
+  text-decoration: underline dotted hsl(var(--hue) 65% 55%);
+  text-underline-offset: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.deadline-note {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  color: var(--fg-soft);
+}
+
+.assessment-table .nil { opacity: 0.45; }
+
+/* below this width the table becomes one card per assessment */
+@media (max-width: 900px) {
+  .assessment-table,
+  .assessment-table tbody,
+  .assessment-table tr,
+  .assessment-table th,
+  .assessment-table td { display: block; }
+
+  .assessment-table thead { display: none; }
+
+  .assessment-table tr {
+    margin-bottom: 0.85rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 12px;
+    background: hsl(var(--hue) 35% 50% / 0.05);
+    overflow: hidden;
+  }
+
+  .assessment-table tbody th,
+  .assessment-table tbody td { border-bottom: none; padding: 0.35rem 0.9rem; }
+
+  .assessment-table tbody th {
+    padding-top: 0.85rem;
+    font-size: 1rem;
+    color: hsl(var(--hue) 60% var(--label-l));
+  }
+
+  .assessment-table tbody tr th::before { display: none; }
+
+  .assessment-table tbody td {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0.65rem;
+    align-items: start;
+  }
+
+  .assessment-table tbody td:last-child { padding-bottom: 0.85rem; }
+
+  .assessment-table tbody td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-soft);
+    padding-top: 0.15rem;
+  }
+
+  .assessment-table tbody tr:hover th,
+  .assessment-table tbody tr:hover td { background: none; }
+}
+
+/* --- link tree -------------------------------------------------------- */
+
+.link-hero {
+  display: block;
+  margin: 0 0 1.5rem;
+  padding: 1.2rem 1.35rem;
+  border: 1px solid hsl(var(--hue) 55% 55% / 0.45);
+  border-radius: 16px;
+  background: hsl(var(--hue) 45% 50% / 0.12);
+  color: inherit;
+  text-decoration: none;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease);
+}
+
+.link-hero:hover { background: hsl(var(--hue) 50% 50% / 0.2); }
+
+.link-hero strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: hsl(var(--hue) 65% var(--label-l));
+}
+
+.link-hero span { font-size: 0.95rem; }
+
+.link-list {
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: link;
+}
+
+.link-list > li {
+  counter-increment: link;
+  padding-left: 2.4rem;
+  position: relative;
+  margin-bottom: 0.4rem;
+}
+
+.link-list > li::before {
+  content: counter(link);
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border: 1px solid hsl(var(--hue) 50% 55% / 0.35);
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: hsl(var(--hue) 55% var(--label-l));
+}
+
+.link-list a,
+.link-sublist a {
+  display: block;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 180ms var(--ease);
+}
+
+.link-list a:hover,
+.link-sublist a:hover { background: hsl(var(--hue) 40% 50% / 0.12); }
+
+.link-list strong,
+.link-sublist strong {
+  display: block;
+  font-weight: 650;
+  color: var(--fg);
+}
+
+.link-list span,
+.link-sublist span {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--fg-soft);
+}
+
+.link-sublist {
+  margin: 0.15rem 0 0.6rem;
+  padding: 0 0 0 0.9rem;
+  list-style: none;
+  border-left: 2px solid hsl(var(--hue) 50% 55% / 0.25);
+}
+
+.link-sublist strong { font-weight: 600; font-size: 0.94rem; }
+
 /* ---------- 7. Motion + fallbacks ---------- */
 .noscript-nav ul {
   display: grid;

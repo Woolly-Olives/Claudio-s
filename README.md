@@ -84,6 +84,23 @@ also four ready-made blocks, each of which picks up that section's colour:
 
 **Sub-headings** — use `<h2>` to group a page into topics and `<h3>` beneath it.
 
+**Numbered link tree** — used on Essential Links. `.link-hero` is the single
+prominent link at the top; `.link-list` is an `<ol>` whose items get numbered
+badges, and any item can carry a nested `.link-sublist`.
+
+**Assessment table** — used on Study Resources. A normal `<table
+class="assessment-table">`, with two requirements: wrap each `<td>`'s contents in
+a `<div class="cell">`, and give every `<td>` a `data-label` matching its column
+heading. Below 900px the table reflows into one card per row and those labels
+become the field names, so a missing one leaves a blank label on mobile. Module
+chips are `<span class="mod mod--bs1030">` (also `mod--bs1040`, `mod--adbs`), and
+`<span class="deadline deadline--fixed">` marks a hard submission deadline with a
+dotted underline.
+
+The table currently on that page was transcribed from the 2024/25 schedule.
+Re-check it against Blackboard each year — see the caution note at the top of the
+page, and keep it there while any date is unverified.
+
 ### A note on the links themselves
 
 Anything you add here is what students will act on, so link to the primary
