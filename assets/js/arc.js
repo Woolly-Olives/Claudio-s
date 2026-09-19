@@ -1,19 +1,21 @@
 /* =============================================================
-   Essential Links — the wheel's own slice, zoomed to fill the page.
+   Essential Links — the wheel's own slice, zoomed to fill the screen.
 
-   The Essential Links slice of the menu wheel spans 360/7 degrees and
-   runs between two radii. Here that exact slice is scaled until its
-   outer edge spans the width of the page, so the curvature is the
-   wheel's, only much larger. It is then cut into one segment per link.
+   The Essential Links slice of the menu wheel spans 360/7 degrees.
+   Here that exact slice is scaled until the two ends of its outer edge
+   sit on the left and right edges of the screen, low down, so the curve
+   arches across the page with the wheel's own curvature — only far
+   larger. The band below the curve is cut into one section per link,
+   separated by plain radial dividers.
 
-   The band is drawn shallower than a true zoom would make it: at full
-   scale the slice would be about 0.68 of the page wide in depth, which
-   on a laptop runs well past the fold and leaves nine very narrow
-   slivers. The angle, the width and the curvature are exact; only the
-   depth is trimmed.
+   The section is not revealed by the bubble the other pages use: it
+   zooms. zoomFrom() is handed the wheel's disc by assets/js/app.js and
+   works out the transform that lays this arc exactly over the wheel's
+   Essential Links slice; the page then animates from there to nothing,
+   which is a true zoom into the curve.
 
-   Everything comes from assets/data/links.js. Below about 820px the
-   arc is hidden and the plain list in index.html takes over.
+   Everything comes from assets/data/links.js. On small or short screens
+   the arc is hidden and the plain list in index.html takes over.
    ============================================================= */
 (function () {
   "use strict";
@@ -22,12 +24,18 @@
   var root = document.getElementById("links-arc");
   if (!root || !DATA) { return; }
 
-  var SPAN  = 360 / 7;        // the wheel's slice angle, exactly
-  var RATIO = 19.5 / 48;      // the wheel's inner/outer radius ratio
-  var GAP   = 0.5;            // degrees of air between segments
-  var NS    = "http://www.w3.org/2000/svg";
+  var SPAN     = 360 / 7;     // the wheel's slice angle, exactly
+  var FLOOR    = 14;          // px kept clear below the band's lowest point
+  var BAND_MIN = 168;         // a band thinner than this can't hold a label
+  var BAND_MAX = 470;
+  var NS       = "http://www.w3.org/2000/svg";
+
   var links = DATA.links;
   var N = links.length;
+  var HINT = "Point at a section of the arc to see where it leads.";
+
+  function rad(deg) { return deg * Math.PI / 180; }
+  var HALF = rad(SPAN / 2);
 
   /** Slots from the middle outwards: 4, 3, 5, 2, 6 … for nine. */
   function centreOut(n) {
@@ -52,47 +60,102 @@
     });
   }
 
-  function rad(deg) { return deg * Math.PI / 180; }
-
   root.innerHTML =
-    '<svg class="arc__svg" role="navigation" aria-label="Essential links"></svg>' +
+    '<svg class="arc__svg" role="navigation" aria-label="Essential links">' +
+      '<defs>' +
+        '<radialGradient id="arc-ink" class="arc-grad" gradientUnits="userSpaceOnUse">' +
+          '<stop class="arc-ink-stop arc-ink-stop--in" offset="0"></stop>' +
+          '<stop class="arc-ink-stop arc-ink-stop--out" offset="1"></stop>' +
+        '</radialGradient>' +
+        '<radialGradient id="arc-wash" class="arc-grad" gradientUnits="userSpaceOnUse">' +
+          '<stop class="arc-wash-stop arc-wash-stop--in" offset="0"></stop>' +
+          '<stop class="arc-wash-stop arc-wash-stop--out" offset="1"></stop>' +
+        '</radialGradient>' +
+      '</defs>' +
+      '<g class="arc__hits"></g>' +
+      '<g class="arc__dividers" aria-hidden="true"></g>' +
+      '<path class="arc__edge" aria-hidden="true"></path>' +
+    '</svg>' +
     '<div class="arc__labels"></div>' +
     '<a class="arc__hub" href="' + esc(DATA.hub.href) + '">' +
       '<span class="arc__hub__name">' + esc(DATA.hub.name) + '</span>' +
     '</a>' +
-    '<p class="arc__readout" role="status"></p>';
+    '<p class="arc__readout" role="status">' +
+      '<span class="arc__readout__name"></span>' +
+      '<span class="arc__readout__note">' + esc(HINT) + '</span>' +
+    '</p>';
 
   var svg      = root.querySelector(".arc__svg");
+  var hits     = root.querySelector(".arc__hits");
+  var dividers = root.querySelector(".arc__dividers");
+  var edge     = root.querySelector(".arc__edge");
   var labels   = root.querySelector(".arc__labels");
   var hub      = root.querySelector(".arc__hub");
-  var readout  = root.querySelector(".arc__readout");
+  var inkIn    = root.querySelector(".arc-ink-stop--in");
+  var washIn   = root.querySelector(".arc-wash-stop--in");
+  var rName    = root.querySelector(".arc__readout__name");
+  var rNote    = root.querySelector(".arc__readout__note");
+  var grads    = root.querySelectorAll(".arc-grad");
 
-  function setReadout(text) { readout.textContent = text; }
-  setReadout(DATA.hub.note);
+  /** The curve's centre and outer radius, kept for the zoom maths. */
+  var geo = { cx: 0, cy: 0, Ro: 0 };
+  var segs = [];
+  var hot = null;
+
+  /** The Union's sub-links sit above their sector, so light it by hand. */
+  function markHot(seg) {
+    if (hot === seg) { return; }
+    if (hot) { hot.classList.remove("is-hot"); }
+    hot = seg || null;
+    if (hot) { hot.classList.add("is-hot"); }
+  }
+
+  function say(name, note) {
+    rName.textContent = name || "";
+    rNote.textContent = note || "";
+  }
 
   function draw() {
     var W = root.clientWidth;
-    if (!W) { return; }
+    var H = root.clientHeight;
+    if (!W || !H) { return; }
 
-    var pad  = 10;
-    var half = rad(SPAN / 2);
-    var Ro   = (W - pad * 2) / (2 * Math.sin(half));       // outer edge spans the page
-    var deep = Ro * (1 - RATIO);                            // depth of a true zoom
-    var T    = Math.min(deep, Math.max(230, Math.min(W * 0.31, 440)));
+    /* the outer edge's two ends land exactly on the left and right
+       edges of the screen, which fixes the radius outright */
+    var Ro  = W / (2 * Math.sin(HALF));
+    var sag = Ro * (1 - Math.cos(HALF));        // how far the apex rises above them
+
+    /* …and they sit low: two thirds of the way down, unless the screen is
+       too short to leave room above the curve or a band below it */
+    var yEnd = Math.min(Math.max(H * 0.66, sag + 150),
+                        H - FLOOR - BAND_MIN * Math.cos(HALF));
+    var T    = Math.max(BAND_MIN,
+                 Math.min(BAND_MAX, (H - FLOOR - yEnd) / Math.cos(HALF)));
     var Ri   = Ro - T;
+    var apex = yEnd - sag;
+    var cx   = W / 2;
+    var cy   = yEnd + Ro * Math.cos(HALF);      // far below the screen
+    var hubY = (cy - Ri + H) / 2;               // between the band and the bottom
 
-    var cx = W / 2;
-    var cy = pad + Ro;
-    var bottom = cy - Ri * Math.cos(half);                  // the band's lowest point
-    var hubY = pad + T + 54;
-    var H = Math.max(bottom, hubY + 34) + 58;
+    geo.cx = cx; geo.cy = cy; geo.Ro = Ro;
 
     svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-    svg.setAttribute("width", W);
-    svg.setAttribute("height", H);
-    root.style.height = H + "px";
-    svg.innerHTML = "";
+    root.style.setProperty("--apex", apex.toFixed(1) + "px");
+    hits.innerHTML = "";
+    segs.length = 0;
+    hot = null;
+    dividers.innerHTML = "";
     labels.innerHTML = "";
+
+    /* both paints run along the radius: strongest at the curve, gone by
+       the inner edge, so the band needs no bottom line to close it */
+    Array.prototype.forEach.call(grads, function (g) {
+      g.setAttribute("cx", cx);
+      g.setAttribute("cy", cy);
+      g.setAttribute("r", Ro);
+    });
+    inkIn.setAttribute("offset", (Ri / Ro).toFixed(4));
+    washIn.setAttribute("offset", (Ri / Ro).toFixed(4));
 
     function polar(r, deg) {
       return { x: cx + r * Math.cos(rad(deg)), y: cy + r * Math.sin(rad(deg)) };
@@ -101,25 +164,30 @@
     var step  = SPAN / N;
     var first = -90 - SPAN / 2;
     var Rlab  = Ro - T * 0.46;
-    var labW  = Math.max(96, 2 * Rlab * Math.sin(rad(step / 2)) * 0.84);
+    var labW  = Math.max(104, 2 * Rlab * Math.sin(rad(step / 2)) * 0.88);
+
+    var e1 = polar(Ro, first), e2 = polar(Ro, first + SPAN);
+    edge.setAttribute("d", ["M", e1.x, e1.y, "A", Ro, Ro, 0, 0, 1, e2.x, e2.y].join(" "));
 
     placed.forEach(function (link, i) {
-      var a0 = first + i * step + GAP / 2;
-      var a1 = first + (i + 1) * step - GAP / 2;
+      var a0 = first + i * step;
+      var a1 = a0 + step;
       var mid = (a0 + a1) / 2;
+      /* 0 in the middle of the arc, 1 at its ends — used to stagger the
+         dividers outwards as they come in, and to weight the labels */
+      var k = Math.abs(i - (N - 1) / 2) / ((N - 1) / 2);
 
       var o1 = polar(Ro, a0), o2 = polar(Ro, a1);
       var i1 = polar(Ri, a0), i2 = polar(Ri, a1);
 
+      /* the whole sector is the link: hit area first, so the lines and
+         labels above it never intercept the click */
       var a = document.createElementNS(NS, "a");
       a.setAttribute("href", link.href);
       a.setAttribute("class", "seg");
       a.setAttribute("aria-label", link.name);
+      a.dataset.name = link.name;
       a.dataset.note = link.note;
-      /* 0 in the middle of the arc, 1 at its edges — the middle carries the
-         most-used links, so it is drawn a shade stronger */
-      var k = Math.abs(i - (N - 1) / 2) / ((N - 1) / 2);
-      a.style.setProperty("--k", k.toFixed(3));
 
       var path = document.createElementNS(NS, "path");
       path.setAttribute("class", "seg__path");
@@ -130,7 +198,17 @@
         "A", Ri, Ri, 0, 0, 0, i1.x, i1.y, "Z"
       ].join(" "));
       a.appendChild(path);
-      svg.appendChild(a);
+      hits.appendChild(a);
+      segs.push(a);
+
+      if (i > 0) {
+        var line = document.createElementNS(NS, "line");
+        line.setAttribute("class", "arc__divider");
+        line.setAttribute("x1", i1.x); line.setAttribute("y1", i1.y);
+        line.setAttribute("x2", o1.x); line.setAttribute("y2", o1.y);
+        line.style.setProperty("--k", k.toFixed(3));
+        dividers.appendChild(line);
+      }
 
       var at = polar(Rlab, mid);
       var label = document.createElement("div");
@@ -139,14 +217,17 @@
       label.style.top = at.y + "px";
       label.style.width = labW + "px";
       label.style.setProperty("--tilt", (mid + 90) + "deg");
-      label.style.setProperty("--k", (Math.abs(i - (N - 1) / 2) / ((N - 1) / 2)).toFixed(3));
+      label.style.setProperty("--k", k.toFixed(3));
       label.innerHTML =
-        '<span class="seg-label__n">' + link.n + '</span>' +
-        '<span class="seg-label__name">' + esc(link.name) + '</span>' +
+        '<span class="seg-label__head" aria-hidden="true">' +
+          '<span class="seg-label__n">' + link.n + '</span>' +
+          '<span class="seg-label__name">' + esc(link.name) + '</span>' +
+        '</span>' +
         (link.more
           ? '<span class="seg-label__more">' + link.more.map(function (m) {
-              return '<a href="' + esc(m.href) + '" data-note="' + esc(m.note) + '">' +
-                     esc(m.name) + '</a>';
+              return '<a href="' + esc(m.href) + '" data-seg="' + i +
+                     '" data-name="' + esc(m.name) + '" data-note="' + esc(m.note) +
+                     '">' + esc(m.name) + '</a>';
             }).join("") + '</span>'
           : "");
       labels.appendChild(label);
@@ -156,34 +237,60 @@
     hub.style.top = hubY + "px";
   }
 
-  /* the readout under the arc names whatever the pointer is on */
-  root.addEventListener("pointerover", function (event) {
-    var seg = event.target.closest(".seg, .seg-label__more a");
-    setReadout(seg ? (seg.dataset.note || "") : DATA.hub.note);
-  });
-  root.addEventListener("pointerleave", function () { setReadout(DATA.hub.note); });
-  root.addEventListener("focusin", function (event) {
-    var seg = event.target.closest(".seg, .seg-label__more a");
-    if (seg) { setReadout(seg.dataset.note || ""); }
-  });
+  /* ---------- the zoom the page opens with ---------- */
 
-  /* a label sits over its segment, so route its hover and clicks there */
-  labels.addEventListener("pointerover", function (event) {
-    var label = event.target.closest(".seg-label");
-    if (!label || event.target.closest(".seg-label__more a")) { return; }
-    var seg = svg.querySelectorAll(".seg")[[].indexOf.call(labels.children, label)];
-    if (seg) { seg.classList.add("is-hot"); setReadout(seg.dataset.note); }
-  });
-  labels.addEventListener("pointerout", function () {
-    Array.prototype.forEach.call(svg.querySelectorAll(".seg.is-hot"),
-      function (s) { s.classList.remove("is-hot"); });
-  });
-  labels.addEventListener("click", function (event) {
-    if (event.target.closest("a")) { return; }
-    var label = event.target.closest(".seg-label");
-    if (!label) { return; }
-    var seg = svg.querySelectorAll(".seg")[[].indexOf.call(labels.children, label)];
-    if (seg) { window.location.href = seg.getAttribute("href"); }
+  /**
+   * Lay this arc over the wheel's Essential Links slice.
+   * `disc` is the wheel as a circle in viewport pixels: { cx, cy, r },
+   * r being the radius of the slices' outer edge. Scaling the arc about
+   * its own centre of curvature until Ro matches that radius, then
+   * moving that centre onto the wheel's centre, puts the curve exactly
+   * on the slice's outer edge — both span the same angle about the same
+   * point, so the page can simply animate back to no transform.
+   */
+  function zoomFrom(disc) {
+    if (!disc || !geo.Ro || !root.clientWidth) { return; }
+    /* measure through the offset parent: root itself carries the
+       transform we are about to replace, so its own box is no use */
+    var host = root.offsetParent;
+    var box = host ? host.getBoundingClientRect() : { left: 0, top: 0 };
+    var left = box.left + root.offsetLeft;
+    var top = box.top + root.offsetTop;
+
+    root.style.transformOrigin = geo.cx + "px " + geo.cy + "px";
+    root.style.setProperty("--zoom-x", (disc.cx - (left + geo.cx)).toFixed(1) + "px");
+    root.style.setProperty("--zoom-y", (disc.cy - (top + geo.cy)).toFixed(1) + "px");
+    root.style.setProperty("--zoom-s", (disc.r / geo.Ro).toFixed(5));
+    /* commit it now, while the panel is still unmounted and the
+       transition switched off, so the page opens from here rather than
+       animating towards here */
+    void root.offsetWidth;
+  }
+
+  window.BIOSOC_ARC = { zoomFrom: zoomFrom, redraw: draw };
+
+  /* ---------- the line above the curve ---------- */
+
+  function target(node) { return node.closest(".seg, .seg-label__more a, .arc__hub"); }
+
+  function reactTo(hit) {
+    if (!hit) { rest(); return; }
+    if (hit === hub) { markHot(null); say(DATA.hub.name, DATA.hub.note); return; }
+    markHot(hit.dataset.seg ? segs[+hit.dataset.seg] : null);
+    say(hit.dataset.name, hit.dataset.note);
+  }
+
+  function rest() { markHot(null); say("", HINT); }
+
+  /* pointerover fires on the way out of a section too, so moving into the
+     empty space around the band puts the hint back by itself */
+  root.addEventListener("pointerover", function (event) { reactTo(target(event.target)); });
+  root.addEventListener("pointerleave", rest);
+  root.addEventListener("focusin", function (event) { reactTo(target(event.target)); });
+  /* only when focus leaves the arc altogether: stepping from one section
+     to the next must not blank the line in between */
+  root.addEventListener("focusout", function (event) {
+    if (!event.relatedTarget || !root.contains(event.relatedTarget)) { rest(); }
   });
 
   draw();

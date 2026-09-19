@@ -6,6 +6,11 @@
    by a circle that grows from that slice's outer tip, so the
    bubble always radiates at the slice's own angle.
 
+   Essential Links is the exception: it carries reveal: "zoom", and
+   opens by zooming into its own slice instead. The arc on that page
+   is the same slice made huge, so assets/js/arc.js is handed the
+   wheel's measurements and works the rest out (see wheelDisc below).
+
    To add, remove or rename a section:
      1. edit SECTIONS below,
      2. add/edit the matching <section class="page"> in index.html
@@ -16,7 +21,7 @@
   "use strict";
 
   var SECTIONS = [
-    { id: "essential-links",        label: "Essential Links",       hue: 140 },
+    { id: "essential-links",        label: "Essential Links",       hue: 140, reveal: "zoom" },
     { id: "study-resources",        label: "Study Resources",       hue: 166 },
     { id: "customise-your-degree",  label: "Customise Your Degree", hue: 192 },
     { id: "opportunities",          label: "Opportunities",         hue: 218 },
@@ -83,6 +88,20 @@
     };
   }
 
+  /**
+   * The wheel as a circle in viewport pixels, for the zooming section.
+   * Measured before the stage shrinks behind the open page, which is
+   * how openPage calls it.
+   */
+  function wheelDisc() {
+    var box = svg.getBoundingClientRect();
+    return {
+      cx: box.left + box.width / 2,
+      cy: box.top + box.height / 2,
+      r: (box.width / 100) * R_OUTER
+    };
+  }
+
   /** Radius needed for a circle at (x, y) to cover the whole viewport. */
   function coveringRadius(x, y) {
     var w = window.innerWidth;
@@ -128,7 +147,10 @@
     label.style.setProperty("--y", pos.y + "%");
     labelsEl.appendChild(label);
 
-    slices[section.id] = { link: link, path: path, label: label, mid: mid, dx: dx, dy: dy };
+    slices[section.id] = {
+      link: link, path: path, label: label,
+      mid: mid, dx: dx, dy: dy, reveal: section.reveal
+    };
 
     link.addEventListener("mouseenter", function () { label.classList.add("is-hot"); });
     link.addEventListener("mouseleave", function () { label.classList.remove("is-hot"); });
@@ -175,6 +197,11 @@
     panel.style.setProperty("--ox", Math.round(origin.x) + "px");
     panel.style.setProperty("--oy", Math.round(origin.y) + "px");
     panel.style.setProperty("--r", coveringRadius(origin.x, origin.y) + "px");
+
+    /* a zooming section starts life laid over its own slice */
+    if (slice && slice.reveal === "zoom" && window.BIOSOC_ARC) {
+      window.BIOSOC_ARC.zoomFrom(wheelDisc());
+    }
 
     window.clearTimeout(hideTimer);
     panel.removeAttribute("inert");

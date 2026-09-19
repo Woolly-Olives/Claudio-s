@@ -1,10 +1,10 @@
 /* =============================================================
    Essential Links — the data behind the arc.
 
-   The arc is the wheel's own Essential Links slice, zoomed until its
-   outer edge spans the page. It keeps the wheel's exact angle
-   (360/7 = 51.43 degrees) and its inner/outer radius ratio, and is
-   divided into one segment per link below.
+   The arc is the wheel's own Essential Links slice, zoomed until the
+   two ends of its outer edge sit on the left and right edges of the
+   screen. It keeps the wheel's exact angle (360/7 = 51.43 degrees),
+   and is divided into one section per link below.
 
    `rank` is what decides where a link sits on the arc: 1 is placed in
    the middle, which is the most prominent spot, and the rest fan out
@@ -13,14 +13,14 @@
    Change a `rank` to move a link along the arc; nothing else needs
    touching.
 
-   Below the arc's narrow end sits the hub — remote.le.ac.uk — which
-   every other link fans out of.
+   Below the curve sits the hub — remote.le.ac.uk — which every other
+   link fans out of.
    ============================================================= */
 window.BIOSOC_LINKS = {
   hub: {
     href: "https://remote.le.ac.uk/",
     name: "remote.le.ac.uk",
-    note: "Most of the useful links all in one place. The ones worth knowing fan out above."
+    note: "Most of the useful links all in one place. The ones worth knowing fan out along the arc above."
   },
 
   links: [

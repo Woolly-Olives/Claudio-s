@@ -61,7 +61,7 @@
      notes, tables).
      ============================================================ -->
 
-<section class="page" id="page-essential-links" data-section="essential-links" style="--hue: 140" aria-labelledby="h-essential-links" inert>
+<section class="page page--zoom" id="page-essential-links" data-section="essential-links" style="--hue: 140" aria-labelledby="h-essential-links" inert>
   <div class="page__chrome">
     <button class="page__back" type="button" data-back>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
@@ -69,17 +69,18 @@
     </button>
   </div>
   <div class="page__scroll">
+    <!-- The arc is built by assets/js/arc.js from assets/data/links.js and
+         covers the whole panel, so it sits outside the reading column. The
+         list further down is what narrow, short and no-JS screens get, so
+         the two must be kept in step. -->
+    <div id="links-arc"></div>
+
     <div class="page__inner">
       <header class="page__head">
         <p class="page__eyebrow">BioSoc</p>
         <h1 class="page__title" id="h-essential-links" tabindex="-1">Essential Links</h1>
       </header>
       <div class="page__body">
-        <!-- The arc is built by assets/js/arc.js from assets/data/links.js.
-             The list below is what narrow screens and no-JS visitors get,
-             so the two must be kept in step. -->
-        <div class="page__bleed"><div id="links-arc"></div></div>
-
         <div class="links-fallback">
         <h2>Start here</h2>
 

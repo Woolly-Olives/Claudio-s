@@ -3,7 +3,8 @@
 A one-page hub for the BioSoc student society. The landing page is a circular
 menu divided evenly into seven sections; choosing one reveals a full-screen page
 with a circle that grows outward from that slice's own outer tip, so the bubble
-always radiates at the slice's angle.
+always radiates at the slice's angle. Essential Links is the exception: it zooms
+into its slice instead (see below).
 
 The seven sections are **Essential Links**, **Study Resources**,
 **Customise Your Degree**, **Opportunities**, **Connect** and **Events**, plus
@@ -29,7 +30,9 @@ pick the branch and the `/ (root)` folder.
 | --- | --- |
 | `index.html` | The wheel container and the seven section panels. **Your content goes here.** |
 | `assets/css/styles.css` | All styling, including the reveal animation and the content helper classes below. |
-| `assets/js/app.js` | Builds the wheel, handles the reveal, and routes `#section-id` URLs. |
+| `assets/js/app.js` | Builds the wheel, handles the reveals, and routes `#section-id` URLs. |
+| `assets/data/links.js` | The Essential Links content. |
+| `assets/js/arc.js`, `assets/css/arc.css` | The Essential Links arc and its zoom. |
 
 ## Adding your content
 
@@ -110,30 +113,39 @@ hub. Consider adding a "last checked" line to pages that carry deadlines.
 
 ## The Essential Links arc
 
-That page shows the menu wheel's own Essential Links slice, zoomed until its
-outer edge spans the page, then cut into one segment per link. The angle
-(360/7), the width and the curvature are the wheel's exactly; only the depth is
-trimmed, because a true zoom would run well past the fold and leave nine very
-narrow slivers.
+That page shows the menu wheel's own Essential Links slice, made huge: the two
+ends of its outer edge sit on the left and right edges of the screen, about two
+thirds of the way down, and the curve arches between them. The angle (360/7) and
+the curvature are the wheel's exactly, which is what makes the zoom possible.
+
+**It opens by zooming, not by bubbling.** `app.js` hands `arc.js` the wheel's
+measurements; `arc.js` works out the transform that lays the arc exactly over the
+wheel's Essential Links slice, and the page animates from there to full size. The
+curve is drawn from the first frame — it is the thing being zoomed — and the
+dividers, labels, hub and sentence fade in from the centre outwards as the zoom
+lands.
+
+The band below the curve is cut into one section per link, separated by plain
+radial lines that fade out towards the bottom. **The whole of a section is its
+link**, not just the label, and pointing at one washes it in and puts a sentence
+about where it leads above the curve's top edge.
 
 Content lives in **`assets/data/links.js`**, not in `index.html`:
 
-- `hub` is remote.le.ac.uk, drawn as a pill below the narrow end of the fan,
-  which every other link fans out of.
+- `hub` is remote.le.ac.uk, drawn as a pill below the curve, which every other
+  link fans out of.
 - each entry in `links` has an `n` (the number shown, following the order the
   committee listed them in) and a `rank`. **`rank` is what places a link on the
   arc**: rank 1 goes in the middle, which is the most prominent spot, and the
   rest fan out alternately left and right. Change a `rank` to move a link.
 - `more` holds nested links — the Students' Union's three — drawn as small pills
-  inside its segment.
-- `note` is shown in the readout line under the arc when you point at a segment.
+  inside its section.
+- `note` is the sentence shown above the curve when you point at a section.
 
-Segments nearer the middle are drawn a shade stronger, so the weighting is
-visible as well as positional.
-
-**Below 820px, and with JavaScript off, the arc is hidden and the plain list in
-`index.html` takes over.** The two hold the same links, so they have to be kept
-in step — if you add a link to the data file, add it to that list too.
+**Below 821px wide or 621px tall, and with JavaScript off, the arc is hidden, the
+plain list in `index.html` takes over, and the page opens with the same bubble as
+every other section.** The arc and the list hold the same links, so they have to
+be kept in step — if you add a link to the data file, add it to that list too.
 
 ## Bento tiles (Opportunities)
 
@@ -299,6 +311,8 @@ than hand-editing the output.
 
 1. Edit the `SECTIONS` array at the top of `assets/js/app.js` — each entry has an
    `id` (used in the URL), a `label` (shown on the wheel) and a `hue` (0–360).
+   Essential Links also carries `reveal: "zoom"`, which is what makes it open by
+   zooming; leave it off and a section gets the ordinary bubble.
 2. Add, rename or remove the matching `<section class="page">` in `index.html`.
    Its `id` must be `page-` followed by the section `id`, and its `--hue` should
    match.

@@ -1,190 +1,325 @@
 /* =============================================================
-   Essential Links — the wheel's slice, zoomed to fill the page.
-   Geometry is computed in assets/js/arc.js; this is presentation
-   only. Scoped to #links-arc so nothing leaks into the other pages.
+   Essential Links — the wheel's slice, zoomed to fill the screen.
+
+   Geometry is computed in assets/js/arc.js; this is presentation and
+   motion only. Everything is scoped to #links-arc or to the Essential
+   Links panel, so nothing leaks into the other pages.
+
+   The whole arc layout lives inside one media query: below it there is
+   no room for nine readable sections, so the panel falls back to the
+   plain list and to the same bubble reveal as every other section.
    ============================================================= */
 
-/* the arc wants the whole page, not the reading column */
-.page__bleed {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
+#links-arc { display: none; }
+.links-fallback { display: block; }
+
+@media (min-width: 821px) and (min-height: 621px) {
+
+  .links-fallback { display: none; }
+
+  /* ---------- the panel opens by zooming, not by bubbling ---------- */
+
+  /* no clip circle and no leading edge: this page fades up while the
+     curve grows out of the wheel's own Essential Links slice */
+  .page--zoom,
+  .page--zoom.is-open,
+  .page--zoom.is-settled {
+    clip-path: none;
+  }
+
+  .page--zoom {
+    opacity: 0;
+    transition: opacity 620ms var(--ease);
+  }
+
+  .page--zoom.is-open { opacity: 1; }
+  .page--zoom::before { display: none; }
+
+  /* the reading column only carries the heading here */
+  .page--zoom .page__scroll { overflow: hidden; }
+  .page--zoom .page__inner { padding: clamp(3.4rem, 8vh, 5.5rem) 0 0; }
+  .page--zoom .page__head { margin-bottom: 0; }
+  .page--zoom .page__title { font-size: clamp(1.9rem, 4vw, 3rem); }
+  .page--zoom .page__head::after { margin-top: 1rem; }
+
+  /* ---------- the arc itself ---------- */
+
+  #links-arc {
+    display: block;
+    position: absolute;
+    inset: 0;
+    /* the start of the zoom: arc.js works out the numbers that lay this
+       exactly over the wheel's slice, and transform-origin is set with
+       it to the curve's own centre */
+    transform: translate(var(--zoom-x, 0px), var(--zoom-y, 0px)) scale(var(--zoom-s, 0.16));
+    /* an even curve, not the site's fast-out ease: a zoom that is 60 per
+       cent done in the first tenth of a second does not read as a zoom */
+    transition: transform 940ms var(--reveal-ease);
+  }
+
+  /* before the panel mounts the start position is being set, not animated */
+  .page:not(.is-mounted) #links-arc { transition: none; }
+
+  .page.is-open #links-arc,
+  .page.is-settled #links-arc { transform: none; }
+
+  #links-arc .arc__svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* the two paints that run along the radius */
+  #links-arc .arc-ink-stop--out  { stop-color: hsl(var(--hue) 70% 62%); stop-opacity: 0.85; }
+  #links-arc .arc-ink-stop--in   { stop-color: hsl(var(--hue) 70% 62%); stop-opacity: 0; }
+  #links-arc .arc-wash-stop--out { stop-color: hsl(var(--hue) 72% 52%); stop-opacity: 0.42; }
+  #links-arc .arc-wash-stop--in  { stop-color: hsl(var(--hue) 72% 52%); stop-opacity: 0; }
+
+  /* the curve is what is being zoomed, so it is there from the first
+     frame, at a width that does not shrink with the scale */
+  #links-arc .arc__edge {
+    fill: none;
+    stroke: url(#arc-ink);
+    stroke-width: 2;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+
+  /* the dividers arrive once the zoom has landed, centre first */
+  #links-arc .arc__dividers { pointer-events: none; }
+
+  #links-arc .arc__divider {
+    stroke: url(#arc-ink);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    opacity: 0;
+    transition: opacity 200ms var(--ease);
+  }
+
+  .page.is-open #links-arc .arc__divider {
+    opacity: 0.75;
+    transition: opacity 380ms var(--ease) calc(700ms + var(--k, 0) * 170ms);
+  }
+
+  /* ---------- the sections ---------- */
+
+  /* the whole sector is the link, and it sits under everything else */
+  #links-arc .seg { cursor: pointer; }
+  #links-arc .seg:focus { outline: none; }
+
+  #links-arc .seg__path {
+    fill: url(#arc-wash);
+    pointer-events: all;
+    opacity: 0;
+    transition: opacity 220ms var(--ease);
+  }
+
+  #links-arc .seg:hover .seg__path,
+  #links-arc .seg.is-hot .seg__path,
+  #links-arc .seg:focus-visible .seg__path { opacity: 1; }
+
+  #links-arc .seg:focus-visible .seg__path {
+    stroke: hsl(var(--hue) 80% 70% / 0.9);
+    stroke-width: 2;
+  }
+
+  /* ---------- the labels riding on the sections ---------- */
+
+  #links-arc .arc__labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  #links-arc .seg-label {
+    position: absolute;
+    transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+    display: grid;
+    /* stretch, not centre: a centred grid item takes its max-content
+       width and spills over its own section into the next one */
+    justify-items: stretch;
+    gap: 0.32rem;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 200ms var(--ease);
+  }
+
+  .page.is-open #links-arc .seg-label {
+    opacity: 1;
+    transition: opacity 420ms var(--ease) calc(760ms + var(--k, 0) * 150ms);
+  }
+
+  #links-arc .seg-label__head {
+    display: grid;
+    justify-items: stretch;
+    gap: 0.32rem;
+  }
+
+  #links-arc .seg-label__n {
+    display: grid;
+    place-items: center;
+    justify-self: center;
+    width: 1.45rem;
+    height: 1.45rem;
+    border: 1px solid hsl(var(--hue) 55% 58% / 0.5);
+    border-radius: 50%;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: hsl(var(--hue) 60% var(--label-l));
+  }
+
+  #links-arc .seg-label__name {
+    font-size: clamp(0.82rem, 1.05vw, 1rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+    text-wrap: balance;
+  }
+
+  #links-arc .seg-label__more {
+    display: grid;
+    gap: 0.22rem;
+    justify-items: stretch;
+    width: 100%;
+    pointer-events: auto;
+  }
+
+  #links-arc .seg-label__more a {
+    padding: 0.16rem 0.3rem;
+    border: 1px solid hsl(var(--hue) 45% 55% / 0.35);
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--fg-soft);
+    text-decoration: none;
+    transition: background 160ms var(--ease), color 160ms var(--ease);
+  }
+
+  #links-arc .seg-label__more a:hover {
+    background: hsl(var(--hue) 55% 50% / 0.22);
+    color: var(--fg);
+  }
+
+  /* ---------- the hub everything fans out of ---------- */
+
+  #links-arc .arc__hub {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.2rem;
+    border: 2px solid hsl(var(--hue) 60% 55% / 0.75);
+    border-radius: 999px;
+    background: var(--surface);
+    box-shadow: 0 10px 30px hsl(0 0% 0% / 0.3);
+    text-decoration: none;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 200ms var(--ease), border-color 200ms var(--ease);
+  }
+
+  .page.is-open #links-arc .arc__hub {
+    opacity: 1;
+    transition: opacity 420ms var(--ease) 840ms, border-color 200ms var(--ease);
+  }
+
+  #links-arc .arc__hub::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: hsl(var(--hue) 65% 52%);
+  }
+
+  #links-arc .arc__hub:hover { border-color: hsl(var(--hue) 70% 60%); }
+
+  #links-arc .arc__hub__name {
+    font-size: clamp(0.92rem, 1.4vw, 1.15rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+
+  /* ---------- the sentence above the curve ---------- */
+
+  #links-arc .arc__readout {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% - var(--apex, 50%) + 1.6rem);
+    transform: translateX(-50%);
+    width: min(44rem, 86%);
+    margin: 0;
+    text-align: center;
+    text-wrap: balance;
+    opacity: 0;
+    transition: opacity 200ms var(--ease);
+  }
+
+  .page.is-open #links-arc .arc__readout {
+    opacity: 1;
+    transition: opacity 420ms var(--ease) 800ms;
+  }
+
+  #links-arc .arc__readout__name {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: hsl(var(--hue) 55% var(--label-l));
+    min-height: 1.1em;
+  }
+
+  #links-arc .arc__readout__note {
+    display: block;
+    font-size: clamp(1rem, 1.5vw, 1.3rem);
+    line-height: 1.45;
+    color: var(--fg-soft);
+  }
+
+  /* a deep link opens with no zoom to wait for, so nothing is staged */
+  .page--zoom.is-instant #links-arc .arc__divider,
+  .page--zoom.is-instant #links-arc .seg-label,
+  .page--zoom.is-instant #links-arc .arc__hub,
+  .page--zoom.is-instant #links-arc .arc__readout {
+    transition-delay: 0s;
+  }
 }
 
-#links-arc {
-  position: relative;
-  display: block;
-  width: 100%;
-  transform-origin: 50% 88%;
+/* a pale green line that reads on a dark page is nearly invisible on a
+   light one, so the ink and the wash are darkened rather than dimmed */
+@media (prefers-color-scheme: light) {
+  #links-arc .arc-ink-stop--out  { stop-color: hsl(var(--hue) 60% 36%); stop-opacity: 0.8; }
+  #links-arc .arc-ink-stop--in   { stop-color: hsl(var(--hue) 60% 36%); stop-opacity: 0; }
+  #links-arc .arc-wash-stop--out { stop-color: hsl(var(--hue) 62% 42%); stop-opacity: 0.3; }
+  #links-arc .arc-wash-stop--in  { stop-color: hsl(var(--hue) 62% 42%); stop-opacity: 0; }
 }
 
-/* zooming in on the slice as the page opens */
-#links-arc {
-  opacity: 0;
-  transform: scale(0.13) translateY(7%);
-  transition: transform 980ms var(--ease) 80ms, opacity 520ms var(--ease) 80ms;
-}
-
-.page.is-open #links-arc,
-.page.is-settled #links-arc {
-  opacity: 1;
-  transform: none;
-}
-
-#links-arc .arc__svg { display: block; width: 100%; overflow: visible; }
-
-/* ---------- the segments ---------- */
-
-#links-arc .seg { cursor: pointer; }
-
-#links-arc .seg__path {
-  /* the middle of the arc holds the most-used links, so it sits stronger */
-  fill: hsl(var(--hue) 62% 46% / calc(0.30 - var(--k, 0) * 0.13));
-  stroke: hsl(var(--hue) 68% 58% / calc(0.72 - var(--k, 0) * 0.28));
-  stroke-width: 1.25;
-  stroke-linejoin: round;
-  transition: fill 200ms var(--ease), stroke 200ms var(--ease);
-}
-
-#links-arc .seg:hover .seg__path,
-#links-arc .seg.is-hot .seg__path,
-#links-arc .seg:focus-visible .seg__path {
-  fill: hsl(var(--hue) 68% 50% / 0.5);
-  stroke: hsl(var(--hue) 80% 66% / 0.95);
-}
-
-#links-arc .seg:focus { outline: none; }
-#links-arc .seg:focus-visible .seg__path { stroke-width: 2.4; }
-
-/* ---------- the labels that ride on the segments ---------- */
-
-#links-arc .arc__labels { position: absolute; inset: 0; }
-
-#links-arc .seg-label {
-  position: absolute;
-  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
-  display: grid;
-  justify-items: center;
-  gap: 0.3rem;
-  text-align: center;
-  cursor: pointer;
-  transition: transform 220ms var(--ease);
-}
-
-#links-arc .seg-label:hover { transform: translate(-50%, -54%) rotate(var(--tilt, 0deg)); }
-
-#links-arc .seg-label__n {
-  display: grid;
-  place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 1px solid hsl(var(--hue) 55% 58% / 0.55);
-  border-radius: 50%;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: hsl(var(--hue) 60% var(--label-l));
-}
-
-#links-arc .seg-label__name {
-  font-size: clamp(0.82rem, 1.05vw, 1rem);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: var(--fg);
-  text-wrap: balance;
-}
-
-#links-arc .seg-label--more .seg-label__name { margin-bottom: 0.1rem; }
-
-#links-arc .seg-label__more {
-  display: grid;
-  gap: 0.2rem;
-  justify-items: stretch;
-  width: 100%;
-}
-
-#links-arc .seg-label__more a {
-  padding: 0.16rem 0.3rem;
-  border: 1px solid hsl(var(--hue) 45% 55% / 0.35);
-  border-radius: 999px;
-  font-size: 0.66rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: var(--fg-soft);
-  text-decoration: none;
-  transition: background 160ms var(--ease), color 160ms var(--ease);
-}
-
-#links-arc .seg-label__more a:hover {
-  background: hsl(var(--hue) 55% 50% / 0.22);
-  color: var(--fg);
-}
-
-/* ---------- the hub everything fans out of ---------- */
-
-#links-arc .arc__hub {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  border: 2px solid hsl(var(--hue) 60% 55% / 0.75);
-  border-radius: 999px;
-  background: var(--surface);
-  box-shadow: 0 10px 30px hsl(0 0% 0% / 0.3);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background 200ms var(--ease), border-color 200ms var(--ease);
-}
-
-#links-arc .arc__hub::before {
-  content: "";
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: hsl(var(--hue) 65% 52%);
-}
-
-#links-arc .arc__hub:hover { border-color: hsl(var(--hue) 70% 60%); }
-
-#links-arc .arc__hub__name {
-  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--fg);
-}
-
-/* ---------- the line that names whatever you are pointing at ---------- */
-
-#links-arc .arc__readout {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-  width: min(42rem, 88%);
-  margin: 0;
-  text-align: center;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  color: var(--fg-soft);
-  min-height: 2.6em;
-}
-
-/* ---------- narrow screens keep the plain list ---------- */
-
-.links-fallback { display: none; }
-
-@media (max-width: 820px) {
-  #links-arc { display: none; }
-  .links-fallback { display: block; }
-}
+/* ---------- no JavaScript: the list, and nothing else ---------- */
 
 .no-js #links-arc { display: none; }
 .no-js .links-fallback { display: block; }
 
 @media (prefers-reduced-motion: reduce) {
-  #links-arc { transition-duration: 1ms; transform: none; }
-  #links-arc .seg__path, #links-arc .seg-label { transition-duration: 1ms; }
-  #links-arc .seg-label:hover { transform: translate(-50%, -50%) rotate(var(--tilt, 0deg)); }
+  .page--zoom { transition-duration: 1ms; }
+  #links-arc { transform: none; transition-duration: 1ms; }
+  #links-arc .arc__divider,
+  #links-arc .seg-label,
+  #links-arc .arc__hub,
+  #links-arc .arc__readout,
+  .page.is-open #links-arc .arc__divider,
+  .page.is-open #links-arc .seg-label,
+  .page.is-open #links-arc .arc__hub,
+  .page.is-open #links-arc .arc__readout {
+    transition-duration: 1ms;
+    transition-delay: 0s;
+  }
+  #links-arc .seg__path { transition-duration: 1ms; }
 }
