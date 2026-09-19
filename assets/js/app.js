@@ -269,11 +269,11 @@
   window.addEventListener("hashchange", function () { route(true); });
 
   /*
-   * hashchange only fires when an entry differs from the last purely by
-   * fragment. A page that also writes a query string (the module planner does)
-   * makes back-navigation change both, so the browser fires popstate instead
-   * and the panel would never close. route() ignores a no-op, so handling both
-   * events costs nothing.
+   * hashchange only fires when a history entry differs from the last purely by
+   * fragment. If a section ever writes a query string of its own, back-
+   * navigation changes both parts, the browser fires popstate instead, and the
+   * panel would never close. route() ignores a no-op, so listening for both
+   * costs nothing and keeps that case working.
    */
   window.addEventListener("popstate", function () { route(true); });
 
