@@ -1,0 +1,502 @@
+/* =============================================================
+   BioSoc Student Hub
+   1. Tokens
+   2. Base
+   3. Stage + wheel
+   4. Slice labels + hub
+   5. Section pages (the circular reveal)
+   6. Content helpers (for resources you add)
+   7. Motion + no-JS fallbacks
+   ============================================================= */
+
+/* ---------- 1. Tokens ---------- */
+:root {
+  --bg:        #06100c;
+  --bg-deep:   #030807;
+  --surface:   #0b1a14;
+  --fg:        #e9f5ef;
+  --fg-soft:   #a9c2b7;
+  --line:      rgba(255, 255, 255, 0.14);
+  --line-soft: rgba(255, 255, 255, 0.07);
+
+  --slice-fill:        0.16;
+  --slice-fill-hover:  0.34;
+  --slice-stroke:      0.45;
+  --label-l:           80%;
+  --page-tint:         0.14;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --reveal-ease: cubic-bezier(0.45, 0.05, 0.2, 1);
+  --reveal: 820ms;
+
+  --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:        #f4f8f5;
+    --bg-deep:   #e6eee9;
+    --surface:   #ffffff;
+    --fg:        #0d1c16;
+    --fg-soft:   #4d6559;
+    --line:      rgba(9, 32, 23, 0.16);
+    --line-soft: rgba(9, 32, 23, 0.08);
+
+    --slice-fill:        0.14;
+    --slice-fill-hover:  0.30;
+    --slice-stroke:      0.55;
+    --label-l:           30%;
+    --page-tint:         0.10;
+  }
+}
+
+/* ---------- 2. Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;            /* the wheel is a fixed viewport; pages scroll internally */
+}
+
+body.is-page-open .stage { pointer-events: none; }
+
+a { color: hsl(var(--hue, 160) 70% var(--label-l)); }
+
+:focus-visible {
+  outline: 2px solid hsl(var(--hue, 160) 80% 60%);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ---------- 3. Stage + wheel ---------- */
+.stage {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(120% 90% at 50% 45%, var(--bg) 0%, var(--bg-deep) 100%);
+  transition: transform 520ms var(--ease), opacity 420ms var(--ease), filter 420ms var(--ease);
+}
+
+body.is-page-open .stage {
+  transform: scale(0.94);
+  opacity: 0.35;
+  filter: blur(2px);
+}
+
+.stage__glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(38vmin 38vmin at 50% 50%, hsl(160 70% 45% / 0.16), transparent 70%);
+  pointer-events: none;
+}
+
+.stage__hint {
+  position: absolute;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+  opacity: 0.7;
+}
+
+.wheel {
+  position: relative;
+  width: min(94vw, 78vh, 640px);
+  aspect-ratio: 1;
+  animation: wheel-in 900ms var(--ease) both;
+}
+
+@keyframes wheel-in {
+  from { opacity: 0; transform: scale(0.88) rotate(-6deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+.wheel__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* A slice is an <a> wrapping <path>; the <a> is the hit area. */
+.slice { cursor: pointer; }
+
+.slice__path {
+  fill: hsl(var(--hue) 68% 46% / var(--slice-fill));
+  stroke: hsl(var(--hue) 72% 58% / var(--slice-stroke));
+  stroke-width: 0.5;
+  stroke-linejoin: round;
+  transition: fill 260ms var(--ease), stroke 260ms var(--ease), transform 420ms var(--ease);
+  transform-origin: 50px 50px;
+}
+
+.slice:hover .slice__path,
+.slice:focus-visible .slice__path,
+.slice.is-active .slice__path {
+  fill: hsl(var(--hue) 70% 50% / var(--slice-fill-hover));
+  stroke: hsl(var(--hue) 80% 66% / 0.9);
+  transform: translate(var(--push-x, 0px), var(--push-y, 0px));
+}
+
+.slice:focus { outline: none; }
+
+.slice:focus-visible .slice__path {
+  stroke-width: 1.1;
+}
+
+/* the tiny anchor the reveal circle grows from — invisible, measured by JS */
+.slice__origin { fill: none; pointer-events: none; }
+
+/* ---------- 4. Slice labels + hub ---------- */
+.wheel__labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.slice-label {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+  width: 26%;
+  text-align: center;
+  font-size: clamp(0.66rem, 2.1vmin, 1.02rem);
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: 0.01em;
+  color: hsl(var(--hue) 55% var(--label-l));
+  text-wrap: balance;
+  transition: color 260ms var(--ease), transform 420ms var(--ease);
+}
+
+.slice-label.is-active,
+.slice-label.is-hot {
+  color: hsl(var(--hue) 80% calc(var(--label-l) + 8%));
+  transform: translate(-50%, -50%) translate(var(--push-lx, 0px), var(--push-ly, 0px)) scale(1.04);
+}
+
+.hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.2em;
+  pointer-events: none;
+  text-align: center;
+}
+
+.hub__name {
+  font-size: clamp(1.3rem, 5.2vmin, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+.hub__tag {
+  font-size: clamp(0.56rem, 1.6vmin, 0.78rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+
+/* ---------- 5. Section pages ---------- */
+.page {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  visibility: hidden;
+  background:
+    radial-gradient(90vmax 70vmax at var(--ox, 50%) var(--oy, 50%),
+      hsl(var(--hue) 62% 42% / var(--page-tint)), transparent 62%),
+    var(--bg);
+  clip-path: circle(0px at var(--ox, 50%) var(--oy, 50%));
+  transition: clip-path var(--reveal) var(--reveal-ease);
+  will-change: clip-path;
+}
+
+.page.is-mounted { visibility: visible; }
+
+.page.is-open {
+  clip-path: circle(var(--r, 150vmax) at var(--ox, 50%) var(--oy, 50%));
+}
+
+/* once fully open, drop the clip entirely so resizing can't re-crop the page */
+.page.is-settled { clip-path: none; }
+
+/* opened without the bubble (deep link, reduced motion): show the content at once */
+.page.is-instant .page__head,
+.page.is-instant .page__body { transition: none; }
+
+/* the leading edge of the expanding bubble */
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--ox, 50%) var(--oy, 50%),
+    transparent 0, transparent 58%, hsl(var(--hue) 85% 62% / 0.3) 100%);
+  opacity: 0;
+  transition: opacity 300ms var(--ease);
+}
+
+.page.is-open::before { opacity: 1; }
+
+.page__scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.page__inner {
+  width: min(100% - 2.5rem, 64rem);
+  margin-inline: auto;
+  padding: clamp(5.5rem, 12vh, 8rem) 0 6rem;
+}
+
+.page__chrome {
+  position: absolute;
+  z-index: 2;
+  top: max(1rem, env(safe-area-inset-top));
+  left: max(1rem, env(safe-area-inset-left));
+}
+
+.page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.95rem 0.55rem 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fg);
+  background: hsl(var(--hue) 40% 50% / 0.12);
+  border: 1px solid hsl(var(--hue) 50% 55% / 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease);
+}
+
+.page__back:hover { background: hsl(var(--hue) 50% 50% / 0.24); }
+
+.page__back svg {
+  width: 1.05em;
+  height: 1.05em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.page__head {
+  margin-bottom: clamp(2rem, 5vh, 3.25rem);
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 420ms var(--ease) 380ms, transform 480ms var(--ease) 380ms;
+}
+
+.page.is-open .page__head { opacity: 1; transform: none; }
+
+.page__eyebrow {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: hsl(var(--hue) 55% var(--label-l));
+}
+
+.page__title {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.page__title:focus { outline: none; }
+
+.page__head::after {
+  content: "";
+  display: block;
+  width: 3.5rem;
+  height: 3px;
+  margin-top: 1.4rem;
+  border-radius: 2px;
+  background: hsl(var(--hue) 70% 55%);
+}
+
+.page__body {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 420ms var(--ease) 480ms, transform 480ms var(--ease) 480ms;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--fg-soft);
+}
+
+.page.is-open .page__body { opacity: 1; transform: none; }
+
+.page__empty {
+  margin: 0;
+  padding: 2.5rem;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  text-align: center;
+  color: var(--fg-soft);
+  opacity: 0.75;
+}
+
+/* ---------- 6. Content helpers ----------
+   Ready-made classes for the resources you add.
+   Markup examples are in README.md.                       */
+
+.page__body h2 {
+  margin: 2.75rem 0 1rem;
+  font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+.page__body h2:first-child { margin-top: 0; }
+
+.page__body h3 {
+  margin: 1.75rem 0 0.6rem;
+  font-size: 1.02rem;
+  font-weight: 650;
+  color: var(--fg);
+}
+
+.page__body p { margin: 0 0 1rem; }
+
+.page__body a { text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+.resource-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.resource-card {
+  display: block;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: hsl(var(--hue) 35% 50% / 0.06);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 200ms var(--ease), background 200ms var(--ease), transform 200ms var(--ease);
+}
+
+.resource-card:hover {
+  border-color: hsl(var(--hue) 60% 55% / 0.5);
+  background: hsl(var(--hue) 45% 50% / 0.12);
+  transform: translateY(-2px);
+}
+
+.resource-card strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--fg);
+}
+
+.resource-card span { font-size: 0.9rem; }
+
+.resource-list {
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line-soft);
+}
+
+.resource-list li { border-bottom: 1px solid var(--line-soft); }
+
+.resource-list a {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.85rem 0.2rem;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.resource-list a:hover { color: hsl(var(--hue) 70% var(--label-l)); }
+
+.resource-list small { color: var(--fg-soft); font-size: 0.85rem; text-align: right; }
+
+.note {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.2rem;
+  border-left: 3px solid hsl(var(--hue) 70% 55%);
+  border-radius: 0 10px 10px 0;
+  background: hsl(var(--hue) 40% 50% / 0.08);
+}
+
+.note > :last-child { margin-bottom: 0; }
+
+/* ---------- 7. Motion + fallbacks ---------- */
+.noscript-nav ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.no-js body { overflow: auto; }
+.no-js .page {
+  position: static;
+  visibility: visible;
+  clip-path: none;
+  min-height: 0;
+  border-top: 1px solid var(--line);
+}
+.no-js .page__scroll { position: static; overflow: visible; }
+.no-js .page__head,
+.no-js .page__body { opacity: 1; transform: none; }
+.no-js .page__chrome { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel { animation: none; }
+  .page {
+    clip-path: none;
+    opacity: 0;
+    transition: opacity 180ms linear;
+  }
+  .page.is-open { opacity: 1; }
+  .page::before { display: none; }
+  .stage, .page__head, .page__body, .slice__path, .slice-label, .resource-card {
+    transition-duration: 1ms;
+    transition-delay: 0s;
+  }
+  .page__head, .page__body { transform: none; }
+}
