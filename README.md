@@ -430,17 +430,20 @@ them, and until then the page simply does not draw that strip.
 
 ### Framing the Union's page
 
-`embed: true` puts the Union's page in a frame below the action card. It ships
-**off**, because most Students' Union sites refuse to be framed by another
-domain — the browser then shows an empty box, and says why only in its console,
-where no student will look. Nothing on our side can detect that: a cross-origin
-frame that the other site refuses is silent to script.
+`embed: true` puts the Union's page in a frame below the action card. Most
+Students' Union sites refuse to be framed by another domain — the browser then
+shows an empty box, and says why only in its console, where no student will
+look. Nothing on our side can detect that: a cross-origin frame that the other
+site refuses is silent to script.
 
-So try it rather than assume: switch it on, open Join BioSoc, and look. If the
-Union's page appears, keep it. If the box is blank, the Union blocks framing,
-and the hand-off is the honest version of the same thing. Either way the action
-card above the frame always opens the real page, and a line beneath it tells
-anyone staring at an empty panel what to do.
+**It is currently on**, at the user's request. It has still never been tested
+on a real network — leicesterunion.com is blocked at this container's egress
+proxy, so nothing run inside it proves the switch works. Open Join BioSoc on
+an ordinary connection and look: if the Union's page appears, leave it on. If
+the box is blank, the Union blocks framing, and `embed` should go back to
+`false` — the hand-off is the honest version of the same thing either way.
+The action card above the frame always opens the real page, and a line
+beneath it tells anyone staring at an empty panel what to do.
 
 The frame's address is not set until someone opens Join BioSoc, so the Union is
 not fetched for visitors who never go there — the same `biosoc:page` event the

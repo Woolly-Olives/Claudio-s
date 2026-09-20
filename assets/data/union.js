@@ -28,8 +28,12 @@ window.BIOSOC_UNION = {
   action: "Join on the Union site",
 
   /* false hands over to the Union's page; true tries to frame it here.
-     See the note above before switching it on. */
-  embed: false,
+     See the note above before switching it on. Currently ON at the
+     user's request — leicesterunion.com is blocked in this container's
+     egress proxy, so this cannot be verified here. Check on a normal
+     network: a blank box under the action card means the Union refused
+     the frame and this should go back to false. */
+  embed: true,
 
   /* How joining works, in order. Correct these against the Union's page
      and remove `check` from each line you have confirmed. */

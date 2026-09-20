@@ -331,38 +331,62 @@ user was asked to check it.
 
 ## 10. Open items, owed to the user
 
-Roughly in order of how much they matter.
+Roughly in order of how much they matter. Items 1, 2, 6, 7, 8 and 9 were put to
+the user on 2026-09-20 and answered; the answers are recorded here rather than
+in §11, because none of them reversed a decision — they settled one that was
+genuinely open.
 
-1. **The Outlook calendar is in the wrong timezone.** It is written in *W. Europe
-   Standard Time*, which is Central European — the file's own `VTIMEZONE`
-   declares `+0100` standard and `+0200` daylight, while Leicester is `+0000` /
-   `+0100`. An event typed as 18:00 reaches a student here as **17:00**.
-   `tools/ics-to-events.py` re-reads each wall clock in London, which fixes the
-   website — **but not the subscribe feed**, which students get straight from
-   Outlook. The fix is in Outlook: set the calendar's timezone to *(UTC+00:00)
-   Dublin, Edinburgh, Lisbon, London*, check every existing event still reads the
-   hour intended, re-save the `.ics`, then set `REINTERPRET = None` and re-run.
-2. **The calendar is published from a personal Microsoft account**
-   (`outlook.live.com`, consumer `cid-` address). Both links die with that
-   account, and everyone subscribed loses the feed silently. It should move to
-   something the society keeps. Its address is also effectively public, so
-   nothing private must ever go in that calendar.
-3. **Join BioSoc's two `check: true` steps** need reading against the Union's
-   page, and the facts strip needs a membership price.
-4. **Try the two framing switches once** on a real network: `mode: "outlook"` in
-   `calendar.js`, `embed: true` in `union.js`. Blank panel means blocked.
-5. **Instagram's fetcher has never run.** It needs a Business or Creator
+1. **The website's own display of the calendar is correct, and confirmed as
+   such.** `tools/ics-to-events.py` re-reads each event's wall clock as
+   `Europe/London` (`REINTERPRET = "Europe/London"`), which is a real IANA zone
+   and switches BST/GMT at the DST boundary on its own — it does not hardcode
+   either. The user confirmed the three 10:00 events in the current
+   `events.js` are correctly 10:00 BST. **What is still wrong is the Outlook
+   subscribe feed itself** — students who subscribe get times straight from
+   Outlook, still in the calendar's own mislabelled *W. Europe Standard Time*.
+   That can only be fixed in Outlook (set the calendar's own timezone to
+   *(UTC+00:00) Dublin, Edinburgh, Lisbon, London*, check every existing event
+   still reads the intended hour, re-save the `.ics`), which cannot be done or
+   tested from here — outlook.\* is blocked at this container's proxy. Once
+   fixed at the source, set `REINTERPRET = None` and re-run the generator.
+2. **The calendar stays on a personal Microsoft account, by policy.** The user
+   confirmed a committee member's own account is acceptable, rotated each year
+   as committees change. Not a defect — no action needed. The address is still
+   effectively public, so nothing private should go in that calendar.
+3. **Join BioSoc's two `check: true` steps** still need reading against the
+   Union's page, and the facts strip still needs a membership price.
+4. **`embed: true` is now set in `union.js`**, at the user's request (2026-09-20).
+   This cannot be verified here — leicesterunion.com is blocked at this
+   container's egress proxy, so a failed load here proves nothing either way.
+   Check on a normal network: a blank box under the action card means the
+   Union refused the frame, and `embed` should go back to `false`. `mode:
+   "outlook"` in `calendar.js` is the equivalent switch for the four-week grid
+   and is still off — see the open question in the latest reply for whether to
+   flip that one too.
+5. **Instagram's fetcher has never run**, and is still blocked here to test.
+   The user raised that Gemini apparently embedded Instagram "without issue" —
+   flagged as unverified (§9): the only Meta-documented embed remains one post
+   at a time via the blockquote/`embed.js` from a post's own Embed menu; a
+   live profile grid needs the Graph API and a token. Waiting on specifics of
+   what Gemini actually produced before treating the claim as new information.
+   Getting the fetcher running for real still needs a Business or Creator
    account, a Meta app with Instagram Business Login, a long-lived token in
-   `IG_TOKEN`, and a hand-run before the workflow is moved into
-   `.github/workflows/`. The token lasts 60 days and the script cannot write its
-   renewal back into the repository's secrets.
-6. **The BS2033 / BS2059 contradiction is unresolved.** The user said field trips
-   must not be coloured; their screenshot of the School's key colours BS2033. The
-   screenshot was followed and both remain coloured. One line in
-   `tools/build-curriculum.py` (`meta.uncoloured`) flips it.
-7. `docs/handbook-issues.md` has not been reported to the School.
-8. The Opportunities tiles are still placeholders; Connect holds only the advice.
-9. The assessment table is the 2024/25 schedule and needs re-checking each year.
+   `IG_TOKEN`, and a hand-run before the workflow moves into
+   `.github/workflows/`.
+6. **BS2033 and BS2059 are coloured by their own degree stream, confirmed
+   correct.** The user confirmed field-trip modules should carry their stream
+   colour like any other. Checked against `curriculum.js`: neither is in
+   `meta.uncoloured`, and both already derive a stream (BS2059 core for
+   Zoology; BS2033 core-one-of for Microbiology), so this was already the
+   board's behaviour — no code change was needed. The same logic already
+   applies to BS2078 and BS3080, the other two `field: true` modules.
+7. `docs/handbook-issues.md` — the user will send this to the School
+   themselves. No action needed from here.
+8. **The Opportunities tiles stay as placeholders, by decision** (2026-09-20).
+   Not a defect — no action needed.
+9. **The assessment table stays the 2024/25 schedule until the user has the
+   2026/27 one.** They will provide it when they have access. The caution note
+   at the top of Study Resources stays until then.
 
 ---
 
