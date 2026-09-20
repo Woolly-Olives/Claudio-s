@@ -328,7 +328,8 @@
 #module-map .col__bar__fill--full { background: hsl(150 60% 48%); }
 #module-map .col__bar__fill--over { background: hsl(8 72% 58%); }
 
-/* core and selected — the block the golden outline (below) wraps once
+/* core and selected — the block the golden outline (drawn separately, as
+   a .mm__year-outline spanning both semesters of the year) frames once
    both semesters together reach 120 credits */
 #module-map .col__top {
   display: flex;
@@ -337,18 +338,9 @@
   margin: 0 0 calc(var(--gap) * 1.6);
   padding: 0;
   list-style: none;
-  border-radius: 14px;
-  outline: 3px solid transparent;
-  outline-offset: 6px;
-  transition: outline-color 380ms var(--ease), box-shadow 380ms var(--ease);
 }
 
 #module-map .col__top:empty { margin-bottom: 0; }
-
-#module-map .col__top--done {
-  outline-color: hsl(45 88% 55%);
-  box-shadow: 0 0 0 1px hsl(45 88% 55% / 0.45), 0 0 26px hsl(45 85% 55% / 0.4);
-}
 
 #module-map .col__list {
   display: flex;
@@ -551,6 +543,35 @@
   color: #10201a;
   background: hsl(0 0% 100% / 0.4);
   border-color: hsl(0 0% 0% / 0.25);
+}
+
+/* ---------- the golden outline: one per year, spanning both semesters ----------
+   Positioned and faded in by drawYearOutlines() in modulemap.js — one
+   element per year (2 and 3; Year 1 is core throughout, so an outline on
+   it would say nothing), sized to the bounding box of that year's two
+   .col__top elements. Only Year 2 and Year 3 exist as elements at all, so
+   at most two of these can ever be on screen. Starts transparent and
+   hidden so a freshly-reached 120 credits fades the frame in rather than
+   snapping it on — a class baked straight into fresh innerHTML has no
+   "before" state to transition from, so the JS adds .is-shown a frame
+   after positioning it, not in the same pass. */
+
+#module-map .mm__year-outline {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 16px;
+  outline: 3px solid transparent;
+  opacity: 0;
+  transition: opacity 480ms var(--ease), outline-color 480ms var(--ease), box-shadow 480ms var(--ease);
+}
+
+#module-map .mm__year-outline[hidden] { display: none; }
+
+#module-map .mm__year-outline.is-shown {
+  opacity: 1;
+  outline-color: hsl(45 88% 55%);
+  box-shadow: 0 0 0 1px hsl(45 88% 55% / 0.45), 0 0 26px hsl(45 85% 55% / 0.4);
 }
 
 /* ---------- grouped choice: lines converging on a hub ----------
@@ -785,27 +806,30 @@
 
 /* ---------- the opening reveal ----------
    Built and torn down by runIntro() in modulemap.js: a veil per column,
-   peeled away Year 1 Semester 1 first, the modules floating up into
-   view underneath as each one goes. See the comment above runIntro()
-   for why this runs once per page-open rather than on every click. */
+   peeled away Year 1 Semester 1 first, the modules slowly floating down
+   into view underneath as each one goes. See the comment above runIntro()
+   for why this runs once per page-open rather than on every click, and
+   FLOAT_MS there for the duration this must stay in step with. */
 
 #module-map .mm__board--intro .box {
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateY(-32px);
 }
 
 #module-map .col.is-revealed .box {
   opacity: 1;
   transform: none;
-  transition: opacity 380ms var(--ease), transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 640ms var(--ease), transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 #module-map .mm__veil {
   position: absolute;
   inset: -0.4rem -0.5rem;
   z-index: 4;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 0.6rem;
   border-radius: 14px;
   background: hsl(var(--dh) 45% 12% / 0.82);
@@ -833,8 +857,8 @@
 }
 
 @keyframes mm-arrow-nudge {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(6px); }
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
 }
 
 #module-map .mm__veil__label {
@@ -869,7 +893,8 @@
 @media (prefers-reduced-motion: reduce) {
   #module-map .box,
   #module-map .dbtn,
-  #module-map .box__info { transition-duration: 1ms; }
+  #module-map .box__info,
+  #module-map .mm__year-outline { transition-duration: 1ms; }
   #module-map .box--optional:hover { transform: none; }
   #module-map .sheet { animation: none; }
 }

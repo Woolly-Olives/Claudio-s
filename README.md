@@ -527,9 +527,11 @@ just dimmed — the **"Show modules this degree does not offer"** switch above
 the board brings them back, drawn exactly as they always were (hatched,
 struck through).
 
-Once a whole year — both semesters together — reaches 120 credits, its top
-group on each side gets a soft gold outline. Year 1 is 120 credits of core on
-every degree, so it starts that way; Year 2 and Year 3 earn it as you pick.
+Once a whole year — both semesters together — reaches 120 credits, a single
+soft gold outline fades in around both of that year's columns, as one frame
+rather than two. Year 1 is 120 credits of core on every degree, so an outline
+on it would say nothing and it never gets one; Year 2 and Year 3 earn theirs
+as you pick, so at most two outlines can ever be on screen at once.
 
 The move itself is animated as a slide, not a jump or a re-fade — a box
 between board rebuilds; if it just appeared (newly available, or revealed by
@@ -539,11 +541,12 @@ to slide from. Anyone with reduced motion set skips both.
 ### Opening the page
 
 The first time you open this section — from the wheel or a direct link —
-the columns arrive one at a time, Year 1 Semester 1 first: a giant arrow and a
-"Year N / Semester N" label cover each column in turn, on a translucent
-backdrop, then peel away to let that column's modules float up into place
-before the next one starts. It plays once per opening, not on every click
-inside the page, and is skipped entirely under reduced motion.
+the columns arrive one at a time, Year 1 Semester 1 first: a giant
+right-pointing arrow, with a "Year N / Semester N" label below it, covers
+each column in turn on a translucent backdrop, then peels away to let that
+column's modules slowly float down into place before the next one starts. It
+plays once per opening, not on every click inside the page, and is skipped
+entirely under reduced motion.
 
 ### Year-long modules
 

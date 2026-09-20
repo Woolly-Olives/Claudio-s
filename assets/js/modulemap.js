@@ -417,6 +417,16 @@
     return creditsIn("y" + year + "s1") + creditsIn("y" + year + "s2");
   }
 
+  /*
+   * Year 1 is fully core on every degree — 120 credits with no picks
+   * needed — so it would always be "done" and the outline would say
+   * nothing. Years 2 and 3 are where it means something: it lights up
+   * only once your own picks have filled both of that year's semesters.
+   */
+  function yearDone(year) {
+    return year !== 1 && yearCredits(year) >= 120;
+  }
+
   function column(col) {
     var used = creditsIn(col.id);
     var status = used === CAP ? "full" : (used > CAP ? "over" : "under");
@@ -442,7 +452,6 @@
     while (split < rows.length && tierOf(rows[split].st) <= 1) { split++; }
     var top = rows.slice(0, split), rest = rows.slice(split);
 
-    var done = top.length > 0 && yearCredits(col.year) >= 120;
     var pct = Math.max(0, Math.min(100, Math.round(used / CAP * 100)));
 
     return '<section class="col" data-col="' + col.id + '">' +
@@ -453,7 +462,7 @@
              '<div class="col__bar" style="--pct:' + pct + '%">' +
                '<span class="col__bar__fill col__bar__fill--' + status + '"></span>' +
              '</div>' +
-             '<ul class="col__top' + (done ? " col__top--done" : "") + '">' +
+             '<ul class="col__top">' +
                top.map(function (r) { return box(r.m); }).join("") +
              '</ul>' +
              '<ul class="col__list">' + rest.map(function (r) { return box(r.m); }).join("") + '</ul>' +
@@ -537,7 +546,10 @@
           '<span class="mm__toggle__label">Show modules this degree does not offer</span>' +
         '</label>' +
       '</div>' +
-      '<div class="mm__board">' + COLUMNS.map(column).join("") +
+      '<div class="mm__board">' +
+        '<div class="mm__year-outline" data-year="2" hidden></div>' +
+        '<div class="mm__year-outline" data-year="3" hidden></div>' +
+        COLUMNS.map(column).join("") +
         '<svg class="mm__links" aria-hidden="true"></svg>' +
         '<div class="mm__hub" hidden></div>' +
       '</div>' +
@@ -703,10 +715,66 @@
     hub.hidden = false;
   }
 
+  /*
+   * One golden outline per year (not per semester), spanning both of that
+   * year's columns — so 120 credits in Year 2 draws a single frame around
+   * y2s1 and y2s2 together, not two separate ones either side of the gap.
+   * yearOutlineShown remembers which years were already lit, across
+   * renders: a year that is already done just gets repositioned (a
+   * degree switch, say), no re-fade; a year that has just become done
+   * gets the two-phase reveal — positioned first, then faded in on the
+   * next frame — because a class baked straight into fresh innerHTML has
+   * no "before" state to transition from.
+   */
+  var yearOutlineShown = { 2: false, 3: false };
+
+  function drawYearOutlines() {
+    var board = root.querySelector(".mm__board");
+    if (!board) { return; }
+    var br = board.getBoundingClientRect();
+    var ox = board.scrollLeft - br.left;
+    var PAD = 6;
+
+    [2, 3].forEach(function (year) {
+      var el = board.querySelector('.mm__year-outline[data-year="' + year + '"]');
+      if (!el) { return; }
+      var c1 = board.querySelector('[data-col="y' + year + 's1"] .col__top');
+      var c2 = board.querySelector('[data-col="y' + year + 's2"] .col__top');
+      if (!yearDone(year) || !c1 || !c2 || !c1.children.length || !c2.children.length) {
+        el.hidden = true;
+        el.classList.remove("is-shown");
+        yearOutlineShown[year] = false;
+        return;
+      }
+
+      var r1 = c1.getBoundingClientRect(), r2 = c2.getBoundingClientRect();
+      var left = Math.min(r1.left, r2.left) + ox - PAD;
+      var right = Math.max(r1.right, r2.right) + ox + PAD;
+      var top = Math.min(r1.top, r2.top) - br.top - PAD;
+      var bottom = Math.max(r1.bottom, r2.bottom) - br.top + PAD;
+
+      el.style.left = left + "px";
+      el.style.top = top + "px";
+      el.style.width = (right - left) + "px";
+      el.style.height = (bottom - top) + "px";
+
+      var freshlyDone = !yearOutlineShown[year];
+      el.hidden = false;
+      if (freshlyDone) {
+        el.classList.remove("is-shown");
+        void el.offsetWidth;   // commit the invisible state before fading it in
+        requestAnimationFrame(function () { el.classList.add("is-shown"); });
+      } else {
+        el.classList.add("is-shown");
+      }
+      yearOutlineShown[year] = true;
+    });
+  }
+
   var linkFrame = null;
   function scheduleLinks() {
     if (linkFrame) { cancelAnimationFrame(linkFrame); }
-    linkFrame = requestAnimationFrame(function () { linkFrame = null; drawLinks(); });
+    linkFrame = requestAnimationFrame(function () { linkFrame = null; drawLinks(); drawYearOutlines(); });
   }
 
   function say(msg) {
@@ -830,7 +898,7 @@
    * rerender()'s FLIP slide instead, and would be a poor place for a
    * multi-second cover-and-reveal to keep replaying.
    */
-  var STEP_MS = 260, VEIL_MS = 420;
+  var STEP_MS = 260, VEIL_MS = 420, FLOAT_MS = 640;
 
   function runIntro() {
     if (reduceMotion.matches) { return; }
@@ -859,13 +927,24 @@
       veil.className = "mm__veil";
       veil.innerHTML =
         '<svg class="mm__veil__arrow" viewBox="0 0 48 48" aria-hidden="true">' +
-          '<path d="M24 6v30M12 23l12 13 12-13" fill="none" stroke="currentColor" ' +
+          '<path d="M6 24h30M23 12l13 12-13 12" fill="none" stroke="currentColor" ' +
             'stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>' +
         '</svg>' +
         '<span class="mm__veil__label">Year ' + meta.year + '<br>Semester ' + meta.semester + '</span>';
       colEl.appendChild(veil);
     });
 
+    /*
+     * Column 0 has nothing to wait for, so without a head start its
+     * reveal timer fires on the very next macrotask — before the browser
+     * has ever painted the "hidden, veiled" state just set above. With no
+     * painted "before" to transition away from, the style change reads as
+     * old-equals-new (base .box, unchanged) and the box snaps straight to
+     * visible instead of floating down like every other column. START_MS
+     * guarantees at least one real paint of the hidden state first, so
+     * every column — the first included — gets the same float.
+     */
+    var START_MS = 60;
     cols.forEach(function (colEl, i) {
       window.setTimeout(function () {
         var veil = colEl.querySelector(".mm__veil");
@@ -880,8 +959,8 @@
             board.classList.remove("mm__board--intro");
             cols.forEach(function (c) { c.classList.remove("is-revealed"); });
           }
-        }, VEIL_MS + 200);
-      }, i * STEP_MS);
+        }, Math.max(VEIL_MS, FLOAT_MS) + 200);
+      }, START_MS + i * STEP_MS);
     });
   }
 

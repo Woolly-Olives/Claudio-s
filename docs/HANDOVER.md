@@ -241,16 +241,38 @@ move on purpose:
   A box with no "before" position (newly available, or just revealed by the
   toggle) rises into place instead of sliding from somewhere specific
   (`.box--enter`).
-- **A golden outline** (`.col__top--done`) wraps a semester's top tier once
-  that YEAR — both semesters together — reaches 120 credits. Year 1 is always
-  120 credits of pure core, on every degree, so its outline is on from the
-  first render; Year 2 and Year 3 have to be earned.
+- **A golden outline marks a YEAR reaching 120 credits — both semesters
+  together — not a semester.** Revised 2026-09-20: it used to be
+  `.col__top--done`, one outline per semester column, on whenever that
+  column's year hit 120; it is now `.mm__year-outline`, a single overlay
+  per year spanning both of that year's `.col__top` columns as one frame,
+  drawn by `drawYearOutlines()` (called from the same `scheduleLinks()`
+  rAF pass as `drawLinks()`, so it repositions on every render and resize
+  same as the grouped-choice hub does). Two of these elements exist in the
+  DOM at all times, `data-year="2"` and `data-year="3"` — **never Year 1**,
+  which is fully core on every degree and would always be "done" from the
+  first render, saying nothing. At most two outlines can ever be on
+  screen. It **fades in** rather than snapping on: the element is
+  positioned and unhidden first, then `.is-shown` (which carries the
+  actual outline colour and glow) is added a frame later via
+  `requestAnimationFrame`, so there is always a painted "before" state to
+  transition from — a class baked straight into fresh `innerHTML`, by
+  contrast, has no such "before" and cannot transition, which is why this
+  could not just live on `.col__top` the way the outline used to.
+  `yearOutlineShown` remembers which years are already lit across renders,
+  so a year that stays done through a degree switch is only repositioned,
+  never re-faded.
 - **A one-time entrance animation** plays whenever the section opens (the
   `biosoc:page` event, not on every click inside it): a veil — giant arrow,
-  "Year N / Semester N" label, translucent background — covers each column in
-  turn, Year 1 Semester 1 first, and peels away to reveal that column's
-  modules floating up into place. `runIntro()` in `modulemap.js`. Bailed out
-  entirely under `prefers-reduced-motion`, same as `playFlip()`.
+  "Year N / Semester N" label below it, translucent background — covers
+  each column in turn, Year 1 Semester 1 first, and peels away to reveal
+  that column's modules floating down into place. `runIntro()` in
+  `modulemap.js`. Bailed out entirely under `prefers-reduced-motion`, same
+  as `playFlip()`. Revised 2026-09-20: the arrow now points right
+  (`mm-arrow-nudge` nudges `translateX`, not `translateY`) instead of down;
+  the float direction reversed (from `translateY(16px)→none`, floating
+  *up*, to `translateY(-32px)→none`, floating *down*) and slowed (380ms →
+  `FLOAT_MS` = 640ms).
 
 **A real bug worth knowing if this is ever touched again:** the first version
 of the intro removed a column's `is-revealed` class as soon as that column's
@@ -265,6 +287,24 @@ fresh `runIntro()` call explicitly resets it first. If a similar "cover
 something with a class, uncover it individually" pattern is added elsewhere,
 check for exactly this shape of bug: a per-item class that stops applying
 before the per-group default it was overriding has also gone.
+
+**A second bug in the same function, found 2026-09-20 while slowing the float
+down:** column 0 (Year 1 Semester 1) never animated at all — it snapped
+straight to visible while every other column floated in properly. Its reveal
+timer used to run on a bare `setTimeout(fn, 0)` (`i * STEP_MS` with `i === 0`),
+which fires on the very next macrotask — before the browser had painted the
+"hidden, veiled" state that `.mm__board--intro` had just set moments earlier
+in the same synchronous block. With no painted "before" to compare against,
+the style change reads as old-equals-new (base `.box`, unchanged) and there is
+nothing to transition. Confirmed with Playwright by sampling
+`getComputedStyle(box).opacity` at short intervals after opening the section:
+it read `1` within the first ~60ms, far faster than a 640ms transition could
+produce, while every later column showed a proper climbing value. Fix:
+`START_MS` (currently 60ms) is now added to every column's delay, including
+column 0's, guaranteeing at least one real paint of the hidden state before
+any reveal begins. Two `requestAnimationFrame` calls were tried first and did
+not reliably fix it in this headless environment — a real elapsed-time delay
+did.
 
 ### Opportunities
 Eight placeholder tiles behind a blurred veil reading **Coming soon!**. The grid

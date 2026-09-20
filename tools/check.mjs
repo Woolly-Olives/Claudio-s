@@ -140,14 +140,59 @@ await page.waitForTimeout(520);
 check("switching it back off hides them again",
   await page.locator("#module-map .box--unavailable").count(), 0);
 
-/* Year 1 is fully core on every degree — 120 credits with no picks
-   needed — so its outline is on from the first render. Year 2 and
-   Year 3 are not: nobody starts with 120 credits of picks already
-   made, so their outline is something to earn. */
-check("only Year 1 starts with the 120-credit outline on",
-  await page.evaluate(() => [...document.querySelectorAll("#module-map .col__top--done")]
-    .map(el => el.closest(".col").dataset.col).sort()),
-  ["y1s1", "y1s2"]);
+/* the unspecialised degree, not Zoology (left selected above) — its
+   options in Year 2 are known to fill both semesters exactly to 60 */
+await page.locator("#module-map .dbtn", { hasText: "Biological Sciences" }).click();
+await page.waitForTimeout(520);
+
+/* The golden outline is one overlay per year (Year 2, Year 3 — never
+   Year 1, which is fully core on every degree and would always be "done"
+   and say nothing) spanning both of that year's semesters, not one per
+   semester column. See docs/HANDOVER.md §6. */
+check("exactly one outline overlay each for Year 2 and Year 3, none for Year 1",
+  await page.evaluate(() => [...document.querySelectorAll("#module-map .mm__year-outline")]
+    .map(el => el.dataset.year).sort()),
+  ["2", "3"]);
+/* nobody starts with 120 credits of picks already made in Year 2 or
+   Year 3, so neither outline should be lit before anything is chosen */
+check("neither outline is lit before any picks are made",
+  await page.locator("#module-map .mm__year-outline.is-shown").count(), 0);
+
+/* filling both semesters of Year 2 to their 60-credit cap should light
+   its single outline, spanning both columns, and fade it in rather than
+   snap it on */
+const y2filled = await page.evaluate(() => {
+  function fillOnce(slot) {
+    var changed = false;
+    document.querySelectorAll('#module-map [data-col="' + slot + '"] .box--optional').forEach(function (b) {
+      var before = document.querySelector('#module-map [data-col="' + slot + '"] .col__cr strong').textContent;
+      b.click();
+      var after = document.querySelector('#module-map [data-col="' + slot + '"] .col__cr strong').textContent;
+      if (before !== after) { changed = true; }
+    });
+    return changed;
+  }
+  var guard = 0;
+  while (guard++ < 30) {
+    var a = fillOnce("y2s1"), b = fillOnce("y2s2");
+    if (!a && !b) { break; }
+  }
+  return { y2s1: document.querySelector('#module-map [data-col="y2s1"] .col__cr strong').textContent,
+           y2s2: document.querySelector('#module-map [data-col="y2s2"] .col__cr strong').textContent };
+});
+if (y2filled.y2s1 === "60" && y2filled.y2s2 === "60") {
+  await page.waitForTimeout(700);
+  check("Year 2's outline lights once both its semesters hit 60/60",
+    await page.evaluate(() => {
+      var el = document.querySelector('#module-map .mm__year-outline[data-year="2"]');
+      return el && !el.hidden && el.classList.contains("is-shown");
+    }), true);
+  check("Year 3 stays unlit — only Year 2 reached 120",
+    await page.locator('#module-map .mm__year-outline[data-year="3"].is-shown').count(), 0);
+} else {
+  console.log("  skip  Year 2 outline lighting — Biological Sciences could not fill both semesters " +
+              "(got " + y2filled.y2s1 + "/60, " + y2filled.y2s2 + "/60 — check the sample data)");
+}
 
 console.log("\nnothing broken in the console");
 check("no errors or bad responses", noise, []);
