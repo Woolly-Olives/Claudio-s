@@ -35,6 +35,9 @@ pick the branch and the `/ (root)` folder.
 | `assets/js/arc.js`, `assets/css/arc.css` | The Essential Links arc and its zoom. |
 | `assets/data/instagram.js` | The Instagram account and the posts pinned to Events. |
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Events profile card and post grid. |
+| `assets/data/calendar.js` | The Outlook calendar's links, edited by hand. |
+| `assets/data/events.js` | The events themselves. **Generated** — see below. |
+| `tools/ics-to-events.py` | Turns the published .ics into that file. |
 | `assets/data/union.js` | The Students' Union hand-off on Join BioSoc. |
 | `assets/js/union.js`, `assets/css/union.css` | How that page is built. |
 
@@ -165,10 +168,66 @@ leaves holes; the current eight tiles fill four rows with nothing left over. The
 grid drops to two columns below 900px and one below 560px, where all spans are
 ignored.
 
+## The calendar (Events)
+
+Events come from a calendar published out of Outlook. The page leads with a
+**Subscribe in Outlook** button, because that is the whole point: a student does
+it once and every future event lands in their own calendar next to their
+lectures, with the reminders and the clash warnings they already get for free.
+Underneath is what is coming up, filterable by whose event it is, each with its
+own **Add to calendar** download.
+
+### Updating it
+
+`assets/data/events.js` is **generated**. Never hand-edit it:
+
+```sh
+python3 tools/ics-to-events.py calendar.ics
+```
+
+Save the published `.ics` again after changing anything in Outlook, re-run that,
+and commit. `tools/refresh-events.yml` does the same thing on a schedule, but it
+is **parked and not running** — a workflow only takes effect once it is moved
+into `.github/workflows/`, which is a decision for whoever owns the repo. It
+exists because the browser cannot fetch the calendar directly: Outlook does not
+send the CORS headers a page would need, so the fetching has to happen somewhere
+else.
+
+Titles prefixed `[SU]` or `[School]` become the tags on the page, and anything
+unprefixed counts as BioSoc's own. That convention is the committee's, read
+straight out of the event titles — keep using it and the filters keep working.
+
+### The timezone, which matters
+
+**The calendar this was built from is set to the wrong timezone.** It is written
+in "W. Europe Standard Time", which is Microsoft's name for Central European
+Time — the file says so itself, declaring `+0100` standard and `+0200` daylight.
+Leicester is `+0000` / `+0100`. An event typed as 18:00 is stored as 16:00 UTC
+and reaches a student in Leicester as **17:00**.
+
+The generator works around it for this website by re-reading each event's wall
+clock in London, which restores the hour the committee meant. **That plaster
+does not cover the subscribe feed**, which students get straight from Outlook.
+
+So fix it at source: in Outlook, set the calendar's timezone to
+*(UTC+00:00) Dublin, Edinburgh, Lisbon, London*, then check every existing event
+still reads the hour you meant — changing the setting changes what the stored
+times display as, so they may need moving. Then save the `.ics`, set
+`REINTERPRET = None` at the top of `tools/ics-to-events.py`, and re-run it.
+
+### Where the calendar lives
+
+It is published from a **personal Microsoft account** (`outlook.live.com`, with
+a consumer `cid-` address), so both links stop working the day that account
+does, and every student who subscribed silently loses the feed. Moving it to an
+account the society keeps is worth doing before many people subscribe. The
+published address is also effectively public — anyone holding it can read the
+calendar — so nothing private should ever go in it.
+
 ## Instagram (Events)
 
-The Events page carries **[@biosoc.leics](https://www.instagram.com/biosoc.leics/)**
-two ways: a card that links straight to the account, and whichever posts the
+Below the calendar, the Events page carries
+**[@biosoc.leics](https://www.instagram.com/biosoc.leics/)** two ways: a card that links straight to the account, and whichever posts the
 committee pins, embedded.
 
 **There is no way to embed a whole profile.** Instagram's only supported embed

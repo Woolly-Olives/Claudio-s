@@ -1,0 +1,71 @@
+# Keep assets/data/events.js in step with the Outlook calendar.
+#
+# THIS FILE IS NOT ACTIVE. A workflow only runs once it sits in
+# .github/workflows/, so nothing happens until you move it:
+#
+#     mkdir -p .github/workflows
+#     git mv tools/refresh-events.yml .github/workflows/refresh-events.yml
+#
+# It is parked here so that nothing starts running against the repo
+# without someone deciding it should.
+#
+# What it does: fetches the published calendar every few hours, rebuilds
+# assets/data/events.js, and commits it only if something changed. That
+# gets round the browser being unable to read the calendar directly —
+# Outlook does not send the CORS headers a page would need — by doing
+# the fetching here instead, where there is no such restriction.
+#
+# The calendar address it uses is read out of assets/data/calendar.js,
+# so there is one place to change it. That file is public, so the
+# address is already public; it is not a secret and is not treated as
+# one. Anyone who has it can read the calendar, which is why nothing
+# private should ever go in that calendar.
+name: Refresh events
+
+on:
+  schedule:
+    # every six hours; Outlook's own refresh is slower than this anyway
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the calendar address
+        id: cal
+        run: |
+          url=$(grep -oP '(?<=subscribe: ")[^"]+' assets/data/calendar.js)
+          if [ -z "$url" ]; then
+            echo "No subscribe URL found in assets/data/calendar.js" >&2
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch it
+        run: |
+          curl -fsSL --retry 3 --retry-delay 5 -o calendar.ics "${{ steps.cal.outputs.url }}"
+          # a calendar with no events at all is far more likely to be a
+          # bad fetch than a real state, so stop rather than publish it
+          grep -q "BEGIN:VEVENT" calendar.ics
+
+      - name: Rebuild
+        run: python3 tools/ics-to-events.py calendar.ics
+
+      - name: Commit if it changed
+        run: |
+          rm -f calendar.ics
+          if git diff --quiet -- assets/data/events.js; then
+            echo "No change."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/events.js
+          git commit -m "Refresh events from the Outlook calendar"
+          git push

@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="assets/css/arc.css">
 <link rel="stylesheet" href="assets/css/instagram.css">
 <link rel="stylesheet" href="assets/css/union.css">
+<link rel="stylesheet" href="assets/css/events.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='none' stroke='%234ccf9a' stroke-width='10'/><circle cx='50' cy='50' r='12' fill='%234ccf9a'/></svg>">
 <script>document.documentElement.classList.remove('no-js');</script>
 </head>
@@ -526,15 +527,24 @@
         <h1 class="page__title" id="h-events" tabindex="-1">Events</h1>
       </header>
       <div class="page__body">
+        <!-- The calendar is built by assets/js/events.js from
+             assets/data/events.js (generated from the published Outlook
+             calendar by tools/ics-to-events.py) and the live calendar's
+             links in assets/data/calendar.js. -->
+        <div id="events"></div>
+
         <!-- The profile card and the pinned posts are built by
              assets/js/instagram.js from assets/data/instagram.js.
              Nothing is fetched from Instagram until this section is
-             opened. Other event content can go below it. -->
+             opened. -->
+        <h2 class="ig-after">Day to day</h2>
         <div id="instagram"></div>
 
         <noscript>
           <p>Everything we run is announced on
-          <a href="https://www.instagram.com/biosoc.leics/">@biosoc.leics</a> on Instagram.</p>
+          <a href="https://www.instagram.com/biosoc.leics/">@biosoc.leics</a> on Instagram,
+          and the dates are in our
+          <a href="https://outlook.live.com/owa/calendar/00000000-0000-0000-0000-000000000000/f2dbaf2a-a698-4ede-9634-58961996864e/cid-46F7C715CCBCD3DD/index.html">Outlook calendar</a>.</p>
         </noscript>
       </div>
     </div>
@@ -574,10 +584,13 @@
 <script src="assets/data/curriculum.js"></script>
 <script src="assets/data/instagram.js"></script>
 <script src="assets/data/union.js"></script>
+<script src="assets/data/calendar.js"></script>
+<script src="assets/data/events.js"></script>
 <script src="assets/js/arc.js"></script>
 <script src="assets/js/modulemap.js"></script>
 <script src="assets/js/instagram.js"></script>
 <script src="assets/js/union.js"></script>
+<script src="assets/js/events.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>
