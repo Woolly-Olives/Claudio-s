@@ -20,14 +20,24 @@
 (function () {
   "use strict";
 
+  /*
+   * `light` is each slice's lightness, and it is not a free choice. The
+   * slices are solid now, with white labels, and a green at the same
+   * lightness as a blue is far brighter — so white would read on one and
+   * not the other. These values were solved for instead: every slice
+   * lands within a hair of the same luminance (0.151 to 0.153), which
+   * puts white at 5.2:1 on all seven and makes the wheel evenly vivid
+   * rather than green-heavy. Change a hue and the lightness beside it
+   * has to be re-solved, not guessed.
+   */
   var SECTIONS = [
-    { id: "essential-links",        label: "Essential Links",       hue: 140, reveal: "zoom" },
-    { id: "study-resources",        label: "Study Resources",       hue: 166 },
-    { id: "customise-your-degree",  label: "Customise Your Degree", hue: 192 },
-    { id: "opportunities",          label: "Opportunities",         hue: 218 },
-    { id: "connect",                label: "Connect",               hue: 254 },
-    { id: "events",                 label: "Events",                hue: 288 },
-    { id: "join-biosoc",            label: "Join BioSoc",           hue: 330 }
+    { id: "essential-links",        label: "Essential Links",       hue: 140, light: 27.4, reveal: "zoom" },
+    { id: "study-resources",        label: "Study Resources",       hue: 166, light: 26.9 },
+    { id: "customise-your-degree",  label: "Customise Your Degree", hue: 192, light: 31.3 },
+    { id: "opportunities",          label: "Opportunities",         hue: 218, light: 50.1 },
+    { id: "connect",                label: "Connect",               hue: 254, light: 61.6 },
+    { id: "events",                 label: "Events",                hue: 288, light: 47.3 },
+    { id: "join-biosoc",            label: "Join BioSoc",           hue: 330, light: 45.0 }
   ];
 
   /* --- wheel geometry, in the SVG's 100x100 user units --- */
@@ -131,6 +141,7 @@
     link.setAttribute("class", "slice");
     link.setAttribute("aria-label", section.label);
     link.style.setProperty("--hue", section.hue);
+    link.style.setProperty("--sl", section.light + "%");
     link.style.setProperty("--push-x", (dx * PUSH).toFixed(3) + "px");
     link.style.setProperty("--push-y", (dy * PUSH).toFixed(3) + "px");
 
@@ -145,6 +156,7 @@
     label.className = "slice-label";
     label.textContent = section.label;
     label.style.setProperty("--hue", section.hue);
+    label.style.setProperty("--sl", section.light + "%");
     label.style.setProperty("--x", pos.x + "%");
     label.style.setProperty("--y", pos.y + "%");
     labelsEl.appendChild(label);
@@ -207,6 +219,19 @@
 
     window.clearTimeout(hideTimer);
     panel.removeAttribute("inert");
+
+    /*
+     * Taking inert off the panel also clears it from anything inside
+     * that declared its own — Chromium recomputes the subtree and does
+     * not put a descendant's back. Setting the attribute again does
+     * take, so re-assert it. Without this the covered Opportunities
+     * tiles are tabbable straight through their veil.
+     */
+    Array.prototype.forEach.call(panel.querySelectorAll("[inert]"), function (el) {
+      el.removeAttribute("inert");
+      el.setAttribute("inert", "");
+    });
+
     panel.classList.add("is-mounted");
     if (slice) {
       slice.link.classList.add("is-active");

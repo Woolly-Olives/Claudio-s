@@ -54,7 +54,33 @@
     '</figure>';
 
   var fig  = root.querySelector(".ad");
+  var card = root.querySelector(".ad__card");
   var text = root.querySelector(".ad__text");
+
+  /*
+   * Hold the card at the height of its tallest piece, so it does not
+   * resize under whoever is reading — and take the buttons with it.
+   * A figure in the stylesheet cannot do this: how tall the longest
+   * piece runs depends on how wide the column happens to be, so it has
+   * to be measured, and measured again when that width changes.
+   */
+  var fitting = null;
+  function fit() {
+    var keep = text.textContent;
+    var tallest = 0;
+    card.style.minHeight = "0px";
+    items.forEach(function (item) {
+      text.textContent = item.text;
+      if (card.offsetHeight > tallest) { tallest = card.offsetHeight; }
+    });
+    text.textContent = keep;
+    card.style.minHeight = tallest + "px";
+  }
+
+  window.addEventListener("resize", function () {
+    window.clearTimeout(fitting);
+    fitting = window.setTimeout(fit, 150);
+  });
 
   /** Start the wait over. Only ever runs while the section is open. */
   function rewind() {
@@ -91,6 +117,7 @@
 
   order = shuffle(items.length);
   show(0, false);
+  fit();
 
   root.addEventListener("click", function (event) {
     var step = event.target.closest("[data-go]");

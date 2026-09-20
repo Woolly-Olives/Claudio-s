@@ -166,6 +166,17 @@ links, each with an eyebrow, a title, an optional note, and a
 `.bento__tag` marking it a placeholder — delete that tag as each tile is filled
 in.
 
+**The tiles are currently behind a veil** that blurs them out and says *Coming
+soon!*, because they are still placeholders. The grid carries `inert` in
+`index.html`, which is what actually stops the links underneath being clicked or
+tabbed into — CSS alone would leave them reachable by keyboard. When the tiles
+are real, remove `.bento-veil` and that `inert` **together**.
+
+One trap if you ever nest `inert` elsewhere: taking `inert` off the page panel,
+which `app.js` does whenever a section opens, also clears it from anything
+inside that declared its own. `app.js` re-asserts it for that reason. Without
+that, the covered tiles are tabbable straight through the veil.
+
 Size comes from `.bento__tile--wide` (two columns) and `.bento__tile--tall` (two
 rows). **Keep the spans tiling the four-column grid exactly**, or the layout
 leaves holes; the current eight tiles fill four rows with nothing left over. The
@@ -379,9 +390,11 @@ raising `DWELL` is a one-line change.
 
 ### The card's height
 
-`min-height` on `.ad__card` is set so the longest piece fits, which is why a
-short one leaves space below it. That is deliberate: without it the card would
-resize under the reader every 40 seconds, and the buttons would move as it did.
+`assets/js/advice.js` measures every piece at the current column width and holds
+the card at the tallest, so it does not resize under whoever is reading — and it
+re-measures when the window changes. The `min-height` in the stylesheet is only
+a floor for before that runs: how tall the longest piece runs depends on how
+wide the card is, so it cannot be a fixed figure.
 
 ## The Students' Union (Join BioSoc)
 
@@ -577,6 +590,14 @@ than hand-editing the output.
 
 The wheel divides itself evenly however many sections there are, and each slice's
 reveal origin is recalculated from its own angle, so nothing else needs changing.
+
+Each entry also carries a **`light`**, and it is not a free choice. The slices
+are solid with white labels, and a green at the same lightness as a blue is far
+brighter — white would read on one and not the other. These lightnesses were
+solved for: every slice lands within a hair of the same luminance (0.151 to
+0.153), which puts white at 5.2:1 on all seven and makes the wheel evenly vivid
+rather than green-heavy. **Change a hue and its lightness has to be re-solved,
+not guessed**, or a label will quietly stop being readable.
 
 `GAP_DEG` is 0, so the slices meet and their strokes do the dividing. It is worth
 leaving there: a gap held at a constant *angle* grows with the radius, so any

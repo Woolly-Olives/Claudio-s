@@ -19,9 +19,7 @@
   --line:      rgba(255, 255, 255, 0.14);
   --line-soft: rgba(255, 255, 255, 0.07);
 
-  --slice-fill:        0.16;
-  --slice-fill-hover:  0.34;
-  --slice-stroke:      0.45;
+  --slice-sat:         80%;
   --label-l:           80%;
   --page-tint:         0.14;
 
@@ -43,9 +41,6 @@
     --line:      rgba(9, 32, 23, 0.16);
     --line-soft: rgba(9, 32, 23, 0.08);
 
-    --slice-fill:        0.14;
-    --slice-fill-hover:  0.30;
-    --slice-stroke:      0.55;
     --label-l:           30%;
     --page-tint:         0.10;
   }
@@ -137,8 +132,10 @@ body.is-page-open .stage {
 .slice { cursor: pointer; }
 
 .slice__path {
-  fill: hsl(var(--hue) 68% 46% / var(--slice-fill));
-  stroke: hsl(var(--hue) 72% 58% / var(--slice-stroke));
+  /* solid, and the same weight of colour all the way round the wheel —
+     see the note on `light` in assets/js/app.js */
+  fill: hsl(var(--hue) var(--slice-sat) var(--sl));
+  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) + 14%));
   stroke-width: 0.5;
   stroke-linejoin: round;
   transition: fill 260ms var(--ease), stroke 260ms var(--ease), transform 420ms var(--ease);
@@ -148,8 +145,8 @@ body.is-page-open .stage {
 .slice:hover .slice__path,
 .slice:focus-visible .slice__path,
 .slice.is-active .slice__path {
-  fill: hsl(var(--hue) 70% 50% / var(--slice-fill-hover));
-  stroke: hsl(var(--hue) 80% 66% / 0.9);
+  fill: hsl(var(--hue) var(--slice-sat) calc(var(--sl) + 7%));
+  stroke: hsl(var(--hue) 90% calc(var(--sl) + 26%));
   transform: translate(var(--push-x, 0px), var(--push-y, 0px));
 }
 
@@ -180,14 +177,15 @@ body.is-page-open .stage {
   font-weight: 600;
   line-height: 1.22;
   letter-spacing: 0.01em;
-  color: hsl(var(--hue) 55% var(--label-l));
+  /* white on every slice: the lightnesses in app.js are chosen so it
+     clears 5.2:1 on all of them, in either theme */
+  color: #fff;
   text-wrap: balance;
-  transition: color 260ms var(--ease), transform 420ms var(--ease);
+  transition: transform 420ms var(--ease);
 }
 
 .slice-label.is-active,
 .slice-label.is-hot {
-  color: hsl(var(--hue) 80% calc(var(--label-l) + 8%));
   transform: translate(-50%, -50%) translate(var(--push-lx, 0px), var(--push-ly, 0px)) scale(1.04);
 }
 
@@ -710,6 +708,47 @@ body.is-page-open .stage {
 
 /* --- bento grid: tiles of different sizes, for a section that is a
        launchpad rather than a document ------------------------------- */
+
+/* ---------- the veil over the Opportunities tiles ----------
+   The tiles are still placeholders, so they are blurred out rather than
+   deleted: the shape of the page is visible, the words are not. The
+   grid itself carries `inert` in index.html, which is what actually
+   stops the links underneath being clicked or tabbed into — CSS alone
+   would leave them reachable by keyboard. Remove the veil and that
+   attribute together. */
+.bento-wrap { position: relative; }
+
+.bento-veil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  /* the background alone has to do the hiding: backdrop-filter is the
+     nicety, not the mechanism, so where it is unsupported the text
+     underneath is still unreadable */
+  background: hsl(var(--hue) 34% 9% / 0.9);
+  backdrop-filter: blur(9px) saturate(0.7);
+  -webkit-backdrop-filter: blur(9px) saturate(0.7);
+  border: 1px solid hsl(var(--hue) 45% 55% / 0.3);
+}
+
+@media (prefers-color-scheme: light) {
+  .bento-veil { background: hsl(var(--hue) 40% 96% / 0.9); }
+}
+
+.bento-veil__text {
+  margin: 0;
+  font-size: clamp(1.4rem, 3.4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  text-shadow: 0 2px 18px hsl(0 0% 0% / 0.35);
+}
+
+@media (prefers-color-scheme: light) {
+  .bento-veil__text { text-shadow: 0 2px 18px hsl(0 0% 100% / 0.6); }
+}
 
 .bento {
   display: grid;

@@ -22,24 +22,15 @@
 }
 
 #advice .ad__card {
-  position: relative;
   margin: 0;
-  /* room for the longest piece, so the card does not jump about as the
-     advice changes; below that it just sits taller than it needs to */
-  min-height: 13.5rem;
-  padding: 2rem 2rem 1.5rem 3.6rem;
-}
-
-/* the opening quote mark, as furniture rather than text */
-#advice .ad__card::before {
-  content: "\201C";
-  position: absolute;
-  top: 1.1rem;
-  left: 1.5rem;
-  font-size: 3.4rem;
-  line-height: 1;
-  font-weight: 700;
-  color: hsl(var(--hue) 60% 55% / 0.45);
+  /* the same width of margin either side, and a wide one */
+  padding: 2.25rem clamp(1.5rem, 9%, 5rem) 2rem;
+  /* a floor only: assets/js/advice.js measures the tallest piece at
+     this column width and sets the real height, because how tall that
+     runs depends on how wide the card is */
+  min-height: 12rem;
+  display: grid;
+  align-content: center;
 }
 
 #advice .ad__text {
@@ -47,21 +38,24 @@
   font-size: clamp(1rem, 1.35vw, 1.2rem);
   line-height: 1.6;
   color: var(--fg);
+  text-align: center;
   text-wrap: pretty;
 }
 
-/* and its closing pair, which has to sit at the end of the words
-   wherever they happen to stop, so it rides inline rather than being
-   pinned to a corner of the card */
+/* both marks ride inline with the words, so they sit at the two ends of
+   the text wherever it happens to start and stop — a mark pinned to a
+   corner of the card would drift away from centred text */
+#advice .ad__text::before,
 #advice .ad__text::after {
-  content: "\201D";
-  margin-left: 0.12em;
   font-size: 1.9em;
   line-height: 0;
   font-weight: 700;
   vertical-align: -0.38em;
   color: hsl(var(--hue) 60% 55% / 0.45);
 }
+
+#advice .ad__text::before { content: "\201C"; margin-right: 0.1em; }
+#advice .ad__text::after  { content: "\201D"; margin-left: 0.12em; }
 
 /* each new piece arrives rather than swapping */
 #advice .ad.is-fresh .ad__text { animation: advice-in 420ms var(--ease) both; }
@@ -112,8 +106,7 @@
 }
 
 @media (max-width: 560px) {
-  #advice .ad__card { min-height: 0; padding: 1.5rem 1.25rem 1.25rem 2.9rem; }
-  #advice .ad__card::before { top: 0.8rem; left: 1rem; font-size: 2.6rem; }
+  #advice .ad__card { min-height: 0; padding: 1.75rem 1.25rem 1.5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

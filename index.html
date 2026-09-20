@@ -425,11 +425,17 @@
       </header>
       <div class="page__body">
         <!-- CONTENT: Opportunities
-             Placeholder tiles. Replace each href and the text; drop the
+             Placeholder tiles, behind a veil that blurs them out until
+             they are real. The bento is `inert` so the tiles underneath
+             cannot be clicked or tabbed into while it is covered: take
+             the veil out and that attribute with it, together.
+
+             Replace each href and the text; drop the
              <span class="bento__tag">Placeholder</span> as each one is filled
              in. Tile size is set by the bento__tile--* classes. Keep the spans
              tiling the 4-column grid exactly, or the layout leaves holes. -->
-        <div class="bento">
+        <div class="bento-wrap">
+        <div class="bento" inert>
           <a class="bento__tile bento__tile--wide bento__tile--tall" href="#">
             <span class="bento__eyebrow">Between years</span>
             <strong class="bento__title">Placements and industrial years</strong>
@@ -487,6 +493,8 @@
             for science students.</span>
             <span class="bento__tag">Placeholder</span>
           </a>
+        </div>
+          <div class="bento-veil"><p class="bento-veil__text">Coming soon!</p></div>
         </div>
       </div>
     </div>
