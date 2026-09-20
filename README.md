@@ -363,6 +363,23 @@ the landing page and the other six sections never touch it. `app.js` fires a
 `biosoc:page` event when a section opens, and `assets/js/instagram.js` waits for
 it.
 
+### An unofficial whole-profile frame
+
+`profileEmbed: true` adds a frame for the whole account —
+`instagram.com/<handle>/embed/` — below the card and posts above. It ships
+**off**, and it is a different kind of unverified to the Union or Outlook
+switches: this address is not one Meta documents anywhere, so there is no
+official basis to expect it works at all, only a URL that turned up in a
+Gemini-built version of this site. That file also faked its Outlook calendar
+with a public Google holidays calendar and shipped a "membership login" whose
+valid codes sit in plain text in its own JavaScript — reason for real
+scepticism about anything else in it that could not be checked.
+
+Turn it on, open Events, and look. A blank panel, or a login wall sitting
+inside the frame, means it does not work here — set it back to `false`. The
+card and pinned posts above are unaffected either way and are the part known
+to work.
+
 ## Advice from students (Connect)
 
 One piece of advice at a time, in a random order, moving on by itself every 40

@@ -364,15 +364,36 @@ genuinely open.
    and is still off — see the open question in the latest reply for whether to
    flip that one too.
 5. **Instagram's fetcher has never run**, and is still blocked here to test.
-   The user raised that Gemini apparently embedded Instagram "without issue" —
-   flagged as unverified (§9): the only Meta-documented embed remains one post
-   at a time via the blockquote/`embed.js` from a post's own Embed menu; a
-   live profile grid needs the Graph API and a token. Waiting on specifics of
-   what Gemini actually produced before treating the claim as new information.
-   Getting the fetcher running for real still needs a Business or Creator
-   account, a Meta app with Instagram Business Login, a long-lived token in
-   `IG_TOKEN`, and a hand-run before the workflow moves into
-   `.github/workflows/`.
+   The Gemini specifics arrived (2026-09-21): a different Gemini-built version
+   of this site used `<iframe src="https://www.instagram.com/biosoc.leics/embed/">`
+   — a bare profile URL with `/embed/` appended. This is **not** Meta's
+   documented mechanism (that remains one post at a time via the
+   blockquote/`embed.js` from a post's own Embed menu). Whether the `/embed/`
+   suffix is a real, still-working exception for whole profiles is unverified
+   and could not be tested here — instagram.com is blocked at this container's
+   proxy. Grounds for real skepticism, not just generic caution: the same
+   Gemini file stood in a public Google *UK holidays* calendar
+   (`calendar.google.com/calendar/embed?src=en.uk%23holiday...`) in place of
+   the real Outlook calendar it could not embed, and shipped a client-side
+   "membership login" whose valid reference codes sit in plaintext in the
+   page's own JavaScript — a non-functional security theatre, not real
+   authentication. Ordinary Instagram profile pages both refuse to be framed
+   and gate logged-out viewers behind a login wall; the file gives no evidence
+   the `/embed/` suffix was ever seen rendering in a live browser rather than
+   just generated as plausible-looking code.
+
+   **Added as a testable switch**, same pattern as `union.js`'s `embed`:
+   `profileEmbed: false` in `assets/data/instagram.js`. Flip it, open Events,
+   look. A blank panel or a login wall inside the frame means no — set it back
+   to `false`; the existing card-and-posts design underneath is unaffected
+   either way and is the part known to work. Wiring verified here (frame `src`
+   set only on section open, via `biosoc:page`, with the real data file and
+   the flag flipped) — only the actual render on a live network is open.
+
+   Getting the documented, durable fetcher running still needs a Business or
+   Creator account, a Meta app with Instagram Business Login, a long-lived
+   token in `IG_TOKEN`, and a hand-run before the workflow moves into
+   `.github/workflows/`. That path does not depend on the answer above.
 6. **BS2033 and BS2059 are coloured by their own degree stream, confirmed
    correct.** The user confirmed field-trip modules should carry their stream
    colour like any other. Checked against `curriculum.js`: neither is in

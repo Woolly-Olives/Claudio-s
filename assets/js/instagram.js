@@ -120,7 +120,17 @@
             : 'Posts are loaded from Instagram when you open this page.') +
         '</p>'
       : '<p class="ig-empty">Nothing pinned here yet &mdash; everything we run is announced on ' +
-        '<a href="' + esc(DATA.url) + '" target="_blank" rel="noopener">@' + esc(DATA.handle) + '</a>.</p>');
+        '<a href="' + esc(DATA.url) + '" target="_blank" rel="noopener">@' + esc(DATA.handle) + '</a>.</p>') +
+    (DATA.profileEmbed
+      ? '<div class="ig-frame">' +
+          '<iframe class="ig-frame__win" title="@' + esc(DATA.handle) + ' on Instagram"' +
+            ' loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' +
+        '</div>' +
+        '<p class="ig-frame__note">Shown from instagram.com/' + esc(DATA.handle) + '/embed/, which is ' +
+          'not an address Instagram documents. If the panel above is empty or asks you to log in, ' +
+          'set profileEmbed back to false in assets/data/instagram.js &mdash; the card and posts above ' +
+          'work either way.</p>'
+      : '');
 
   var foot = root.querySelector(".ig-foot");
   var consent = root.querySelector(".ig-consent");
@@ -172,10 +182,13 @@
     consent.querySelector(".ig-consent__go").addEventListener("click", load);
   }
 
+  var frame = root.querySelector(".ig-frame__win");
+
   /* nothing reaches Instagram until someone opens Events */
   document.addEventListener("biosoc:page", function (event) {
     if (event.detail.id !== "events" || asked) { return; }
     asked = true;
     if (!DATA.consent) { load(); }
+    if (frame) { frame.src = "https://www.instagram.com/" + DATA.handle + "/embed/"; }
   });
 })();
