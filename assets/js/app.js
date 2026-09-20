@@ -21,23 +21,23 @@
   "use strict";
 
   /*
-   * `light` is each slice's lightness, and it is not a free choice. The
-   * slices are solid now, with white labels, and a green at the same
-   * lightness as a blue is far brighter — so white would read on one and
-   * not the other. These values were solved for instead: every slice
-   * lands within a hair of the same luminance (0.151 to 0.153), which
-   * puts white at 5.2:1 on all seven and makes the wheel evenly vivid
-   * rather than green-heavy. Change a hue and the lightness beside it
-   * has to be re-solved, not guessed.
+   * `light` is each slice's lightness, and it is not a free choice. A
+   * green at the same lightness as a blue is far brighter, so slices
+   * picked by eye come out uneven and the labels stop reading on some
+   * of them. These values were solved for instead: at 92% saturation
+   * every slice lands within a hair of the same luminance (0.418 to
+   * 0.421), which is bright enough to be cheerful and puts the dark
+   * label ink at 8:1 on all seven. Change a hue and the lightness
+   * beside it has to be re-solved, not guessed.
    */
   var SECTIONS = [
-    { id: "essential-links",        label: "Essential Links",       hue: 140, light: 27.4, reveal: "zoom" },
-    { id: "study-resources",        label: "Study Resources",       hue: 166, light: 26.9 },
-    { id: "customise-your-degree",  label: "Customise Your Degree", hue: 192, light: 31.3 },
-    { id: "opportunities",          label: "Opportunities",         hue: 218, light: 50.1 },
-    { id: "connect",                label: "Connect",               hue: 254, light: 61.6 },
-    { id: "events",                 label: "Events",                hue: 288, light: 47.3 },
-    { id: "join-biosoc",            label: "Join BioSoc",           hue: 330, light: 45.0 }
+    { id: "essential-links",        label: "Essential Links",       hue: 140, light: 40.8, reveal: "zoom" },
+    { id: "study-resources",        label: "Study Resources",       hue: 166, light: 40.0 },
+    { id: "customise-your-degree",  label: "Customise Your Degree", hue: 192, light: 47.5 },
+    { id: "opportunities",          label: "Opportunities",         hue: 218, light: 74.6 },
+    { id: "connect",                label: "Connect",               hue: 254, light: 80.5 },
+    { id: "events",                 label: "Events",                hue: 288, light: 76.3 },
+    { id: "join-biosoc",            label: "Join BioSoc",           hue: 330, light: 75.8 }
   ];
 
   /* --- wheel geometry, in the SVG's 100x100 user units --- */

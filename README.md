@@ -197,6 +197,13 @@ own **Add to calendar** download.
 Above the list is a plain four-week grid, starting from the Monday of the
 current week, off the same events.
 
+Up to four events share a day's height between them, so a single event fills its
+day and four still fit; the more there are, the less room each has to say it in,
+which is what the `[data-n]` rules in `assets/css/events.css` do. Past four, three
+are shown and the last slot reads **+N more** rather than quietly dropping them.
+Below 720px the cells are too small for any of that, so events become dots and
+the list underneath does the work.
+
 It is drawn here rather than shown from Outlook, and **not by choice**.
 Microsoft serves published calendars with `X-Frame-Options: SAMEORIGIN`, which
 tells a browser to refuse to draw the page inside another site; their own
@@ -591,13 +598,15 @@ than hand-editing the output.
 The wheel divides itself evenly however many sections there are, and each slice's
 reveal origin is recalculated from its own angle, so nothing else needs changing.
 
-Each entry also carries a **`light`**, and it is not a free choice. The slices
-are solid with white labels, and a green at the same lightness as a blue is far
-brighter — white would read on one and not the other. These lightnesses were
-solved for: every slice lands within a hair of the same luminance (0.151 to
-0.153), which puts white at 5.2:1 on all seven and makes the wheel evenly vivid
-rather than green-heavy. **Change a hue and its lightness has to be re-solved,
-not guessed**, or a label will quietly stop being readable.
+Each entry also carries a **`light`**, and it is not a free choice. A green at
+the same lightness as a blue is far brighter, so slices picked by eye come out
+uneven and the labels stop reading on some of them. These lightnesses were
+solved for: at 92% saturation every slice lands within a hair of the same
+luminance (0.418 to 0.421), bright enough to be cheerful, with the dark label
+ink at 8:1 on all seven. **Change a hue and its lightness has to be re-solved,
+not guessed**, or a label will quietly stop being readable. The ink is
+`--slice-ink`; the labels are deliberately dark, because nothing white reads on
+colours this light.
 
 `GAP_DEG` is 0, so the slices meet and their strokes do the dividing. It is worth
 leaving there: a gap held at a constant *angle* grows with the radius, so any

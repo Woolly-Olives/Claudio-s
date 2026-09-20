@@ -189,20 +189,37 @@
       var on = all.filter(function (e) { return sameDay(e.start, day); });
       var first_of_month = day.getDate() === 1 || i === 0;
 
+      /*
+       * Up to four events share the cell's height between them, so one
+       * event fills the day and four still fit. Past that, three are
+       * shown and the fourth slot says how many are left rather than
+       * quietly dropping them.
+       */
+      var CAP = 4;
+      var over = on.length > CAP ? on.length - (CAP - 1) : 0;
+      var shown = over ? on.slice(0, CAP - 1) : on;
+
       cells.push('' +
         '<div class="cal4__day' +
           (sameDay(day, now) ? ' is-today' : '') +
-          (day < midnight(now) ? ' is-past' : '') + '">' +
+          (day < midnight(now) ? ' is-past' : '') + '"' +
+          ' data-n="' + (shown.length + (over ? 1 : 0)) + '">' +
           '<span class="cal4__n">' + day.getDate() +
             (first_of_month ? ' <span class="cal4__mon">' + MON[day.getMonth()] + '</span>' : '') +
           '</span>' +
-          on.map(function (e) {
-            return '<span class="cal4__ev cal4__ev--' + esc(e.tag) + '" title="' +
-                   esc(e.title + (e.allDay ? "" : " \u00b7 " + when(e)) +
-                       (e.where ? " \u00b7 " + e.where : "")) + '">' +
-                   (e.allDay ? "" : '<b>' + clock(e.start) + '</b> ') +
-                   esc(e.title) + '</span>';
-          }).join("") +
+          (on.length
+            ? '<div class="cal4__evs">' +
+                shown.map(function (e) {
+                  return '<span class="cal4__ev cal4__ev--' + esc(e.tag) + '" title="' +
+                         esc(e.title + (e.allDay ? "" : " \u00b7 " + when(e)) +
+                             (e.where ? " \u00b7 " + e.where : "")) + '">' +
+                         (e.allDay ? "" : '<b class="cal4__at">' + clock(e.start) + '</b>') +
+                         '<span class="cal4__what">' + esc(e.title) + '</span>' +
+                         '</span>';
+                }).join("") +
+                (over ? '<span class="cal4__ev cal4__ev--more">+' + over + ' more</span>' : '') +
+              '</div>'
+            : '') +
         '</div>');
     }
 

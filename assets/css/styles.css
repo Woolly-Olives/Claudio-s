@@ -11,17 +11,18 @@
 
 /* ---------- 1. Tokens ---------- */
 :root {
-  --bg:        #06100c;
-  --bg-deep:   #030807;
-  --surface:   #0b1a14;
+  --bg:        #0a1712;
+  --bg-deep:   #061110;
+  --surface:   #0f2019;
   --fg:        #e9f5ef;
   --fg-soft:   #a9c2b7;
   --line:      rgba(255, 255, 255, 0.14);
   --line-soft: rgba(255, 255, 255, 0.07);
 
-  --slice-sat:         80%;
+  --slice-sat:         92%;
+  --slice-ink:         #0b1a14;   /* the label on every slice, 8:1 on all of them */
   --label-l:           80%;
-  --page-tint:         0.14;
+  --page-tint:         0.2;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --reveal-ease: cubic-bezier(0.45, 0.05, 0.2, 1);
@@ -42,7 +43,7 @@
     --line-soft: rgba(9, 32, 23, 0.08);
 
     --label-l:           30%;
-    --page-tint:         0.10;
+    --page-tint:         0.14;
   }
 }
 
@@ -135,7 +136,9 @@ body.is-page-open .stage {
   /* solid, and the same weight of colour all the way round the wheel —
      see the note on `light` in assets/js/app.js */
   fill: hsl(var(--hue) var(--slice-sat) var(--sl));
-  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) + 14%));
+  /* the edge is a shade DEEPER than the fill now: on colours this light
+     a lighter stroke disappears into them */
+  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) - 13%));
   stroke-width: 0.5;
   stroke-linejoin: round;
   transition: fill 260ms var(--ease), stroke 260ms var(--ease), transform 420ms var(--ease);
@@ -145,8 +148,8 @@ body.is-page-open .stage {
 .slice:hover .slice__path,
 .slice:focus-visible .slice__path,
 .slice.is-active .slice__path {
-  fill: hsl(var(--hue) var(--slice-sat) calc(var(--sl) + 7%));
-  stroke: hsl(var(--hue) 90% calc(var(--sl) + 26%));
+  fill: hsl(var(--hue) var(--slice-sat) calc(var(--sl) + 6%));
+  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) - 26%));
   transform: translate(var(--push-x, 0px), var(--push-y, 0px));
 }
 
@@ -177,9 +180,9 @@ body.is-page-open .stage {
   font-weight: 600;
   line-height: 1.22;
   letter-spacing: 0.01em;
-  /* white on every slice: the lightnesses in app.js are chosen so it
-     clears 5.2:1 on all of them, in either theme */
-  color: #fff;
+  /* dark ink on every slice: the lightnesses in app.js are chosen so it
+     clears 8:1 on all of them, in either theme */
+  color: var(--slice-ink);
   text-wrap: balance;
   transition: transform 420ms var(--ease);
 }
@@ -223,7 +226,7 @@ body.is-page-open .stage {
   visibility: hidden;
   background:
     radial-gradient(90vmax 70vmax at var(--ox, 50%) var(--oy, 50%),
-      hsl(var(--hue) 62% 42% / var(--page-tint)), transparent 62%),
+      hsl(var(--hue) 85% 58% / var(--page-tint)), transparent 62%),
     var(--bg);
   clip-path: circle(0px at var(--ox, 50%) var(--oy, 50%));
   transition: clip-path var(--reveal) var(--reveal-ease);

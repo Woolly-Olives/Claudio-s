@@ -295,11 +295,11 @@
 }
 
 #calendar .cal4__day {
-  display: grid;
-  align-content: start;
-  gap: 0.22rem;
-  min-height: 5.6rem;
-  padding: 0.4rem 0.45rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 7.5rem;
+  padding: 0.4rem 0.45rem 0.45rem;
   background: var(--bg);
 }
 
@@ -311,6 +311,7 @@
 }
 
 #calendar .cal4__n {
+  flex: none;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--fg-soft);
@@ -326,21 +327,76 @@
   opacity: 0.8;
 }
 
-#calendar .cal4__ev {
-  display: block;
-  padding: 0.16rem 0.36rem;
-  border-left: 2px solid currentColor;
-  border-radius: 3px;
-  background: hsl(var(--hue) 40% 50% / 0.14);
-  font-size: 0.68rem;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: default;
+/* the events take whatever height the day number leaves, and divide it
+   between them: one fills the day, four still fit */
+#calendar .cal4__evs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
-#calendar .cal4__ev b { font-weight: 700; }
+#calendar .cal4__ev {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.05rem;
+  padding: 0.25rem 0.4rem;
+  border-left: 2px solid currentColor;
+  border-radius: 4px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  overflow: hidden;
+}
+
+#calendar .cal4__at {
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+#calendar .cal4__what {
+  font-size: 0.68rem;
+  line-height: 1.25;
+  color: var(--fg);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* the more of them there are, the less room each has to say it in */
+#calendar .cal4__day[data-n="2"] .cal4__what { -webkit-line-clamp: 2; }
+
+#calendar .cal4__day[data-n="3"] .cal4__ev,
+#calendar .cal4__day[data-n="4"] .cal4__ev {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-start;   /* not the centring the column layout wants */
+  gap: 0.3rem;
+  padding: 0.1rem 0.35rem;
+}
+
+#calendar .cal4__day[data-n="3"] .cal4__at,
+#calendar .cal4__day[data-n="4"] .cal4__at { font-size: 0.6rem; }
+
+#calendar .cal4__day[data-n="3"] .cal4__what,
+#calendar .cal4__day[data-n="4"] .cal4__what {
+  font-size: 0.62rem;
+  -webkit-line-clamp: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#calendar .cal4__ev--more {
+  border-left-color: transparent;
+  background: none;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--fg-soft);
+}
 
 #calendar .cal4__ev--biosoc { color: hsl(var(--hue) 60% var(--label-l)); }
 #calendar .cal4__ev--school { color: hsl(168 55% var(--label-l)); }
@@ -359,14 +415,17 @@
 /* below this the cells cannot hold a title, so show the day only and
    let the list underneath do the work */
 @media (max-width: 720px) {
-  #calendar .cal4__day { min-height: 3.4rem; padding: 0.3rem 0.3rem 0.4rem; }
+  #calendar .cal4__day { min-height: 3.6rem; padding: 0.3rem 0.3rem 0.4rem; }
+  #calendar .cal4__evs { flex: none; gap: 3px; }
   #calendar .cal4__ev {
+    flex: none;
     padding: 0;
     border-left: 0;
     border-radius: 999px;
-    height: 0.4rem;
+    height: 0.38rem;
     background: currentColor;
-    text-indent: -999em;
   }
-  #calendar .cal4__ev b { display: none; }
+  #calendar .cal4__ev > * { display: none; }
+  #calendar .cal4__ev--more { background: none; height: auto; }
+  #calendar .cal4__ev--more > * { display: none; }
 }
