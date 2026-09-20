@@ -10,6 +10,13 @@ The seven sections are **Essential Links**, **Study Resources**,
 **Customise Your Degree**, **Opportunities**, **Connect** and **Events**, plus
 **Join BioSoc**. All seven now have content.
 
+## For whoever works on this next
+
+`CLAUDE.md` is the short operating brief and loads itself; **`docs/HANDOVER.md`
+is the full record** — every instruction, decision, limit and open item, with
+the reasons attached. Read that before changing anything, and run
+`node tools/check.mjs` before pushing.
+
 ## Running it
 
 It is a plain static site — no build step, no dependencies.
