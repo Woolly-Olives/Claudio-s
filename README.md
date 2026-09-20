@@ -36,6 +36,8 @@ pick the branch and the `/ (root)` folder.
 | `assets/data/instagram.js` | The Instagram account and the posts pinned to Events. |
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Events profile card and post grid. |
 | `assets/data/calendar.js` | The Outlook calendar's links, edited by hand. |
+| `assets/data/instagram-posts.js` | The most recent posts. **Generated** — see below. |
+| `tools/fetch-instagram.py` | Fetches them from Instagram's API. |
 | `assets/data/events.js` | The events themselves. **Generated** — see below. |
 | `tools/ics-to-events.py` | Turns the published .ics into that file. |
 | `assets/data/union.js` | The Students' Union hand-off on Join BioSoc. |
@@ -177,6 +179,20 @@ lectures, with the reminders and the clash warnings they already get for free.
 Underneath is what is coming up, filterable by whose event it is, each with its
 own **Add to calendar** download.
 
+### The four-week view
+
+Above the list is a plain four-week grid, starting from the Monday of the
+current week, off the same events.
+
+It is drawn here rather than shown from Outlook, and **not by choice**.
+Microsoft serves published calendars with `X-Frame-Options: SAMEORIGIN`, which
+tells a browser to refuse to draw the page inside another site; their own
+support answers say so repeatedly and their advice is to link to the calendar
+instead. It could not be tested here, so `mode` in `assets/data/calendar.js`
+still offers `"outlook"`: switch to it, open Events, and look. A blank panel
+means Microsoft refused. If it draws, keep it — their calendar beats a copy of
+it, and the grid is then dead code you can delete.
+
 ### Updating it
 
 `assets/data/events.js` is **generated**. Never hand-edit it:
@@ -226,8 +242,9 @@ calendar — so nothing private should ever go in it.
 
 ## Instagram (Events)
 
-Below the calendar, the Events page carries
-**[@biosoc.leics](https://www.instagram.com/biosoc.leics/)** two ways: a card that links straight to the account, and whichever posts the
+Instagram leads the Events page, because it is where things are announced first.
+It carries **[@biosoc.leics](https://www.instagram.com/biosoc.leics/)** two
+ways: a card that links straight to the account, and whichever posts the
 committee pins, embedded.
 
 **There is no way to embed a whole profile.** Instagram's only supported embed
@@ -240,6 +257,47 @@ if you ever want to go that way: it would mean a token, somewhere to keep it,
 and a scheduled job to refresh it — a GitHub Action committing a JSON file
 would do it.) What is here needs none of that and cannot break on a token
 expiry.
+
+### Showing the most recent posts automatically
+
+`assets/data/instagram-posts.js` is **generated** by `tools/fetch-instagram.py`,
+which asks Instagram's API for the latest few posts. When it holds anything, the
+page shows those and calls the block *Latest from Instagram*; when it is empty,
+the page falls back to whatever is pinned by hand below and calls the block *On
+Instagram*. It ships empty, so nothing depends on the setup below being done.
+
+**It stores permalinks and dates only, never image addresses.** The `media_url`
+the API returns is signed and expires within days, so caching it would leave a
+grid of broken pictures by the end of the week. The pictures come from
+Instagram's own embed at the moment someone looks, which also keeps them right
+when a post is edited or deleted.
+
+Getting it running is a real errand, and only you can do it:
+
+1. the account must be a **Business or Creator** account, not personal;
+2. a Meta app, with Instagram Business Login added;
+3. run that login once for a short-lived token, then exchange it for a
+   long-lived one (60 days);
+4. put that in the repository's secrets as `IG_TOKEN`;
+5. run `IG_TOKEN=... python3 tools/fetch-instagram.py` **by hand first** and read
+   what comes back, then move `tools/refresh-instagram.yml` into
+   `.github/workflows/` to have it run twice a day.
+
+Meta's documentation is at
+[developers.facebook.com/docs/instagram-platform](https://developers.facebook.com/docs/instagram-platform/)
+— the pages that matter are *Instagram API with Instagram Login*, *Business
+Login for Instagram* and *Access Token*.
+
+**The script is untested.** It was written where `instagram.com` and
+`graph.instagram.com` are both unreachable, so its requests follow Meta's
+documentation rather than a run that worked. Run it by hand before trusting it
+to a schedule.
+
+**Watch the token.** A long-lived token lasts 60 days. The script renews it on
+every run and prints the new one, but it cannot write it back into the
+repository's secrets, so if the workflow is ever paused for two months the token
+dies and the feed stops. It fails loudly rather than publishing an empty list,
+so that shows up as a red cross rather than a page that quietly went stale.
 
 ### Pinning a post
 

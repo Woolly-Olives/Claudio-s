@@ -1,0 +1,58 @@
+# Keep assets/data/instagram-posts.js showing the most recent posts.
+#
+# THIS FILE IS NOT ACTIVE, and should not be until the script it runs
+# has been run by hand at least once and seen to work. A workflow only
+# runs once it sits in .github/workflows/:
+#
+#     mkdir -p .github/workflows
+#     git mv tools/refresh-instagram.yml .github/workflows/refresh-instagram.yml
+#
+# Before that will do anything you need IG_TOKEN in the repository's
+# secrets, and before THAT you need a Business or Creator account and a
+# Meta app. The note at the top of tools/fetch-instagram.py spells it
+# out.
+#
+# ONE THING TO WATCH: a long-lived Instagram token lasts 60 days. The
+# script renews it on each run and prints the new one, but it cannot
+# write it back into the repository's secrets — nothing here is allowed
+# to edit its own secrets. So if this workflow is ever paused for two
+# months, the token dies and the feed quietly stops. The step below
+# fails loudly rather than publishing nothing, so a dead token shows up
+# as a red cross instead of as a page that silently went stale.
+name: Refresh Instagram posts
+
+on:
+  schedule:
+    - cron: "43 7,19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the most recent posts
+        env:
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: |
+          if [ -z "$IG_TOKEN" ]; then
+            echo "IG_TOKEN is not set in this repository's secrets." >&2
+            exit 1
+          fi
+          python3 tools/fetch-instagram.py
+
+      - name: Commit if it changed
+        run: |
+          if git diff --quiet -- assets/data/instagram-posts.js; then
+            echo "No change."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/instagram-posts.js
+          git commit -m "Refresh the most recent Instagram posts"
+          git push

@@ -15,7 +15,7 @@
 
   var DATA = window.BIOSOC_EVENTS;
   var CAL = window.BIOSOC_CALENDAR;
-  var root = document.getElementById("events");
+  var root = document.getElementById("calendar");
   if (!root || !DATA || !CAL) { return; }
 
   var all = (DATA.events || []).map(function (e) {
@@ -154,6 +154,92 @@
     window.setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
   }
 
+  /* ---------- four weeks, starting with the one we are in ---------- */
+
+  var DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  /** Monday of the week containing `d`, at midnight. */
+  function weekStart(d) {
+    var m = midnight(d);
+    var back = (m.getDay() + 6) % 7;          // Sunday is 0, and we start Monday
+    m.setDate(m.getDate() - back);
+    return m;
+  }
+
+  function sameDay(a, b) {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() &&
+           a.getDate() === b.getDate();
+  }
+
+  /**
+   * Outlook's own published calendar cannot be shown here: Microsoft
+   * serves it with X-Frame-Options SAMEORIGIN, so a browser refuses to
+   * draw it inside another site. This is the plainest four-week grid
+   * that does the same job, off the same events as the list below.
+   */
+  function fourWeeks(now) {
+    var first = weekStart(now);
+    var last = new Date(first);
+    last.setDate(last.getDate() + 27);        // the last day shown, not the day after
+
+    var cells = [];
+    for (var i = 0; i < 28; i++) {
+      var day = new Date(first);
+      day.setDate(day.getDate() + i);
+      var on = all.filter(function (e) { return sameDay(e.start, day); });
+      var first_of_month = day.getDate() === 1 || i === 0;
+
+      cells.push('' +
+        '<div class="cal4__day' +
+          (sameDay(day, now) ? ' is-today' : '') +
+          (day < midnight(now) ? ' is-past' : '') + '">' +
+          '<span class="cal4__n">' + day.getDate() +
+            (first_of_month ? ' <span class="cal4__mon">' + MON[day.getMonth()] + '</span>' : '') +
+          '</span>' +
+          on.map(function (e) {
+            return '<span class="cal4__ev cal4__ev--' + esc(e.tag) + '" title="' +
+                   esc(e.title + (e.allDay ? "" : " \u00b7 " + when(e)) +
+                       (e.where ? " \u00b7 " + e.where : "")) + '">' +
+                   (e.allDay ? "" : '<b>' + clock(e.start) + '</b> ') +
+                   esc(e.title) + '</span>';
+          }).join("") +
+        '</div>');
+    }
+
+    var span = first.getMonth() === last.getMonth()
+      ? MON[first.getMonth()] + " " + first.getFullYear()
+      : MON[first.getMonth()] +
+        (first.getFullYear() === last.getFullYear() ? "" : " " + first.getFullYear()) +
+        " \u2013 " + MON[last.getMonth()] + " " + last.getFullYear();
+
+    return '' +
+      '<div class="cal4">' +
+        '<div class="cal4__head">' +
+          '<h2 class="ev-h">Next four weeks</h2>' +
+          '<span class="cal4__span">' + span + '</span>' +
+        '</div>' +
+        '<div class="cal4__grid">' +
+          DOW.map(function (d) { return '<span class="cal4__dow">' + d + '</span>'; }).join("") +
+          cells.join("") +
+        '</div>' +
+      '</div>';
+  }
+
+  /** Outlook's own page, for anyone who wants to try their luck. */
+  function outlookFrame() {
+    return '' +
+      '<div class="cal4">' +
+        '<div class="cal4__head"><h2 class="ev-h">Next four weeks</h2></div>' +
+        '<div class="cal4__frame" style="height:' + esc(CAL.frameHeight || "60vh") + '">' +
+          '<iframe title="BioSoc calendar" src="' + esc(CAL.view) + '"' +
+            ' loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' +
+        '</div>' +
+        '<p class="cal-small">Shown from Outlook. If that panel is empty, Microsoft ' +
+          'has refused to let the calendar be drawn inside another site &mdash; set ' +
+          'mode back to "grid" in assets/data/calendar.js.</p>' +
+      '</div>';
+  }
+
   /* ---------- drawing ---------- */
 
   function webcal(href) { return String(href).replace(/^https?:/i, "webcal:"); }
@@ -209,7 +295,9 @@
       '</a>' +
       '<p class="cal-small">' + esc(CAL.smallprint) +
         ' <a href="' + esc(CAL.view) + '" target="_blank" rel="noopener">' +
-        'Open the calendar in a browser</a>.</p>' +
+        'Open the calendar in Outlook</a>.</p>' +
+
+      (CAL.mode === "outlook" ? outlookFrame() : fourWeeks(now)) +
 
       (upcoming.length
         ? '<div class="ev-head">' +

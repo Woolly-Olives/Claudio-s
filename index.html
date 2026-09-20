@@ -527,18 +527,21 @@
         <h1 class="page__title" id="h-events" tabindex="-1">Events</h1>
       </header>
       <div class="page__body">
-        <!-- The calendar is built by assets/js/events.js from
+        <!-- Instagram leads: it is where things are announced first.
+             Built by assets/js/instagram.js from the most recent posts
+             in assets/data/instagram-posts.js (generated) falling back
+             to whatever is pinned in assets/data/instagram.js. Nothing
+             is fetched from Instagram until this section is opened. -->
+        <div id="instagram"></div>
+
+        <!-- Then the calendar. Its id must not match a section id: the
+             section ids are the URL hashes, so a div called "events"
+             makes the browser scroll to it whenever #events is opened.
+             Built by assets/js/events.js from
              assets/data/events.js (generated from the published Outlook
              calendar by tools/ics-to-events.py) and the live calendar's
              links in assets/data/calendar.js. -->
-        <div id="events"></div>
-
-        <!-- The profile card and the pinned posts are built by
-             assets/js/instagram.js from assets/data/instagram.js.
-             Nothing is fetched from Instagram until this section is
-             opened. -->
-        <h2 class="ig-after">Day to day</h2>
-        <div id="instagram"></div>
+        <div id="calendar"></div>
 
         <noscript>
           <p>Everything we run is announced on
@@ -583,6 +586,7 @@
 <script src="assets/data/links.js"></script>
 <script src="assets/data/curriculum.js"></script>
 <script src="assets/data/instagram.js"></script>
+<script src="assets/data/instagram-posts.js"></script>
 <script src="assets/data/union.js"></script>
 <script src="assets/data/calendar.js"></script>
 <script src="assets/data/events.js"></script>

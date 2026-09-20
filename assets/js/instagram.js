@@ -19,7 +19,21 @@
 
   var SCRIPT = "https://www.instagram.com/embed.js";
   var PATIENCE = 8000;          // ms before we admit the script is not coming
-  var posts = DATA.posts || [];
+
+  /*
+   * The most recent posts come from assets/data/instagram-posts.js,
+   * which tools/fetch-instagram.py writes from Instagram's own API.
+   * Anything pinned by hand in assets/data/instagram.js is the fallback
+   * for when that is not set up, or has not run yet.
+   *
+   * Only permalinks are stored, never image addresses: the ones the API
+   * hands back are signed and expire within days, so a cached copy
+   * would be a grid of broken pictures. The picture comes from
+   * Instagram's own embed at the moment someone looks.
+   */
+  var FETCHED = window.BIOSOC_INSTAGRAM_POSTS || null;
+  var live = FETCHED && FETCHED.posts && FETCHED.posts.length;
+  var posts = live ? FETCHED.posts : (DATA.posts || []);
   var asked = false;
   var loading = false;
 
@@ -62,7 +76,7 @@
 
   function card(post) {
     var href = clean(post.permalink);
-    var when = readableDate(post.date);
+    var when = readableDate(post.date || post.timestamp);
     usable(href);
     return '' +
       '<li class="ig-card">' +
@@ -82,6 +96,7 @@
   }
 
   root.innerHTML =
+    '<h2 class="ig-h">' + (live ? "Latest from Instagram" : "On Instagram") + '</h2>' +
     '<a class="ig-profile" href="' + esc(DATA.url) + '" target="_blank" rel="noopener me">' +
       '<span class="ig-profile__mark" aria-hidden="true">' +
         '<svg viewBox="0 0 24 24">' +

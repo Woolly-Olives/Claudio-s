@@ -1,13 +1,15 @@
 /* =============================================================
    Events — the calendar: the subscribe card and what is coming up.
-   Built by assets/js/events.js. Scoped to #events.
+   Built by assets/js/events.js, and scoped to #calendar. It must not
+   be called #events: the section ids double as URL hashes, so a div of
+   that name makes the browser scroll to it whenever #events is opened.
    ============================================================= */
 
-#events { display: block; }
+#calendar { display: block; }
 
 /* ---------- subscribe once, and stop coming back ---------- */
 
-#events .cal-sub {
+#calendar .cal-sub {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -21,27 +23,27 @@
   transition: background 200ms var(--ease), border-color 200ms var(--ease);
 }
 
-#events .cal-sub:hover {
+#calendar .cal-sub:hover {
   background: hsl(var(--hue) 50% 50% / 0.22);
   border-color: hsl(var(--hue) 60% 60% / 0.65);
 }
 
-#events .cal-sub__text { display: grid; gap: 0.35rem; min-width: 0; }
+#calendar .cal-sub__text { display: grid; gap: 0.35rem; min-width: 0; }
 
-#events .cal-sub__head {
+#calendar .cal-sub__head {
   font-size: 1.2rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--fg);
 }
 
-#events .cal-sub__blurb {
+#calendar .cal-sub__blurb {
   font-size: 0.96rem;
   line-height: 1.5;
   color: var(--fg-soft);
 }
 
-#events .cal-sub__go {
+#calendar .cal-sub__go {
   padding: 0.7rem 1.35rem;
   border-radius: 999px;
   background: hsl(var(--hue) 60% 52%);
@@ -52,11 +54,11 @@
 }
 
 @media (max-width: 620px) {
-  #events .cal-sub { grid-template-columns: minmax(0, 1fr); }
-  #events .cal-sub__go { justify-self: start; }
+  #calendar .cal-sub { grid-template-columns: minmax(0, 1fr); }
+  #calendar .cal-sub__go { justify-self: start; }
 }
 
-#events .cal-small {
+#calendar .cal-small {
   margin: 0.8rem 0 0;
   font-size: 0.84rem;
   line-height: 1.55;
@@ -66,7 +68,7 @@
 
 /* ---------- what is coming up ---------- */
 
-#events .ev-head {
+#calendar .ev-head {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -75,7 +77,7 @@
   margin: 2.5rem 0 1rem;
 }
 
-#events .ev-h {
+#calendar .ev-h {
   margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
@@ -83,9 +85,9 @@
   color: var(--fg);
 }
 
-#events .ev-filter { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+#calendar .ev-filter { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 
-#events .ev-filter__b {
+#calendar .ev-filter__b {
   padding: 0.35rem 0.85rem;
   font: inherit;
   font-size: 0.8rem;
@@ -99,15 +101,15 @@
               border-color 160ms var(--ease);
 }
 
-#events .ev-filter__b:hover { color: var(--fg); border-color: hsl(var(--hue) 50% 55% / 0.5); }
+#calendar .ev-filter__b:hover { color: var(--fg); border-color: hsl(var(--hue) 50% 55% / 0.5); }
 
-#events .ev-filter__b.is-on {
+#calendar .ev-filter__b.is-on {
   color: var(--fg);
   background: hsl(var(--hue) 50% 50% / 0.2);
   border-color: hsl(var(--hue) 55% 58% / 0.55);
 }
 
-#events .ev-list {
+#calendar .ev-list {
   display: grid;
   gap: 0.7rem;
   margin: 0;
@@ -115,7 +117,7 @@
   list-style: none;
 }
 
-#events .ev {
+#calendar .ev {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -126,10 +128,10 @@
   background: hsl(var(--hue) 40% 50% / 0.05);
 }
 
-#events .ev[hidden] { display: none; }
+#calendar .ev[hidden] { display: none; }
 
 /* the date, as a block you can find at a glance */
-#events .ev__date {
+#calendar .ev__date {
   display: grid;
   justify-items: center;
   align-content: center;
@@ -140,8 +142,8 @@
   background: hsl(var(--hue) 50% 50% / 0.16);
 }
 
-#events .ev__dow,
-#events .ev__mon {
+#calendar .ev__dow,
+#calendar .ev__mon {
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -149,16 +151,16 @@
   color: hsl(var(--hue) 55% var(--label-l));
 }
 
-#events .ev__day {
+#calendar .ev__day {
   font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.1;
   color: var(--fg);
 }
 
-#events .ev__body { min-width: 0; }
+#calendar .ev__body { min-width: 0; }
 
-#events .ev__title {
+#calendar .ev__title {
   margin: 0 0 0.3rem;
   font-size: 1.02rem;
   font-weight: 700;
@@ -166,7 +168,7 @@
   color: var(--fg);
 }
 
-#events .ev__soon {
+#calendar .ev__soon {
   display: inline-block;
   margin-left: 0.4rem;
   padding: 0.1rem 0.5rem;
@@ -180,7 +182,7 @@
   vertical-align: 0.14em;
 }
 
-#events .ev__meta {
+#calendar .ev__meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -190,7 +192,7 @@
   color: var(--fg-soft);
 }
 
-#events .ev__tag {
+#calendar .ev__tag {
   padding: 0.12rem 0.55rem;
   border: 1px solid currentColor;
   border-radius: 999px;
@@ -201,20 +203,20 @@
   opacity: 0.85;
 }
 
-#events .ev__tag--biosoc { color: hsl(var(--hue) 60% var(--label-l)); }
-#events .ev__tag--school { color: hsl(168 55% var(--label-l)); }
-#events .ev__tag--su     { color: hsl(28 70% var(--label-l)); }
+#calendar .ev__tag--biosoc { color: hsl(var(--hue) 60% var(--label-l)); }
+#calendar .ev__tag--school { color: hsl(168 55% var(--label-l)); }
+#calendar .ev__tag--su     { color: hsl(28 70% var(--label-l)); }
 
-#events .ev__where::before { content: "\00b7"; margin-right: 0.5rem; opacity: 0.6; }
+#calendar .ev__where::before { content: "\00b7"; margin-right: 0.5rem; opacity: 0.6; }
 
-#events .ev__note {
+#calendar .ev__note {
   margin: 0.4rem 0 0;
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--fg-soft);
 }
 
-#events .ev__add {
+#calendar .ev__add {
   padding: 0.5rem 0.95rem;
   font: inherit;
   font-size: 0.82rem;
@@ -228,14 +230,14 @@
   transition: background 180ms var(--ease);
 }
 
-#events .ev__add:hover { background: hsl(var(--hue) 55% 50% / 0.28); }
+#calendar .ev__add:hover { background: hsl(var(--hue) 55% 50% / 0.28); }
 
 @media (max-width: 680px) {
-  #events .ev { grid-template-columns: auto minmax(0, 1fr); }
-  #events .ev__add { grid-column: 2; justify-self: start; margin-top: 0.2rem; }
+  #calendar .ev { grid-template-columns: auto minmax(0, 1fr); }
+  #calendar .ev__add { grid-column: 2; justify-self: start; margin-top: 0.2rem; }
 }
 
-#events .ev-empty {
+#calendar .ev-empty {
   margin: 2.5rem 0 0;
   padding: 2.5rem;
   border: 1px dashed var(--line);
@@ -244,5 +246,127 @@
   color: var(--fg-soft);
 }
 
-/* the Instagram block below gets its own breathing room */
-#events + .ig-after { margin-top: 2.75rem; }
+/* Instagram leads the page; the calendar starts a new block under it */
+#instagram + #calendar { margin-top: 2.75rem; padding-top: 2.5rem; border-top: 1px solid var(--line-soft); }
+
+/* ---------- the four-week view ----------
+   Outlook's published calendar cannot be framed by another site, so
+   this is a plain grid off the same events as the list below. Kept
+   deliberately quiet: it is for scanning, and the list underneath is
+   where anything is actually done. */
+
+#calendar .cal4 { margin: 2.5rem 0 0; }
+
+#calendar .cal4__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+#calendar .cal4__span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+
+#calendar .cal4__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  border-radius: 12px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+
+#calendar .cal4__dow {
+  padding: 0.5rem 0.55rem;
+  background: var(--bg);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+
+#calendar .cal4__day {
+  display: grid;
+  align-content: start;
+  gap: 0.22rem;
+  min-height: 5.6rem;
+  padding: 0.4rem 0.45rem 0.5rem;
+  background: var(--bg);
+}
+
+#calendar .cal4__day.is-past { opacity: 0.45; }
+
+#calendar .cal4__day.is-today {
+  background: hsl(var(--hue) 45% 50% / 0.16);
+  box-shadow: inset 0 0 0 1px hsl(var(--hue) 55% 58% / 0.55);
+}
+
+#calendar .cal4__n {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--fg-soft);
+}
+
+#calendar .cal4__day.is-today .cal4__n { color: var(--fg); }
+
+#calendar .cal4__mon {
+  margin-left: 0.15rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+#calendar .cal4__ev {
+  display: block;
+  padding: 0.16rem 0.36rem;
+  border-left: 2px solid currentColor;
+  border-radius: 3px;
+  background: hsl(var(--hue) 40% 50% / 0.14);
+  font-size: 0.68rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+}
+
+#calendar .cal4__ev b { font-weight: 700; }
+
+#calendar .cal4__ev--biosoc { color: hsl(var(--hue) 60% var(--label-l)); }
+#calendar .cal4__ev--school { color: hsl(168 55% var(--label-l)); }
+#calendar .cal4__ev--su     { color: hsl(28 70% var(--label-l)); }
+
+/* Outlook's own page, when mode is "outlook" */
+#calendar .cal4__frame {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+#calendar .cal4__frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+/* below this the cells cannot hold a title, so show the day only and
+   let the list underneath do the work */
+@media (max-width: 720px) {
+  #calendar .cal4__day { min-height: 3.4rem; padding: 0.3rem 0.3rem 0.4rem; }
+  #calendar .cal4__ev {
+    padding: 0;
+    border-left: 0;
+    border-radius: 999px;
+    height: 0.4rem;
+    background: currentColor;
+    text-indent: -999em;
+  }
+  #calendar .cal4__ev b { display: none; }
+}
