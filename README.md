@@ -540,11 +540,14 @@ to slide from. Anyone with reduced motion set skips both.
 
 ### Opening the page
 
-The first time you open this section — from the wheel or a direct link —
-the columns arrive one at a time, Year 1 Semester 1 first: a giant
-right-pointing arrow, with a "Year N / Semester N" label below it, covers
-each column in turn on a translucent backdrop, then peels away to let that
-column's modules slowly float down into place before the next one starts. It
+The first time you open this section — from the wheel or a direct link — it
+plays in two passes. First, every column floats slowly down into place, one
+after another, Year 1 Semester 1 first, each one still covered by its own
+veil — a giant right-pointing arrow over a "Year N / Semester N" label, on a
+translucent backdrop — so what you see arriving is the veil, not the modules
+underneath. Only once every column has floated into place does the second
+pass begin: the veils fade away, again Year 1 Semester 1 first, uncovering
+each column's modules in turn. It
 plays once per opening, not on every click inside the page, and is skipped
 entirely under reduced motion.
 

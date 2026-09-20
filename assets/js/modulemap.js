@@ -885,18 +885,31 @@
   }
 
   /*
-   * The entrance: a giant arrow and a "Year N / Semester N" label cover
-   * each column in turn, Year 1 Semester 1 first, over a translucent
-   * veil that hides the modules underneath. Every board is already
-   * fully rendered — the plan you left it in, same as always — this
-   * only delays when it becomes visible, column by column, so the
-   * whole board does not just appear at once.
+   * The entrance runs in two full passes over the six columns, not one
+   * interleaved sequence:
    *
-   * Runs every time the section is opened (the biosoc:page event, which
-   * app.js fires whether that is the wheel's bubble or a direct link),
-   * not on every click inside it — degree switches and module picks use
-   * rerender()'s FLIP slide instead, and would be a poor place for a
-   * multi-second cover-and-reveal to keep replaying.
+   *   Phase A — float in, still veiled. Each column — a giant arrow, a
+   *   "Year N / Semester N" label below it, and the modules underneath,
+   *   all still hidden by the veil sitting on top — floats down into
+   *   place, Year 1 Semester 1 first, one column after another. The
+   *   veil is an absolutely-positioned child of `.col`, so transforming
+   *   the whole column carries the veil down with it: what is actually
+   *   seen sliding into place is the veil, arrow and label included, the
+   *   modules obscured underneath exactly as asked.
+   *
+   *   Phase B — reveal, only once every column has finished floating
+   *   in. Starting again from Year 1 Semester 1, each veil fades away in
+   *   turn to uncover that column's modules (its header and credit bar
+   *   were under the veil too, and need no opacity rule of their own —
+   *   they simply appear as the veil above them goes).
+   *
+   * Every board is already fully rendered before this starts — the plan
+   * you left it in, same as always — this only delays when it becomes
+   * visible. Runs every time the section is opened (the biosoc:page
+   * event, which app.js fires whether that is the wheel's bubble or a
+   * direct link), not on every click inside it — degree switches and
+   * module picks use rerender()'s FLIP slide instead, and would be a
+   * poor place for a multi-second cover-and-reveal to keep replaying.
    */
   var STEP_MS = 260, VEIL_MS = 420, FLOAT_MS = 640;
 
@@ -907,18 +920,23 @@
     if (!board || !cols || !cols.length) { return; }
 
     /*
-     * .is-revealed, once a column has it, is never removed mid-sequence
-     * — only the veil goes. It has to stay for as long as
-     * .mm__board--intro sits on the board (which is until the LAST
-     * column finishes, not this one), because that board-level class is
-     * what holds every box at opacity 0 by default; drop .is-revealed
-     * early and a column that already played its reveal would fall
-     * straight back under that default and vanish again, rather than
-     * staying visible until the others catch up. It is reset to nothing
-     * at the top of every run, so a second opening starts clean rather
-     * than inheriting classes render() has no reason to have removed.
+     * .is-floated and .is-revealed, once a column has either, are never
+     * removed mid-sequence — only the veil goes, when its own column is
+     * revealed. They have to stay for as long as .mm__board--intro sits
+     * on the board (which is until the very last column of Phase B, not
+     * whenever this column's own part finishes), because that
+     * board-level class is what holds every column off-position and
+     * every box at opacity 0 by default; dropping a per-column class
+     * early would let that column fall straight back under the default
+     * and vanish or jump again before the others have caught up. Both
+     * are reset to nothing at the top of every run, so a second opening
+     * starts clean rather than inheriting classes render() has no
+     * reason to have removed.
      */
-    cols.forEach(function (colEl) { colEl.classList.remove("is-revealed"); });
+    cols.forEach(function (colEl) {
+      colEl.classList.remove("is-floated");
+      colEl.classList.remove("is-revealed");
+    });
     board.classList.add("mm__board--intro");
     cols.forEach(function (colEl, i) {
       var meta = COLUMNS[i];
@@ -936,32 +954,50 @@
 
     /*
      * Column 0 has nothing to wait for, so without a head start its
-     * reveal timer fires on the very next macrotask — before the browser
-     * has ever painted the "hidden, veiled" state just set above. With no
-     * painted "before" to transition away from, the style change reads as
-     * old-equals-new (base .box, unchanged) and the box snaps straight to
-     * visible instead of floating down like every other column. START_MS
+     * float timer fires on the very next macrotask — before the browser
+     * has ever painted the "hidden, off-position" state just set above.
+     * With no painted "before" to transition away from, the style
+     * change reads as old-equals-new and the column snaps straight into
+     * place instead of floating like every other column. START_MS
      * guarantees at least one real paint of the hidden state first, so
      * every column — the first included — gets the same float.
      */
     var START_MS = 60;
+
+    /* Phase A: float every column into place, in sequence. */
     cols.forEach(function (colEl, i) {
       window.setTimeout(function () {
-        var veil = colEl.querySelector(".mm__veil");
-        var boxes = colEl.querySelectorAll(".box");
-        boxes.forEach(function (b, bi) { b.style.transitionDelay = Math.min(bi * 16, 160) + "ms"; });
-        colEl.classList.add("is-revealed");
-        if (veil) { veil.classList.add("is-gone"); }
-        window.setTimeout(function () {
-          boxes.forEach(function (b) { b.style.transitionDelay = ""; });
-          if (veil) { veil.remove(); }
-          if (i === cols.length - 1) {
-            board.classList.remove("mm__board--intro");
-            cols.forEach(function (c) { c.classList.remove("is-revealed"); });
-          }
-        }, Math.max(VEIL_MS, FLOAT_MS) + 200);
+        colEl.classList.add("is-floated");
       }, START_MS + i * STEP_MS);
     });
+
+    /*
+     * Phase B does not begin until the last column's own float
+     * transition has actually finished — not just started — so nothing
+     * is revealed while a column is still sliding in.
+     */
+    var lastFloatEnds = START_MS + (cols.length - 1) * STEP_MS + FLOAT_MS;
+    var REVEAL_PAUSE_MS = 150;
+
+    window.setTimeout(function () {
+      cols.forEach(function (colEl, i) {
+        window.setTimeout(function () {
+          var veil = colEl.querySelector(".mm__veil");
+          colEl.classList.add("is-revealed");
+          if (veil) { veil.classList.add("is-gone"); }
+          window.setTimeout(function () {
+            if (veil) { veil.remove(); }
+            if (i === cols.length - 1) {
+              board.classList.remove("mm__board--intro");
+              cols.forEach(function (c) {
+                c.classList.remove("is-floated");
+                c.classList.remove("is-revealed");
+              });
+            }
+          }, VEIL_MS + 200);
+        }, i * STEP_MS);
+      });
+    }, lastFloatEnds + REVEAL_PAUSE_MS);
   }
 
   document.addEventListener("biosoc:page", function (event) {

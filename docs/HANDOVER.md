@@ -263,16 +263,43 @@ move on purpose:
   so a year that stays done through a degree switch is only repositioned,
   never re-faded.
 - **A one-time entrance animation** plays whenever the section opens (the
-  `biosoc:page` event, not on every click inside it): a veil — giant arrow,
-  "Year N / Semester N" label below it, translucent background — covers
-  each column in turn, Year 1 Semester 1 first, and peels away to reveal
-  that column's modules floating down into place. `runIntro()` in
-  `modulemap.js`. Bailed out entirely under `prefers-reduced-motion`, same
-  as `playFlip()`. Revised 2026-09-20: the arrow now points right
-  (`mm-arrow-nudge` nudges `translateX`, not `translateY`) instead of down;
-  the float direction reversed (from `translateY(16px)→none`, floating
-  *up*, to `translateY(-32px)→none`, floating *down*) and slowed (380ms →
-  `FLOAT_MS` = 640ms).
+  `biosoc:page` event, not on every click inside it). `runIntro()` in
+  `modulemap.js`, bailed out entirely under `prefers-reduced-motion`, same
+  as `playFlip()`.
+
+  Revised 2026-09-20, twice. First: the arrow now points right
+  (`mm-arrow-nudge` nudges `translateX`, not `translateY`) instead of down,
+  with the "Year N / Semester N" label below it. Second, and more
+  structurally, **the reveal is now two full passes over the six columns,
+  not one interleaved sequence**:
+  - **Phase A (float in, still veiled).** Each column — a veil (giant
+    arrow, label, translucent background) sitting on top of that
+    column's modules — floats down into place, Year 1 Semester 1 first,
+    one column after another (`STEP_MS` apart). This is a `transform`
+    on `.col` itself, never an `opacity`: the veil is an
+    absolutely-positioned child of `.col`, so the transform carries it
+    down too, but an opacity on `.col` would take the veil's own
+    visibility down with it — a descendant cannot opt back out of an
+    ancestor's `opacity`, whatever its own value says. The modules stay
+    at `opacity: 0` throughout, by their own rule, regardless of where
+    their column currently sits.
+  - **Phase B (reveal), only once every column has floated in** — not
+    when the last one merely starts, when it *finishes*
+    (`lastFloatEnds` in `runIntro()`, plus a short `REVEAL_PAUSE_MS`
+    pause). Starting again from Year 1 Semester 1, each veil fades away
+    in turn (`STEP_MS` apart again) to uncover that column's modules —
+    its header and credit bar too, which needed no opacity rule of
+    their own since the veil was covering them the whole time.
+
+  Before this, the float and the reveal were the same pass: a column
+  floated its own modules into view and lost its veil in the same beat,
+  so column 2 could already be revealing itself while column 5 had not
+  even floated in yet. `FLOAT_MS` (640ms) is the Phase A transition
+  duration and must stay in step with the `transition` on `.col.is-floated`
+  in `modulemap.css`; the earlier float direction/speed change (from
+  `translateY(16px)→none` floating *up* over 380ms, to floating *down*
+  and slowed) carried straight over into this structure, now applied to
+  the whole column rather than to each box individually.
 
 **A real bug worth knowing if this is ever touched again:** the first version
 of the intro removed a column's `is-revealed` class as soon as that column's
@@ -290,19 +317,21 @@ before the per-group default it was overriding has also gone.
 
 **A second bug in the same function, found 2026-09-20 while slowing the float
 down:** column 0 (Year 1 Semester 1) never animated at all — it snapped
-straight to visible while every other column floated in properly. Its reveal
-timer used to run on a bare `setTimeout(fn, 0)` (`i * STEP_MS` with `i === 0`),
-which fires on the very next macrotask — before the browser had painted the
-"hidden, veiled" state that `.mm__board--intro` had just set moments earlier
-in the same synchronous block. With no painted "before" to compare against,
-the style change reads as old-equals-new (base `.box`, unchanged) and there is
-nothing to transition. Confirmed with Playwright by sampling
-`getComputedStyle(box).opacity` at short intervals after opening the section:
-it read `1` within the first ~60ms, far faster than a 640ms transition could
-produce, while every later column showed a proper climbing value. Fix:
-`START_MS` (currently 60ms) is now added to every column's delay, including
-column 0's, guaranteeing at least one real paint of the hidden state before
-any reveal begins. Two `requestAnimationFrame` calls were tried first and did
+straight into place while every other column floated in properly. Its timer
+used to run on a bare `setTimeout(fn, 0)` (`i * STEP_MS` with `i === 0`), which
+fires on the very next macrotask — before the browser had painted the
+"hidden, off-position" state that `.mm__board--intro` had just set moments
+earlier in the same synchronous block. With no painted "before" to compare
+against, the style change reads as old-equals-new and there is nothing to
+transition. Confirmed with Playwright by sampling `getComputedStyle` at short
+intervals after opening the section: column 0 reached its final state within
+the first ~60ms, far faster than the transition duration could produce, while
+every later column showed a proper climbing value. Fix: `START_MS` (currently
+60ms) is now added to every column's delay, including column 0's, guaranteeing
+at least one real paint of the hidden state before anything starts to move
+(this still applies now the animated property is `.col`'s `transform` rather
+than `.box`'s `opacity` — same mechanism, same fix). Two `requestAnimationFrame`
+calls were tried first and did
 not reliably fix it in this headless environment — a real elapsed-time delay
 did.
 

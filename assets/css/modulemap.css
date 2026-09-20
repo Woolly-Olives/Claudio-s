@@ -805,21 +805,42 @@
 #module-map .cell--linked .box:hover { filter: brightness(1.08); }
 
 /* ---------- the opening reveal ----------
-   Built and torn down by runIntro() in modulemap.js: a veil per column,
-   peeled away Year 1 Semester 1 first, the modules slowly floating down
-   into view underneath as each one goes. See the comment above runIntro()
-   for why this runs once per page-open rather than on every click, and
-   FLOAT_MS there for the duration this must stay in step with. */
+   Built and torn down by runIntro() in modulemap.js, in two full passes
+   over the six columns — see the comment above that function for why.
+
+   Phase A: every column — veil and modules together, since the veil is
+   an absolutely-positioned child of .col and moves with it — floats down
+   into place, Year 1 Semester 1 first. This is a transform only, never
+   an opacity, on .col itself: CSS opacity is not something a descendant
+   can opt back out of, and the veil (which must stay fully visible
+   throughout the float) is exactly such a descendant — an opacity here
+   would take the veil down with it. The modules stay invisible
+   regardless (below), by their own rule, so what is seen sliding down is
+   the veil, arrow and label included, covering what is underneath.
+   FLOAT_MS in modulemap.js is this transition's duration and must stay
+   in step with it. */
+
+#module-map .mm__board--intro .col {
+  transform: translateY(-40px);
+}
+
+#module-map .col.is-floated {
+  transform: none;
+  transition: transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Phase B: only once every column has floated into place does a veil
+   start to fade, uncovering that column's modules (and its header and
+   credit bar, which needed no opacity rule of their own — the veil was
+   covering them too, and simply goes). */
 
 #module-map .mm__board--intro .box {
   opacity: 0;
-  transform: translateY(-32px);
 }
 
 #module-map .col.is-revealed .box {
   opacity: 1;
-  transform: none;
-  transition: opacity 640ms var(--ease), transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 420ms var(--ease);
 }
 
 #module-map .mm__veil {
