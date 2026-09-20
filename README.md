@@ -8,7 +8,7 @@ into its slice instead (see below).
 
 The seven sections are **Essential Links**, **Study Resources**,
 **Customise Your Degree**, **Opportunities**, **Connect** and **Events**, plus
-**Join BioSoc**. Only **Connect** is still empty, ready for content.
+**Join BioSoc**. All seven now have content.
 
 ## Running it
 
@@ -40,6 +40,8 @@ pick the branch and the `/ (root)` folder.
 | `tools/fetch-instagram.py` | Fetches them from Instagram's API. |
 | `assets/data/events.js` | The events themselves. **Generated** — see below. |
 | `tools/ics-to-events.py` | Turns the published .ics into that file. |
+| `assets/data/advice.js` | Students' advice on Connect. **Generated** — see below. |
+| `tools/advice-to-js.py` | Turns the collected text file into it. |
 | `assets/data/union.js` | The Students' Union hand-off on Join BioSoc. |
 | `assets/js/union.js`, `assets/css/union.css` | How that page is built. |
 
@@ -336,6 +338,49 @@ the landing page and the other six sections never touch it. `app.js` fires a
 `biosoc:page` event when a section opens, and `assets/js/instagram.js` waits for
 it.
 
+## Advice from students (Connect)
+
+One piece of advice at a time, in a random order, moving on by itself every 30
+seconds. There is a back and a forward, and a Pause.
+
+### Adding to it
+
+`assets/data/advice.js` is **generated**. Add to the collected text file and
+re-run:
+
+```sh
+python3 tools/advice-to-js.py Advice_from_students.txt
+```
+
+One entry per paragraph, numbered, advice in double quotes. The number is only
+so an entry can be found again in the source — the page never shows it, and the
+order is random anyway. The generator says how many it read and flags any block
+it could not parse.
+
+**The wording is the students' own and is transcribed as given**, including the
+odd slip. Correcting it here would put words in their mouths, and would be
+undone the next time the generator runs. If something needs changing, change the
+text file.
+
+### How the timing works
+
+The clock is the progress bar's own CSS animation, not a timer in script: the
+bar finishing is what moves things on. That means pausing is one CSS property,
+holding while someone is reading costs no script, and the bar and the wait
+cannot drift apart, because they are the same thing. Nothing runs until Connect
+is open and it stops when it closes, through the `biosoc:page` event.
+
+It holds while the pointer is over the card, and while a keyboard user has
+focus inside it — `:focus-visible`, deliberately, not `:focus-within`, which
+would also catch the focus a mouse click leaves behind and hold the clock for
+good.
+
+**One thing worth knowing about 30 seconds.** The longest piece is 113 words,
+which takes most of a minute to read, so a slow reader will not finish it before
+it moves. The bar makes the time visible, the card holds on hover and Pause
+stops it outright — but if it still feels rushed, `DWELL` at the top of
+`assets/js/advice.js` is the only number to change.
+
 ## The Students' Union (Join BioSoc)
 
 Membership is the Union's, not ours, so that page hands over to
@@ -530,6 +575,13 @@ than hand-editing the output.
 
 The wheel divides itself evenly however many sections there are, and each slice's
 reveal origin is recalculated from its own angle, so nothing else needs changing.
+
+`GAP_DEG` is 0, so the slices meet and their strokes do the dividing. It is worth
+leaving there: a gap held at a constant *angle* grows with the radius, so any
+value above zero is invisible at the hub and a wedge at the rim. If a gap is ever
+wanted back, it needs to be a constant arc length rather than a constant angle,
+which means insetting each slice's edges by a fixed distance rather than by
+degrees.
 
 ## Behaviour worth knowing
 

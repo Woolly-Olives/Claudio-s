@@ -1,0 +1,177 @@
+/* =============================================================
+   Connect — advice from students.
+   Built by assets/js/advice.js. Scoped to #advice.
+
+   The progress bar is the clock: assets/js/advice.js waits for this
+   animation to end rather than keeping a timer of its own, so
+   animation-play-state below is what pausing actually is.
+   ============================================================= */
+
+#advice { display: block; }
+
+#advice .ad__h {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+#advice .ad__from {
+  margin: 0 0 1.5rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--fg-soft);
+}
+
+#advice .ad {
+  margin: 0;
+  border: 1px solid hsl(var(--hue) 45% 55% / 0.35);
+  border-radius: 18px;
+  background: hsl(var(--hue) 45% 50% / 0.09);
+  overflow: hidden;
+}
+
+#advice .ad__card {
+  position: relative;
+  margin: 0;
+  /* room for the longest piece, so the card does not jump about as the
+     advice changes; below that it just sits taller than it needs to */
+  min-height: 13.5rem;
+  padding: 2rem 2rem 1.5rem 3.6rem;
+}
+
+/* the opening quote mark, as furniture rather than text */
+#advice .ad__card::before {
+  content: "\201C";
+  position: absolute;
+  top: 1.1rem;
+  left: 1.5rem;
+  font-size: 3.4rem;
+  line-height: 1;
+  font-weight: 700;
+  color: hsl(var(--hue) 60% 55% / 0.45);
+}
+
+#advice .ad__text {
+  margin: 0;
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
+  line-height: 1.6;
+  color: var(--fg);
+  text-wrap: pretty;
+}
+
+/* each new piece arrives rather than swapping */
+#advice .ad.is-fresh .ad__text { animation: advice-in 420ms var(--ease) both; }
+
+@keyframes advice-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- the bar, which is also the clock ---------- */
+
+#advice .ad__bar {
+  height: 2px;
+  background: hsl(var(--hue) 40% 50% / 0.2);
+}
+
+#advice .ad__fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: hsl(var(--hue) 65% 55%);
+}
+
+#advice .ad__fill.is-running {
+  animation: advice-tick var(--dwell, 30s) linear forwards;
+}
+
+@keyframes advice-tick { from { width: 0; } to { width: 100%; } }
+
+/* paused outright, or held while someone is plainly still reading */
+#advice .ad.is-paused .ad__fill,
+#advice .ad:hover .ad__fill { animation-play-state: paused; }
+
+/*
+ * Held for a keyboard user inside the card — but :focus-within would
+ * also catch the focus a mouse click leaves on a button, which would
+ * hold the clock for good after anyone pressed "Another one".
+ * :focus-visible is the distinction: keyboard yes, mouse no.
+ */
+#advice .ad:has(:focus-visible) .ad__fill { animation-play-state: paused; }
+
+/* ---------- the controls ---------- */
+
+#advice .ad__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  background: hsl(var(--hue) 40% 50% / 0.07);
+}
+
+#advice .ad__count {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+
+#advice .ad__btns { display: flex; align-items: center; gap: 0.45rem; }
+
+#advice .ad__b {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid hsl(var(--hue) 50% 55% / 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 180ms var(--ease), border-color 180ms var(--ease);
+}
+
+#advice .ad__b:hover {
+  background: hsl(var(--hue) 55% 50% / 0.22);
+  border-color: hsl(var(--hue) 60% 60% / 0.6);
+}
+
+#advice .ad__b svg {
+  width: 1em;
+  height: 1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#advice .ad__b[data-go="-1"] { padding: 0.45rem 0.6rem; }
+
+#advice .ad__b--hold { min-width: 4.6rem; justify-content: center; }
+
+#advice .ad__b--next {
+  background: hsl(var(--hue) 50% 50% / 0.18);
+  border-color: hsl(var(--hue) 55% 58% / 0.5);
+}
+
+@media (max-width: 560px) {
+  #advice .ad__card { min-height: 0; padding: 1.5rem 1.25rem 1.25rem 2.9rem; }
+  #advice .ad__card::before { top: 0.8rem; left: 1rem; font-size: 2.6rem; }
+  #advice .ad__foot { justify-content: center; }
+}
+
+/* the bar still times things; it just stops sliding, and the advice
+   stops arriving from anywhere */
+@media (prefers-reduced-motion: reduce) {
+  #advice .ad.is-fresh .ad__text { animation: none; }
+  #advice .ad__fill.is-running { animation-timing-function: steps(1, end); }
+}

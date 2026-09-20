@@ -35,7 +35,9 @@
   var R_OUTER  = 48;
   var R_INNER  = 19.5;
   var R_LABEL  = 34.2;
-  var GAP_DEG  = 1.1;   // hairline gap between slices, split either side
+  var GAP_DEG  = 0;     // slices meet: a gap held at a constant ANGLE grows
+                        // with the radius, so it is invisible at the hub and
+                        // a wedge at the rim. The strokes do the dividing.
   var PUSH     = 1.7;   // how far a slice nudges outward on hover
   var START    = -90;   // first slice is centred at 12 o'clock
   var NS       = "http://www.w3.org/2000/svg";
@@ -270,6 +272,11 @@
     openId = null;
     document.body.classList.remove("is-page-open");
     if (stage) { stage.removeAttribute("inert"); }
+
+    /* the counterpart of the event openPage fires: a section's own
+       script can stop whatever it started once nobody is looking */
+    document.dispatchEvent(new CustomEvent("biosoc:page", { detail: { id: null } }));
+
     if (wasOpen && slices[wasOpen]) { slices[wasOpen].link.focus({ preventScroll: true }); }
   }
 
