@@ -340,8 +340,8 @@ it.
 
 ## Advice from students (Connect)
 
-One piece of advice at a time, in a random order, moving on by itself every 30
-seconds. There is a back and a forward, and a Pause.
+One piece of advice at a time, in a random order, moving on by itself every 40
+seconds. Back and forward step through it by hand.
 
 ### Adding to it
 
@@ -362,24 +362,26 @@ odd slip. Correcting it here would put words in their mouths, and would be
 undone the next time the generator runs. If something needs changing, change the
 text file.
 
-### How the timing works
+### The timing, and the thing to keep an eye on
 
-The clock is the progress bar's own CSS animation, not a timer in script: the
-bar finishing is what moves things on. That means pausing is one CSS property,
-holding while someone is reading costs no script, and the bar and the wait
-cannot drift apart, because they are the same thing. Nothing runs until Connect
-is open and it stops when it closes, through the `biosoc:page` event.
+`DWELL` at the top of `assets/js/advice.js` is the only number: 40 seconds. The
+wait is a plain timer, started fresh whenever the advice changes for any reason,
+and it only runs while Connect is open — `assets/js/app.js` says when, through
+the `biosoc:page` event.
 
-It holds while the pointer is over the card, and while a keyboard user has
-focus inside it — `:focus-visible`, deliberately, not `:focus-within`, which
-would also catch the focus a mouse click leaves behind and hold the clock for
-good.
+Nothing pauses it: not hovering, and there is no pause control. That is what was
+asked for, and it is worth knowing what it costs. The longest piece is 113 words,
+which is around 35 seconds of reading at an average pace, so a slower reader will
+lose it mid-sentence with no way to stop the clock — and auto-updating text with
+no means of pausing is the one thing WCAG asks you not to do (2.2.2). Forward
+then back returns to a piece that got away. If it ever reads as too quick,
+raising `DWELL` is a one-line change.
 
-**One thing worth knowing about 30 seconds.** The longest piece is 113 words,
-which takes most of a minute to read, so a slow reader will not finish it before
-it moves. The bar makes the time visible, the card holds on hover and Pause
-stops it outright — but if it still feels rushed, `DWELL` at the top of
-`assets/js/advice.js` is the only number to change.
+### The card's height
+
+`min-height` on `.ad__card` is set so the longest piece fits, which is why a
+short one leaves space below it. That is deliberate: without it the card would
+resize under the reader every 40 seconds, and the buttons would move as it did.
 
 ## The Students' Union (Join BioSoc)
 
