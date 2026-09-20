@@ -159,6 +159,15 @@ Content lives in **`assets/data/links.js`**, not in `index.html`:
 - `more` holds nested links — the Students' Union's three — drawn as small pills
   inside its section.
 - `note` is the sentence shown above the curve when you point at a section.
+- `logo` (optional) is the path to an image — `"assets/img/logos/blackboard.svg"`
+  — shown in place of the numbered circle. Leave it out and the number shows,
+  same as always; if the path 404s the number reappears automatically, so a
+  typo never leaves a blank badge. None are filled in as shipped — every one
+  of these services' domains was unreachable from the environment that built
+  this, `le.ac.uk` included, so nothing could be fetched and checked, and
+  nothing was hand-drawn from memory instead (a wrong reconstruction of a
+  company's mark is worse than the plain number). Add real ones from a normal
+  network.
 
 **Below 821px wide or 621px tall, and with JavaScript off, the arc is hidden, the
 plain list in `index.html` takes over, and the page opens with the same bubble as
@@ -380,18 +389,33 @@ seconds. Back and forward step through it by hand.
 re-run:
 
 ```sh
-python3 tools/advice-to-js.py Advice_from_students.txt
+python3 tools/advice-to-js.py Advice_from_students_02.txt
 ```
 
-One entry per paragraph, numbered, advice in double quotes. The number is only
-so an entry can be found again in the source — the page never shows it, and the
-order is random anyway. The generator says how many it read and flags any block
-it could not parse.
+One entry per paragraph: an initial, then the advice in double quotes —
+
+```
+E "Pay attention the most in this semester..."
+```
+
+The initial is shown on the page, right after the closing quotation mark:
+**"— E, Year 3"**. `YEAR` at the top of `tools/advice-to-js.py` is what
+supplies "Year 3" — it applies to every entry in the file, since the source
+only carries an initial, not a year per line; change it there if a future
+cohort's advice needs a different one. The generator says how many entries it
+read and flags any block it could not parse.
 
 **The wording is the students' own and is transcribed as given**, including the
 odd slip. Correcting it here would put words in their mouths, and would be
 undone the next time the generator runs. If something needs changing, change the
 text file.
+
+**The line above the card is fixed, exact text**, not something to
+paraphrase: *"Real students in our course were asked to give advice to first
+year students: 'Is there any advice you would want to pass onto current first
+year students, or advice you would give yourself ago? How does Year 2 compare
+to Year 1?'"* — reproduced character for character in `assets/js/advice.js`,
+including the "give yourself ago" wording.
 
 ### The timing, and the thing to keep an eye on
 
@@ -476,7 +500,9 @@ Three clicks do everything, and nothing needs more:
 States are shown by fill *and* shape, not colour alone: **core** is solid,
 **chosen** has a heavy border and a tick, **optional** is a dashed outline, and
 **not available** is hatched and struck through. Each column counts its credits
-against the 60-credit cap and refuses anything that would breach it.
+against the 60-credit cap and refuses anything that would breach it, and shows
+the running total as a thin fill bar under the column heading, not just as the
+`used/60` figure.
 
 ### The degree buttons
 
@@ -485,9 +511,39 @@ listed top to bottom. It currently pairs each subject with its Medical
 counterpart, with Biological Sciences alone in the first column, spanning both
 rows. A degree missing from the layout is appended rather than dropped.
 
-Nothing above the board changes height between degrees, so the boxes stay
-exactly where they are when you switch. Keep it that way: anything that appears
-for one degree and not another belongs in a module's details panel, not here.
+### Core to the top, unavailable out of sight
+
+**Switching degree moves boxes now.** Each column is two lists: core and
+chosen modules at the top, inside a rounded frame; everything else — optional,
+clashing, and (only with the switch below turned on) not-offered-at-all —
+underneath. Take an optional module and it slides up into the top group;
+switch degree and the whole board can reshuffle, since what counts as core,
+chosen or unavailable is worked out fresh each time. This is a deliberate
+reversal of how the board first worked, where nothing ever moved between
+degrees — see `docs/HANDOVER.md` if the history matters to you.
+
+A module the current degree simply does not offer is hidden outright, not
+just dimmed — the **"Show modules this degree does not offer"** switch above
+the board brings them back, drawn exactly as they always were (hatched,
+struck through).
+
+Once a whole year — both semesters together — reaches 120 credits, its top
+group on each side gets a soft gold outline. Year 1 is 120 credits of core on
+every degree, so it starts that way; Year 2 and Year 3 earn it as you pick.
+
+The move itself is animated as a slide, not a jump or a re-fade — a box
+between board rebuilds; if it just appeared (newly available, or revealed by
+the switch above) it rises into place instead, since there is nowhere for it
+to slide from. Anyone with reduced motion set skips both.
+
+### Opening the page
+
+The first time you open this section — from the wheel or a direct link —
+the columns arrive one at a time, Year 1 Semester 1 first: a giant arrow and a
+"Year N / Semester N" label cover each column in turn, on a translucent
+backdrop, then peel away to let that column's modules float up into place
+before the next one starts. It plays once per opening, not on every click
+inside the page, and is skipped entirely under reduced motion.
 
 ### Year-long modules
 
@@ -616,13 +672,22 @@ reveal origin is recalculated from its own angle, so nothing else needs changing
 
 Each entry also carries a **`light`**, and it is not a free choice. A green at
 the same lightness as a blue is far brighter, so slices picked by eye come out
-uneven and the labels stop reading on some of them. These lightnesses were
-solved for: at 92% saturation every slice lands within a hair of the same
-luminance (0.418 to 0.421), bright enough to be cheerful, with the dark label
-ink at 8:1 on all seven. **Change a hue and its lightness has to be re-solved,
-not guessed**, or a label will quietly stop being readable. The ink is
-`--slice-ink`; the labels are deliberately dark, because nothing white reads on
-colours this light.
+uneven. These lightnesses were solved for: at 92% saturation every slice lands
+within a hair of the same luminance (0.418 to 0.421), bright and cheerful, and
+even across all seven. **Change a hue and its lightness has to be re-solved,
+not guessed**, or the wheel goes uneven again.
+
+The label colour on top is **white with a dark text-shadow**, not the plain
+dark ink (`--slice-ink`, still defined, 8:1 on every slice) it used to be —
+changed on request for white specifically. White measures 2.2:1 against every
+one of these fills, under WCAG AA for text this size; the shadow (four
+close, dark, offset copies plus a soft blur, in `styles.css`) is a practical
+stand-in for readability, not a fix for the contrast number. If that trade
+is ever reconsidered, `--slice-ink` is the one-line way back.
+
+The seam between slices is also lighter-touch than it was: the stroke sits
+close to its own slice's lightness (-4% at rest, -9% on hover) rather than
+cutting hard away from it, on request for something "less contrasting."
 
 `GAP_DEG` is 0, so the slices meet and their strokes do the dividing. It is worth
 leaving there: a gap held at a constant *angle* grows with the radius, so any

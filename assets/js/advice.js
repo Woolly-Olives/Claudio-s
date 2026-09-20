@@ -38,10 +38,13 @@
   }
 
   root.innerHTML =
-    '<h2 class="ad__h">Advice from current students:</h2>' +
+    '<h2 class="ad__h">Real students in our course were asked to give advice to first year ' +
+      'students: "Is there any advice you would want to pass onto current first year students, ' +
+      'or advice you would give yourself ago? How does Year 2 compare to Year 1?"</h2>' +
     '<figure class="ad">' +
       '<blockquote class="ad__card">' +
         '<p class="ad__text"></p>' +
+        '<cite class="ad__by"></cite>' +
       '</blockquote>' +
       '<figcaption class="ad__foot">' +
         '<button class="ad__b" type="button" data-go="-1" aria-label="Previous piece of advice">' +
@@ -56,6 +59,11 @@
   var fig  = root.querySelector(".ad");
   var card = root.querySelector(".ad__card");
   var text = root.querySelector(".ad__text");
+  var by   = root.querySelector(".ad__by");
+
+  function byline(item) {
+    return "— " + item.by + ", " + item.year;
+  }
 
   /*
    * Hold the card at the height of its tallest piece, so it does not
@@ -66,14 +74,17 @@
    */
   var fitting = null;
   function fit() {
-    var keep = text.textContent;
+    var keepText = text.textContent;
+    var keepBy = by.textContent;
     var tallest = 0;
     card.style.minHeight = "0px";
     items.forEach(function (item) {
       text.textContent = item.text;
+      by.textContent = byline(item);
       if (card.offsetHeight > tallest) { tallest = card.offsetHeight; }
     });
-    text.textContent = keep;
+    text.textContent = keepText;
+    by.textContent = keepBy;
     card.style.minHeight = tallest + "px";
   }
 
@@ -97,8 +108,10 @@
    * so the attribute goes on for a manual change and straight back off.
    */
   function show(i, spoken) {
+    var item = items[order[i]];
     if (spoken) { text.setAttribute("aria-live", "polite"); }
-    text.textContent = items[order[i]].text;
+    text.textContent = item.text;
+    by.textContent = byline(item);
     fig.classList.remove("is-fresh");
     void fig.offsetWidth;
     fig.classList.add("is-fresh");

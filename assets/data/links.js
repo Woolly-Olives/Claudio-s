@@ -13,6 +13,22 @@
    Change a `rank` to move a link along the arc; nothing else needs
    touching.
 
+   LOGOS: give a link a `logo` (a path to an image file, e.g.
+   "assets/img/logos/blackboard.svg") and it replaces the numbered
+   circle with that image. Leave `logo` out and the number shows, same
+   as always — nothing breaks either way. If an image fails to load
+   (missing file, bad path) the number reappears automatically.
+
+   None are filled in below. This environment's network policy blocks
+   every one of these services' own domains, including le.ac.uk itself,
+   so no logo here could be fetched and checked against the real thing.
+   Hand-drawing a company's trademark from memory, unverified, risks
+   getting it visibly wrong — worse than the plain number it would
+   replace — so none were guessed either. Add real ones (downloaded
+   from the service's own site, or exported from the committee's own
+   files) as `assets/img/logos/<name>.svg` or `.png` and point `logo`
+   at them; do this from a normal network, not this one.
+
    Below the curve sits the hub — remote.le.ac.uk — which every other
    link fans out of.
    ============================================================= */

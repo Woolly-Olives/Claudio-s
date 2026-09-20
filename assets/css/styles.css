@@ -136,9 +136,10 @@ body.is-page-open .stage {
   /* solid, and the same weight of colour all the way round the wheel —
      see the note on `light` in assets/js/app.js */
   fill: hsl(var(--hue) var(--slice-sat) var(--sl));
-  /* the edge is a shade DEEPER than the fill now: on colours this light
-     a lighter stroke disappears into them */
-  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) - 13%));
+  /* the outline reads as a seam between slices, not a border around
+     them, so it stays close to the fill's own lightness rather than
+     cutting hard away from it */
+  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) - 4%));
   stroke-width: 0.5;
   stroke-linejoin: round;
   transition: fill 260ms var(--ease), stroke 260ms var(--ease), transform 420ms var(--ease);
@@ -149,7 +150,7 @@ body.is-page-open .stage {
 .slice:focus-visible .slice__path,
 .slice.is-active .slice__path {
   fill: hsl(var(--hue) var(--slice-sat) calc(var(--sl) + 6%));
-  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) - 26%));
+  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) - 9%));
   transform: translate(var(--push-x, 0px), var(--push-y, 0px));
 }
 
@@ -180,9 +181,26 @@ body.is-page-open .stage {
   font-weight: 600;
   line-height: 1.22;
   letter-spacing: 0.01em;
-  /* dark ink on every slice: the lightnesses in app.js are chosen so it
-     clears 8:1 on all of them, in either theme */
-  color: var(--slice-ink);
+  /*
+   * White, as asked — but white on these fills measures 2.2:1
+   * against every one of them (checked: essentially identical across
+   * all seven, since they share one luminance by construction). That
+   * is well under WCAG's 4.5:1 for text this size, and white alone
+   * would be genuinely hard to read on the lighter slices. The dark
+   * multi-directional text-shadow below is a stroke standing in for
+   * contrast the colour itself no longer provides — a real trade,
+   * not a free one, made because the instruction was for white text
+   * specifically. `--slice-ink` (the colour this replaced) is still
+   * defined in :root and clears 8:1 on every slice, if this ever
+   * needs to be reverted for accessibility reasons.
+   */
+  color: #fff;
+  text-shadow:
+    -1px -1px 0 hsl(var(--hue) 60% 12% / 0.55),
+     1px -1px 0 hsl(var(--hue) 60% 12% / 0.55),
+    -1px  1px 0 hsl(var(--hue) 60% 12% / 0.55),
+     1px  1px 0 hsl(var(--hue) 60% 12% / 0.55),
+     0 2px 7px hsl(var(--hue) 60% 8% / 0.4);
   text-wrap: balance;
   transition: transform 420ms var(--ease);
 }

@@ -5,7 +5,7 @@ of it. It records what was asked for, what was decided and why, what is known to
 be true, what is only believed, and what is still owed. `CLAUDE.md` at the root
 is the short version that loads automatically; this is the long one.
 
-Last updated at commit `447a630`.
+Last updated at commit `523f122`.
 
 ---
 
@@ -59,27 +59,46 @@ These came from the user or the task setup and hold unless they say otherwise.
 ## 3. The environment, and what it cannot reach
 
 Work happens in a managed remote container. Outbound HTTPS goes through an
-egress proxy, and **several hosts this project depends on are blocked by
-policy**, not by those sites:
+egress proxy.
+
+**Revised finding (2026-09-21), broader than what this section used to say:**
+the block is not a short named list. Trying to fetch favicons for the
+Essential Links logo feature, `curl` to `blackboard.le.ac.uk`,
+`mystudentrecord.le.ac.uk`, `uniofleicester.sharepoint.com`,
+`connect2.le.ac.uk`, `myuol.le.ac.uk`, `opentimetable.le.ac.uk`,
+`remote.le.ac.uk`, and even **`le.ac.uk` itself** all came back `connect_rejected`
+at the proxy (`$HTTPS_PROXY/__agentproxy/status` showed each as a 403 policy
+denial, not a DNS or timeout failure). None of these were on the original
+blocked list below — the working assumption should now be **"blocked unless
+shown otherwise,"** not "blocked if it's on this list":
 
 | Host | Status |
 | --- | --- |
-| `instagram.com`, `graph.instagram.com` | **blocked** (403 at the proxy) |
-| `leicesterunion.com` | **blocked** |
-| `outlook.live.com`, `outlook.office.com`, `outlook.office365.com` | **blocked** |
+| `instagram.com`, `graph.instagram.com` | blocked (403 at the proxy) |
+| `leicesterunion.com` | blocked |
+| `outlook.live.com`, `outlook.office.com`, `outlook.office365.com` | blocked |
+| any `le.ac.uk` subdomain, and `le.ac.uk` itself | **blocked** (found 2026-09-21) |
 | `github.com` | works (all pushes go through it) |
 | npm, PyPI | bypass the proxy entirely |
 | `WebSearch` | **works** — use it |
 | `WebFetch` | same block list as curl |
 
 Consequences to remember rather than rediscover:
-- The Instagram fetcher and anything touching the Union or Outlook **cannot be
-  tested here**. Say so when shipping them.
+- The Instagram fetcher and anything touching the Union, Outlook, or **any
+  University of Leicester system** **cannot be tested here**. Say so when
+  shipping them.
+- **Do not hand-reconstruct a trademark or brand mark from memory** to work
+  around this (a company logo, an icon) — an unverified guess at someone else's
+  mark risks being visibly wrong, which is worse than leaving the honest
+  fallback in place. Ship the infrastructure to add the real asset later
+  instead; see Essential Links in §6.
 - `WebSearch` works even when fetching does not. Use it to ground factual claims
   — but treat what it returns as unverified (§9).
 - Confirm a block before claiming one: `curl -sS -o /dev/null -w "%{http_code}\n"
   --max-time 12 https://host/`, and `$HTTPS_PROXY/__agentproxy/status` logs recent
-  refusals.
+  refusals. A `000`/connection-failure result from curl is this block, not a
+  dead site — do not report a real site as down without saying it was only
+  checked from here.
 
 **Tooling**
 - Playwright: `/opt/node22/lib/node_modules/playwright/index.mjs` (global, not a
@@ -104,7 +123,10 @@ It currently covers: seven slices; all slices within 0.01 luminance of each
 other; one label colour; all seven sections opening scrolled to the top; 30
 assessment rows; 13 fallback links; 9 arc sections; 8 bento tiles; 27 pieces of
 advice; the veil's wording; the covered tiles being unfocusable; 11 degrees with
-no box moving between them; and an empty console.
+unavailable modules hidden and only core/chosen in the top tier on every one of
+them, no box left mid-animation once settled, the show-all switch actually
+showing and hiding them, only Year 1 carrying the 120-credit outline by
+default; and an empty console.
 
 Beyond that, screenshot at 1400×950 dark, the same light, and 390×844 for the
 phone. Two habits that have repeatedly paid off:
@@ -162,6 +184,18 @@ the `.links-fallback` list in `index.html` hold the same links and must be kept
 in step.** Below 821px wide or 621px tall the arc is hidden, the list shows, and
 the page opens with the ordinary bubble.
 
+**Logo infrastructure exists; no logos are filled in.** A link can carry
+`logo: "assets/img/logos/<name>.svg"` in `assets/data/links.js` and `arc.js`
+draws it in place of the numbered circle, falling back to the number
+automatically if the image 404s (`onerror` adds `.is-broken`, tested with both
+a working and a broken path). **Every one of these services' domains is
+blocked from this container** — see §3, and note the finding there that the
+block turned out to be far broader than previously documented, covering even
+`le.ac.uk` itself — so no logo could be fetched and checked against the real
+thing, and none was hand-drawn from memory: a wrong reconstruction of a
+company's mark is worse than the plain number it would replace. Add real ones
+from a normal network.
+
 ### Study Resources
 A 30-row assessment table transcribed from the **2024/25** schedule the user
 screenshotted. It carries a visible caution to check every date against
@@ -174,7 +208,6 @@ pairs**, six subject streams (physiology, neuroscience, biochemistry, genetics,
 microbiology, zoology, in that precedence order). Transcribed from four School
 handbooks for 2026-27 (Year 2 and Year 3, Biological and Medical Sciences).
 
-- Boxes must not move when you switch degree. The regression checks this.
 - Colour means subject stream only; the values were sampled pixel-wise from the
   School's own key, not estimated.
 - `meta.uncoloured` holds BS2200, BS2000, both halves of the project, BS2004 and
@@ -182,6 +215,56 @@ handbooks for 2026-27 (Year 2 and Year 3, Biological and Medical Sciences).
 - `docs/handbook-issues.md` (206 lines) records what the transcription turned
   up: every degree is completable, but 39 listed options can never be taken.
   **It has not been sent to the School.**
+
+**"Boxes must not move when you switch degree" — the project's own original
+rule, stated explicitly early on and guarded by a regression test — was
+reversed on 2026-09-21, at explicit instruction, not by oversight.** Boxes now
+move on purpose:
+
+- **Two tiers per column.** `.col__top` holds core and chosen modules; `.col__list`
+  holds everything else (optional, blocked, and — only with "show all" on —
+  unavailable). Picking an optional module moves it from the second tier to the
+  first; switching degree can move anything, since what counts as core, chosen,
+  optional or unavailable is recomputed from scratch.
+- **Strictly unavailable modules are hidden by default**, not just styled
+  dim. A checkbox switch (`state.showAll`, persisted in the URL as `?all=1`,
+  the label reading "Show modules this degree does not offer") brings them
+  back, styled exactly as the old `.box--unavailable` convention already drew
+  them.
+- **The move is animated with FLIP** (First-Last-Invert-Play), in
+  `assets/js/modulemap.js`: `rerender()` measures every box's position before
+  `render()` throws the DOM away and rebuilds it, then `playFlip()` starts each
+  surviving box's new element back at its old position (a transform, no
+  transition) and releases it next frame. `render()` itself never changed —
+  it still rebuilds everything from scratch on every click, same as always;
+  the animation is a layer on top that fakes continuity across that rebuild.
+  A box with no "before" position (newly available, or just revealed by the
+  toggle) rises into place instead of sliding from somewhere specific
+  (`.box--enter`).
+- **A golden outline** (`.col__top--done`) wraps a semester's top tier once
+  that YEAR — both semesters together — reaches 120 credits. Year 1 is always
+  120 credits of pure core, on every degree, so its outline is on from the
+  first render; Year 2 and Year 3 have to be earned.
+- **A one-time entrance animation** plays whenever the section opens (the
+  `biosoc:page` event, not on every click inside it): a veil — giant arrow,
+  "Year N / Semester N" label, translucent background — covers each column in
+  turn, Year 1 Semester 1 first, and peels away to reveal that column's
+  modules floating up into place. `runIntro()` in `modulemap.js`. Bailed out
+  entirely under `prefers-reduced-motion`, same as `playFlip()`.
+
+**A real bug worth knowing if this is ever touched again:** the first version
+of the intro removed a column's `is-revealed` class as soon as that column's
+own reveal finished, while the board-level `.mm__board--intro` (which holds
+every box at `opacity:0` by default) stayed on until the *last* column
+finished. The result was each earlier column flashing visible then snapping
+back to invisible until the whole sequence ended, then all of them fading in
+together at once — the opposite of a staggered reveal. Fix: `is-revealed`, once
+added to a column, is never removed until the entire sequence ends (all
+columns, at once, in the same tick `.mm__board--intro` also comes off) or a
+fresh `runIntro()` call explicitly resets it first. If a similar "cover
+something with a class, uncover it individually" pattern is added elsewhere,
+check for exactly this shape of bug: a per-item class that stops applying
+before the per-group default it was overriding has also gone.
 
 ### Opportunities
 Eight placeholder tiles behind a blurred veil reading **Coming soon!**. The grid
@@ -206,6 +289,22 @@ before any repeats, moving on every **40 seconds** (`DWELL` in
 - The card's height is measured from the tallest piece at the current width and
   re-measured on resize. A fixed height in CSS cannot work: how tall the longest
   piece runs depends on how wide the column is.
+- **The heading above the card is fixed, exact text**, given by the user
+  verbatim (2026-09-21) and reproduced character-for-character, including the
+  "give yourself ago" phrasing that reads like a slip for "a year ago" — not
+  corrected, on the same "the wording is not ours to fix" principle as the
+  advice itself. If this is ever revisited, that is a question for the user,
+  not a silent tidy-up.
+- **Each quote now carries who said it**: `assets/data/advice.js` gained `by`
+  (an initial) and `year` (currently `"Year 3"` for every entry, a constant in
+  `tools/advice-to-js.py`, not read per-line from the source file — the
+  update file only carries initials). Shown as `— <initial>, <year>` right
+  after the closing quotation mark, via a `<cite class="ad__by">` sibling of
+  `.ad__text`, not CSS content on the quote mark itself (that mark is
+  `::after` on `.ad__text`, already spoken for). The generator now parses
+  `assets/data/Advice_from_students_02.txt` — an initial, then the quote — in
+  place of the original numbered format. Re-run it, don't hand-edit
+  `advice.js`, exactly as before.
 
 ### Events
 Instagram first, then the calendar.
@@ -232,11 +331,20 @@ ships empty rather than guessing at a membership price.
 Each of these cost real debugging. The reason matters more than the rule.
 
 **The wheel's lightnesses are solved, not chosen.** A green at the same
-lightness as a blue is far brighter, so slices picked by eye come out uneven and
-the labels stop reading on some of them. At 92% saturation each hue's lightness
-is set so every slice lands on the same luminance (0.418–0.421), which puts the
-dark ink at 8:1 on all seven. **Change a hue and its lightness must be
-re-solved numerically.** Current pairs:
+lightness as a blue is far brighter, so slices picked by eye come out uneven.
+At 92% saturation each hue's lightness is set so every slice lands on the same
+luminance (0.418–0.421) — that part is unchanged. **The label colour on top of
+it is not derived the same way any more.** It was dark ink at 8:1 (real
+contrast, on every slice); it is now **white with a dark text-shadow**, at the
+user's explicit request for white text (2026-09-21). Measured: white alone is
+2.2:1 against every one of these fills — under WCAG AA for text this size on
+all seven. The text-shadow (four 1px-offset dark copies plus a soft blur, in
+`assets/css/styles.css`) is a practical stand-in for the contrast the colour no
+longer provides, not a fix for it. `--slice-ink` is still defined in `:root`
+and clears 8:1 on every slice, if this is ever reconsidered on accessibility
+grounds. **Change a hue and its lightness must be re-solved numerically**
+regardless of which label colour is in use, or the luminance match breaks and
+the shadow trick reads unevenly across slices. Current pairs:
 
 | Section | Hue | Lightness | Result |
 | --- | --- | --- | --- |
@@ -247,6 +355,11 @@ re-solved numerically.** Current pairs:
 | Connect | 254 | 80.5% | `#b5a0fb` |
 | Events | 288 | 76.3% | `#e48bfa` |
 | Join BioSoc | 330 | 75.8% | `#fa89c1` |
+
+The outline between slices was also softened on the same request ("less
+contrasting"): the stroke's lightness offset from its own fill dropped from
+-13%/-26% (base/hover) to -4%/-9%. It now reads as a seam, not a border — that
+is deliberate, not a value picked and forgotten.
 
 **A container id must never match a section id.** The section ids double as URL
 hashes, so a `<div id="events">` made the browser scroll to it every time

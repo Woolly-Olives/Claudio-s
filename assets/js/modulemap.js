@@ -33,7 +33,7 @@
   var themeLabel = {};
   DATA.themes.forEach(function (t) { themeLabel[t.id] = t.label; });
 
-  var state = { degree: DATA.degrees[0].id, picks: {}, open: null };
+  var state = { degree: DATA.degrees[0].id, picks: {}, open: null, showAll: false };
   COLUMNS.forEach(function (c) { state.picks[c.id] = []; });
 
   /* ---------- model ---------- */
@@ -222,6 +222,7 @@
     COLUMNS.forEach(function (c) {
       if (state.picks[c.id].length) { params.set(c.id, state.picks[c.id].join(".")); any = true; }
     });
+    if (state.showAll) { params.set("all", "1"); any = true; }
     var qs = (state.degree === DATA.degrees[0].id && !any) ? "" : "?" + params.toString();
     history.replaceState(null, "", location.pathname + qs + location.hash);
   }
@@ -230,6 +231,7 @@
     var params = new URLSearchParams(location.search);
     var d = params.get("degree");
     if (d && DATA.degrees.some(function (x) { return x.id === d; })) { state.degree = d; }
+    state.showAll = params.get("all") === "1";
     COLUMNS.forEach(function (c) {
       var raw = params.get(c.id);
       if (!raw) { return; }
@@ -398,6 +400,23 @@
     '</li>';
   }
 
+  /*
+   * core/selected first (0/1), everything else after, in the order the
+   * board shows it: available options, then whatever your own picks have
+   * blocked, then — only with "show all" on — what the degree simply
+   * does not offer. Taking an optional module moves it from tier 2 to
+   * tier 1, which is the whole of "slide it up to below the core
+   * modules"; the rest is exactly how far down the column it lands.
+   */
+  function tierOf(st) {
+    return { core: 0, selected: 1, optional: 2, blocked: 3, unavailable: 4 }[st];
+  }
+
+  /** Both semesters of a year together — a full year is 120 credits. */
+  function yearCredits(year) {
+    return creditsIn("y" + year + "s1") + creditsIn("y" + year + "s2");
+  }
+
   function column(col) {
     var used = creditsIn(col.id);
     var status = used === CAP ? "full" : (used > CAP ? "over" : "under");
@@ -409,12 +428,35 @@
              (b.schoolCore ? 1 : 0) - (a.schoolCore ? 1 : 0) ||
              a.code.localeCompare(b.code);
     });
+
+    var rows = mods.map(function (m) { return { m: m, st: statusOf(m) }; });
+    if (!state.showAll) {
+      rows = rows.filter(function (r) { return r.st !== "unavailable"; });
+    }
+    /* Array#sort is stable in every engine this runs on, so within a tier
+       the code-order pass above survives untouched — this only ever moves
+       a row to a different tier, never reorders two rows in the same one. */
+    rows.sort(function (a, b) { return tierOf(a.st) - tierOf(b.st); });
+
+    var split = 0;
+    while (split < rows.length && tierOf(rows[split].st) <= 1) { split++; }
+    var top = rows.slice(0, split), rest = rows.slice(split);
+
+    var done = top.length > 0 && yearCredits(col.year) >= 120;
+    var pct = Math.max(0, Math.min(100, Math.round(used / CAP * 100)));
+
     return '<section class="col" data-col="' + col.id + '">' +
              '<header class="col__head">' +
                '<h3 class="col__name">Year ' + col.year + '<span>Semester ' + col.semester + '</span></h3>' +
                '<p class="col__cr col__cr--' + status + '"><strong>' + used + '</strong>/' + CAP + '</p>' +
              '</header>' +
-             '<ul class="col__list">' + mods.map(box).join("") + '</ul>' +
+             '<div class="col__bar" style="--pct:' + pct + '%">' +
+               '<span class="col__bar__fill col__bar__fill--' + status + '"></span>' +
+             '</div>' +
+             '<ul class="col__top' + (done ? " col__top--done" : "") + '">' +
+               top.map(function (r) { return box(r.m); }).join("") +
+             '</ul>' +
+             '<ul class="col__list">' + rest.map(function (r) { return box(r.m); }).join("") + '</ul>' +
            '</section>';
   }
 
@@ -489,6 +531,11 @@
           return '<span class="skey" style="--sc:' + st.colour + '">' + esc(st.label) + '</span>';
         }).join("") +
         '<span class="skey" style="--sc:' + NEUTRAL.core + '">Core for every degree</span>' +
+        '<label class="mm__toggle">' +
+          '<input type="checkbox" data-show-all' + (state.showAll ? " checked" : "") + '>' +
+          '<span class="mm__toggle__track" aria-hidden="true"><span class="mm__toggle__thumb"></span></span>' +
+          '<span class="mm__toggle__label">Show modules this degree does not offer</span>' +
+        '</label>' +
       '</div>' +
       '<div class="mm__board">' + COLUMNS.map(column).join("") +
         '<svg class="mm__links" aria-hidden="true"></svg>' +
@@ -502,6 +549,78 @@
       if (h) { h.focus({ preventScroll: true }); }
     }
     scheduleLinks();
+  }
+
+  /*
+   * render() always rebuilds the board from scratch, so a module that
+   * moves tier — taken, dropped, or the degree switched under it — is a
+   * brand new element at its new spot, not the old one relocated. FLIP
+   * (First, Last, Invert, Play) fakes the slide anyway: measure every
+   * box before the rebuild, measure the same codes again after, and for
+   * anything that landed somewhere else, start its new element exactly
+   * where the old one was (a transform, no transition) and release it
+   * on the next frame. The eye reads it as one box sliding to its new
+   * row; underneath, one element was swapped for another.
+   */
+  var FLIP_MS = 420;
+
+  function snapshotRects() {
+    var out = {};
+    root.querySelectorAll(".box[data-code]").forEach(function (el) {
+      out[el.dataset.code] = el.getBoundingClientRect();
+    });
+    return out;
+  }
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  function playFlip(before) {
+    /* the CSS reduced-motion rule sets a 1ms transition-duration on
+       .box, but this function sets its own transition inline right
+       below — an inline style always wins over a stylesheet rule, so
+       without this the slide would ignore that preference outright */
+    if (reduceMotion.matches) { scheduleLinks(); return; }
+    var moved = [];
+    root.querySelectorAll(".box[data-code]").forEach(function (el) {
+      var prev = before[el.dataset.code];
+      if (!prev) {
+        /* no "before" position — this module was not on the board at all
+           (hidden as unavailable, or off a different degree entirely), so
+           it rises into place instead of sliding from somewhere specific */
+        el.classList.add("box--enter");
+        moved.push(el);
+        return;
+      }
+      var now = el.getBoundingClientRect();
+      var dx = prev.left - now.left, dy = prev.top - now.top;
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) { return; }
+      el.style.transition = "none";
+      el.style.transform = "translate(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px)";
+      moved.push(el);
+    });
+
+    if (!moved.length) { scheduleLinks(); return; }
+    void root.offsetWidth;   // commit the starting point before animating away from it
+
+    requestAnimationFrame(function () {
+      moved.forEach(function (el) {
+        el.classList.remove("box--enter");
+        el.style.transition = "transform " + FLIP_MS + "ms cubic-bezier(0.22, 1, 0.36, 1), " +
+                               "opacity " + FLIP_MS + "ms ease";
+        el.style.transform = "";
+      });
+      window.setTimeout(function () {
+        moved.forEach(function (el) { el.style.transition = ""; el.style.transform = ""; });
+        scheduleLinks();   // final positions only, not mid-slide
+      }, FLIP_MS + 40);
+    });
+  }
+
+  /** Every click that can reshuffle the board goes through here, not render(). */
+  function rerender() {
+    var before = snapshotRects();
+    render();
+    playFlip(before);
   }
 
   /**
@@ -604,7 +723,7 @@
       state.degree = t.dataset.degree;
       prunePicks();
       writeUrl();
-      render();
+      rerender();
       say(t.textContent + " selected");
       return;
     }
@@ -645,11 +764,20 @@
         say(name + " taken");
       }
       writeUrl();
-      render();
+      rerender();
       return;
     }
     /* a click on the backdrop, outside the card, closes the details */
     if (state.open && event.target.classList.contains("sheet")) { closeSheet(); }
+  });
+
+  root.addEventListener("change", function (event) {
+    var t = event.target;
+    if (!t || !t.matches("[data-show-all]")) { return; }
+    state.showAll = t.checked;
+    writeUrl();
+    rerender();
+    say(state.showAll ? "Showing modules this degree does not offer too" : "Hiding modules this degree does not offer");
   });
 
   function closeSheet() {
@@ -687,6 +815,79 @@
   } else {
     window.addEventListener("resize", scheduleLinks);
   }
+
+  /*
+   * The entrance: a giant arrow and a "Year N / Semester N" label cover
+   * each column in turn, Year 1 Semester 1 first, over a translucent
+   * veil that hides the modules underneath. Every board is already
+   * fully rendered — the plan you left it in, same as always — this
+   * only delays when it becomes visible, column by column, so the
+   * whole board does not just appear at once.
+   *
+   * Runs every time the section is opened (the biosoc:page event, which
+   * app.js fires whether that is the wheel's bubble or a direct link),
+   * not on every click inside it — degree switches and module picks use
+   * rerender()'s FLIP slide instead, and would be a poor place for a
+   * multi-second cover-and-reveal to keep replaying.
+   */
+  var STEP_MS = 260, VEIL_MS = 420;
+
+  function runIntro() {
+    if (reduceMotion.matches) { return; }
+    var board = root.querySelector(".mm__board");
+    var cols = board && Array.prototype.slice.call(board.querySelectorAll(".col"));
+    if (!board || !cols || !cols.length) { return; }
+
+    /*
+     * .is-revealed, once a column has it, is never removed mid-sequence
+     * — only the veil goes. It has to stay for as long as
+     * .mm__board--intro sits on the board (which is until the LAST
+     * column finishes, not this one), because that board-level class is
+     * what holds every box at opacity 0 by default; drop .is-revealed
+     * early and a column that already played its reveal would fall
+     * straight back under that default and vanish again, rather than
+     * staying visible until the others catch up. It is reset to nothing
+     * at the top of every run, so a second opening starts clean rather
+     * than inheriting classes render() has no reason to have removed.
+     */
+    cols.forEach(function (colEl) { colEl.classList.remove("is-revealed"); });
+    board.classList.add("mm__board--intro");
+    cols.forEach(function (colEl, i) {
+      var meta = COLUMNS[i];
+      if (!meta) { return; }
+      var veil = document.createElement("div");
+      veil.className = "mm__veil";
+      veil.innerHTML =
+        '<svg class="mm__veil__arrow" viewBox="0 0 48 48" aria-hidden="true">' +
+          '<path d="M24 6v30M12 23l12 13 12-13" fill="none" stroke="currentColor" ' +
+            'stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '</svg>' +
+        '<span class="mm__veil__label">Year ' + meta.year + '<br>Semester ' + meta.semester + '</span>';
+      colEl.appendChild(veil);
+    });
+
+    cols.forEach(function (colEl, i) {
+      window.setTimeout(function () {
+        var veil = colEl.querySelector(".mm__veil");
+        var boxes = colEl.querySelectorAll(".box");
+        boxes.forEach(function (b, bi) { b.style.transitionDelay = Math.min(bi * 16, 160) + "ms"; });
+        colEl.classList.add("is-revealed");
+        if (veil) { veil.classList.add("is-gone"); }
+        window.setTimeout(function () {
+          boxes.forEach(function (b) { b.style.transitionDelay = ""; });
+          if (veil) { veil.remove(); }
+          if (i === cols.length - 1) {
+            board.classList.remove("mm__board--intro");
+            cols.forEach(function (c) { c.classList.remove("is-revealed"); });
+          }
+        }, VEIL_MS + 200);
+      }, i * STEP_MS);
+    });
+  }
+
+  document.addEventListener("biosoc:page", function (event) {
+    if (event.detail.id === "customise-your-degree") { runIntro(); }
+  });
 
   readUrl();
   if (location.search) { writeUrl(); }   // normalise anything the link got wrong

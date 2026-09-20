@@ -218,9 +218,23 @@
       label.style.width = labW + "px";
       label.style.setProperty("--tilt", (mid + 90) + "deg");
       label.style.setProperty("--k", k.toFixed(3));
+      /*
+       * A logo replaces the numbered circle when the data gives one.
+       * The number is still in the markup underneath, revealed if the
+       * image never loads (wrong path, missing file) — the badge is
+       * never just blank.
+       */
+      var badge = link.logo
+        ? '<span class="seg-label__n seg-label__n--logo">' +
+            '<img src="' + esc(link.logo) + '" alt="" ' +
+              'onerror="this.closest(\'.seg-label__n\').classList.add(\'is-broken\')">' +
+            '<b>' + link.n + '</b>' +
+          '</span>'
+        : '<span class="seg-label__n">' + link.n + '</span>';
+
       label.innerHTML =
         '<span class="seg-label__head" aria-hidden="true">' +
-          '<span class="seg-label__n">' + link.n + '</span>' +
+          badge +
           '<span class="seg-label__name">' + esc(link.name) + '</span>' +
         '</span>' +
         (link.more

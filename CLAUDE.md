@@ -26,12 +26,22 @@ something breaks that it would not have caught. Work on branch
   URL hashes, so a `<div id="events">` makes the browser scroll to it whenever
   `#events` opens. Hence `#calendar`.
 - **The wheel's lightnesses are solved, not chosen.** Each hue's lightness puts
-  every slice on the same luminance (0.418–0.421 at 92% saturation), which is
-  what keeps the dark label ink at 8:1 on all seven. Change a hue and the
-  lightness must be re-solved numerically, or a label quietly stops reading.
+  every slice on the same luminance (0.418–0.421 at 92% saturation) — change a
+  hue and re-solve it numerically, or the slices stop being evenly bright. The
+  label colour on top is white with a dark text-shadow (2.2:1 on its own,
+  under WCAG AA — the shadow is a stand-in, not a fix), not the 8:1 dark ink
+  this used to be; see `docs/HANDOVER.md` §7 before changing either.
 - **`inert` on a descendant does not survive the panel's `inert` being
   removed.** `app.js` re-asserts it on open. Without that the veiled
   Opportunities tiles are tabbable through their veil.
+- **Module map boxes move now, on purpose** — core to the top, unavailable
+  hidden by default, an optional module sliding up once picked. This reverses
+  the project's own earlier "boxes never move" rule; see `docs/HANDOVER.md` §6
+  Customise Your Degree before touching `column()`, `rerender()`, or
+  `runIntro()` in `modulemap.js`. The FLIP animation in `rerender()` and the
+  reduced-motion checks in both `playFlip()` and `runIntro()` are load-bearing
+  — a naive "just call render()" loses the slide, and a naive intro rewrite
+  can reintroduce the flash-then-hide bug documented there.
 - **`biosoc:page` is the contract**: `app.js` fires it on open with `{ id }` and
   on close with `{ id: null }`. Section-scoped work — anything that runs a
   timer or fetches from a third party — waits for it, so nothing happens before

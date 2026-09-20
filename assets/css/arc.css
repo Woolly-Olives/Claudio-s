@@ -169,7 +169,36 @@
     font-size: 0.68rem;
     font-weight: 700;
     color: hsl(var(--hue) 60% var(--label-l));
+    overflow: hidden;
   }
+
+  /* a logo fills the same badge the number sat in, with a plain white
+     disc behind it — a coloured mark on a coloured slice can vanish */
+  #links-arc .seg-label__n--logo {
+    background: #fff;
+    border-color: transparent;
+  }
+
+  #links-arc .seg-label__n--logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.15rem;
+  }
+
+  /* the number is what shows while there is no logo to draw yet, and
+     what reappears if the image never loads */
+  #links-arc .seg-label__n--logo b { display: none; }
+
+  #links-arc .seg-label__n--logo img { display: block; }
+
+  #links-arc .seg-label__n--logo.is-broken {
+    background: none;
+    border-color: hsl(var(--hue) 55% 58% / 0.5);
+  }
+
+  #links-arc .seg-label__n--logo.is-broken img { display: none; }
+  #links-arc .seg-label__n--logo.is-broken b { display: block; color: hsl(var(--hue) 60% var(--label-l)); }
 
   #links-arc .seg-label__name {
     font-size: clamp(0.82rem, 1.05vw, 1rem);

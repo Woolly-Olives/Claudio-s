@@ -57,8 +57,22 @@
 #advice .ad__text::before { content: "\201C"; margin-right: 0.1em; }
 #advice .ad__text::after  { content: "\201D"; margin-left: 0.12em; }
 
+/* who said it — right after the closing quote mark above, not pinned
+   to a corner, so it stays with the words as the card recentres them */
+#advice .ad__by {
+  display: block;
+  margin: 0.65rem 0 0;
+  font-style: normal;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--fg-soft);
+  text-align: center;
+}
+
 /* each new piece arrives rather than swapping */
-#advice .ad.is-fresh .ad__text { animation: advice-in 420ms var(--ease) both; }
+#advice .ad.is-fresh .ad__text,
+#advice .ad.is-fresh .ad__by { animation: advice-in 420ms var(--ease) both; }
 
 @keyframes advice-in {
   from { opacity: 0; transform: translateY(6px); }
@@ -110,5 +124,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #advice .ad.is-fresh .ad__text { animation: none; }
+  #advice .ad.is-fresh .ad__text,
+  #advice .ad.is-fresh .ad__by { animation: none; }
 }
