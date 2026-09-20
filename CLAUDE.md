@@ -52,6 +52,18 @@ Outlook's published calendar refuses to be framed (`X-Frame-Options`), and the
 Students' Union's pages almost certainly do too. A browser cannot fetch the
 Outlook `.ics` directly — no CORS.
 
+**Embedding Instagram or Outlook is off the table by explicit instruction
+(2026-09-21), separate from the technical findings above.** Both were tried as
+switches (`profileEmbed` in `instagram.js`, `mode: "outlook"` in
+`calendar.js`) and then removed completely, not just turned off — see
+`docs/HANDOVER.md` §10 items 4–5. Do not rebuild either without being asked
+again. The Union's `embed: true` in `union.js` is unrelated and stays as it
+is — that one was asked for specifically and this instruction does not touch
+it. Also: nothing from the Gemini-built HTML file the user supplied
+(2026-09-21) is to be implemented — not the profile-embed URL, not the staff
+contact directory, not the £5 membership figure, not anything else in it —
+unless separately and explicitly asked for.
+
 This container's egress proxy blocks `instagram.com`, `leicesterunion.com` and
 every `outlook.*` host, so anything touching them **cannot be tested here** and
 should be shipped saying so. `WebSearch` works even when fetching does not;

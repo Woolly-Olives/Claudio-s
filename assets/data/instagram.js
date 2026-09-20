@@ -45,34 +45,6 @@ window.BIOSOC_INSTAGRAM = {
      default: captions vary wildly in length and pull the grid about. */
   captions: false,
 
-  /*
-   * A whole-profile frame, as an extra block below the card and posts
-   * above — off by default. Same shape of switch as `embed` in
-   * assets/data/union.js: flip it, open Events, and look.
-   *
-   * This is NOT Meta's documented embed. There is no supported way to
-   * frame a whole profile; the only documented mechanism is one post at
-   * a time via the blockquote/embed.js above. This URL —
-   * instagram.com/<handle>/embed/ — surfaced in a Gemini-built version
-   * of this site (2026-09-20) that used it for exactly this purpose.
-   * It is UNTESTED: instagram.com is blocked at this container's egress
-   * proxy, so nothing run here proves it either way. Worth going in
-   * with real skepticism rather than treating "an LLM wrote this URL"
-   * as evidence it works — the same source file also stood in a public
-   * Google holidays calendar for the real Outlook calendar it could not
-   * embed, and shipped a client-side "membership login" whose valid
-   * codes sit in plaintext in the page's own JavaScript. Ordinary
-   * Instagram profile pages refuse to be framed and gate logged-out
-   * viewers behind a login wall; whether the /embed/ suffix is a real,
-   * still-supported exception to that is the open question.
-   *
-   * Turn it on and look. Blank panel, or a "log in to see photos and
-   * videos" wall sitting inside the frame, means no — set it back to
-   * false and keep the card-and-posts design above, which is the part
-   * that is known to work.
-   */
-  profileEmbed: false,
-
   /* Newest first. Empty is fine — the page then simply points at the
      account. Do not invent addresses here: a wrong shortcode is a
      dead card. */

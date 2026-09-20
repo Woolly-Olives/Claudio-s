@@ -211,14 +211,14 @@ are shown and the last slot reads **+N more** rather than quietly dropping them.
 Below 720px the cells are too small for any of that, so events become dots and
 the list underneath does the work.
 
-It is drawn here rather than shown from Outlook, and **not by choice**.
-Microsoft serves published calendars with `X-Frame-Options: SAMEORIGIN`, which
-tells a browser to refuse to draw the page inside another site; their own
-support answers say so repeatedly and their advice is to link to the calendar
-instead. It could not be tested here, so `mode` in `assets/data/calendar.js`
-still offers `"outlook"`: switch to it, open Events, and look. A blank panel
-means Microsoft refused. If it draws, keep it — their calendar beats a copy of
-it, and the grid is then dead code you can delete.
+It is drawn here rather than shown from Outlook. Microsoft serves published
+calendars with `X-Frame-Options: SAMEORIGIN`, which tells a browser to refuse
+to draw the page inside another site; their own support answers say so
+repeatedly and their advice is to link to the calendar instead. A working
+frame was tried and then deliberately dropped (2026-09-21) — embedding either
+Outlook or Instagram is off the table for now, by decision rather than
+because a fix was found — so there is no switch left in the code to flip. See
+`docs/HANDOVER.md` before reopening this.
 
 ### Updating it
 
@@ -363,22 +363,11 @@ the landing page and the other six sections never touch it. `app.js` fires a
 `biosoc:page` event when a section opens, and `assets/js/instagram.js` waits for
 it.
 
-### An unofficial whole-profile frame
-
-`profileEmbed: true` adds a frame for the whole account —
-`instagram.com/<handle>/embed/` — below the card and posts above. It ships
-**off**, and it is a different kind of unverified to the Union or Outlook
-switches: this address is not one Meta documents anywhere, so there is no
-official basis to expect it works at all, only a URL that turned up in a
-Gemini-built version of this site. That file also faked its Outlook calendar
-with a public Google holidays calendar and shipped a "membership login" whose
-valid codes sit in plain text in its own JavaScript — reason for real
-scepticism about anything else in it that could not be checked.
-
-Turn it on, open Events, and look. A blank panel, or a login wall sitting
-inside the frame, means it does not work here — set it back to `false`. The
-card and pinned posts above are unaffected either way and are the part known
-to work.
+A whole-profile frame — `instagram.com/<handle>/embed/`, an address Meta does
+not document anywhere — was tried and deliberately dropped (2026-09-21).
+Embedding either Instagram or Outlook is off the table for now; see
+`docs/HANDOVER.md` before reopening it. The card-and-posts design above is the
+part known to work and is unaffected.
 
 ## Advice from students (Connect)
 

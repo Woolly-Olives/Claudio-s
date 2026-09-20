@@ -242,21 +242,6 @@
       '</div>';
   }
 
-  /** Outlook's own page, for anyone who wants to try their luck. */
-  function outlookFrame() {
-    return '' +
-      '<div class="cal4">' +
-        '<div class="cal4__head"><h2 class="ev-h">Next four weeks</h2></div>' +
-        '<div class="cal4__frame" style="height:' + esc(CAL.frameHeight || "60vh") + '">' +
-          '<iframe title="BioSoc calendar" src="' + esc(CAL.view) + '"' +
-            ' loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' +
-        '</div>' +
-        '<p class="cal-small">Shown from Outlook. If that panel is empty, Microsoft ' +
-          'has refused to let the calendar be drawn inside another site &mdash; set ' +
-          'mode back to "grid" in assets/data/calendar.js.</p>' +
-      '</div>';
-  }
-
   /* ---------- drawing ---------- */
 
   function webcal(href) { return String(href).replace(/^https?:/i, "webcal:"); }
@@ -314,7 +299,7 @@
         ' <a href="' + esc(CAL.view) + '" target="_blank" rel="noopener">' +
         'Open the calendar in Outlook</a>.</p>' +
 
-      (CAL.mode === "outlook" ? outlookFrame() : fourWeeks(now)) +
+      fourWeeks(now) +
 
       (upcoming.length
         ? '<div class="ev-head">' +

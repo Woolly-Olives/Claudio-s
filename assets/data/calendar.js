@@ -24,21 +24,13 @@ window.BIOSOC_CALENDAR = {
   view: "https://outlook.live.com/owa/calendar/00000000-0000-0000-0000-000000000000/f2dbaf2a-a698-4ede-9634-58961996864e/cid-46F7C715CCBCD3DD/index.html",
 
   /*
-   * How the four-week view is drawn.
-   *
-   *   "grid"    — drawn here from the same events as the list below.
-   *   "outlook" — Outlook's own published page, in a frame.
-   *
-   * "outlook" is what you would want, and it very probably does not
-   * work: Microsoft serves published calendars with
-   * X-Frame-Options: SAMEORIGIN, which tells a browser to refuse to
-   * show the page inside another site, and their own support answers
-   * say as much repeatedly. It is left here because it costs nothing
-   * and takes ten seconds to settle: switch to "outlook", open Events,
-   * and look. A blank panel means Microsoft refused. If it draws,
-   * keep it — it is their calendar, which beats a copy of it.
+   * The four-week view below is drawn here, from the same events as the
+   * list underneath it. Framing Outlook's own published page instead
+   * was tried and abandoned (2026-09-21, at the user's request) — not
+   * because it is impossible so much as because embedding either
+   * Outlook or Instagram is off the table for now. See docs/HANDOVER.md
+   * item 4 before reopening this.
    */
-  mode: "grid",
 
   heading: "Put BioSoc in your timetable",
   blurb: "Subscribe once and every BioSoc, School and Union event turns up in " +
@@ -50,8 +42,5 @@ window.BIOSOC_CALENDAR = {
      change made this morning may not reach a phone until this evening.
      Anything last-minute belongs on Instagram as well. */
   smallprint: "Outlook checks for changes every few hours, so anything last " +
-              "minute goes on Instagram too.",
-
-  /* how tall the frame is, when mode is "outlook" */
-  frameHeight: "clamp(420px, 62vh, 760px)"
+              "minute goes on Instagram too."
 };

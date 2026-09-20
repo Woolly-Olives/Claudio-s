@@ -5,7 +5,7 @@ of it. It records what was asked for, what was decided and why, what is known to
 be true, what is only believed, and what is still owed. `CLAUDE.md` at the root
 is the short version that loads automatically; this is the long one.
 
-Last updated at commit `590e94b`.
+Last updated at commit `447a630`.
 
 ---
 
@@ -283,15 +283,23 @@ Do not spend time re-attempting these without new information.
 - **Instagram cannot embed a profile.** The only supported embed is one post at
   a time, via the blockquote and `embed.js` from a post's Embed menu. A live
   feed needs the Graph API and a token; see
-  <https://developers.facebook.com/docs/instagram-platform/>.
+  <https://developers.facebook.com/docs/instagram-platform/>. An unofficial
+  `instagram.com/<handle>/embed/` frame was built, tried and removed again —
+  see §10 item 5.
 - **Outlook's published calendar cannot be framed.** Microsoft serves it with
   `X-Frame-Options: SAMEORIGIN` and their own support answers say to link to it
-  instead. The four-week grid is drawn locally for that reason. `mode: "outlook"`
-  in `assets/data/calendar.js` remains, so the claim can be disproved in ten
-  seconds if it ever changes.
+  instead. The four-week grid is drawn locally for that reason. A `mode:
+  "outlook"` switch existed to try framing it anyway and was removed — see §10
+  item 4.
+- **Embedding Instagram and Outlook is off the table for now, by decision**
+  (2026-09-21), separate from the technical findings above. Both switches were
+  built, then deliberately taken back out rather than left dormant — see §10
+  items 4 and 5 before rebuilding either.
 - **The Union's pages are very likely unframeable too**, for the same reason.
-  `embed: true` in `assets/data/union.js` is the same try-it-and-look switch. It
-  has never been tested, because the host is blocked here.
+  `embed: true` in `assets/data/union.js` is a try-it-and-look switch, **still
+  in place** — the Instagram/Outlook decision above does not apply to it; the
+  user asked for this one specifically and it has never been told to come out.
+  It has never been tested, because the host is blocked here.
 - **A browser cannot fetch the Outlook `.ics` directly** — no CORS headers. That
   is why the fetching happens in a generator or an Action instead.
 
@@ -355,45 +363,60 @@ genuinely open.
    effectively public, so nothing private should go in that calendar.
 3. **Join BioSoc's two `check: true` steps** still need reading against the
    Union's page, and the facts strip still needs a membership price.
-4. **`embed: true` is now set in `union.js`**, at the user's request (2026-09-20).
-   This cannot be verified here — leicesterunion.com is blocked at this
-   container's egress proxy, so a failed load here proves nothing either way.
-   Check on a normal network: a blank box under the action card means the
-   Union refused the frame, and `embed` should go back to `false`. `mode:
-   "outlook"` in `calendar.js` is the equivalent switch for the four-week grid
-   and is still off — see the open question in the latest reply for whether to
-   flip that one too.
-5. **Instagram's fetcher has never run**, and is still blocked here to test.
-   The Gemini specifics arrived (2026-09-21): a different Gemini-built version
-   of this site used `<iframe src="https://www.instagram.com/biosoc.leics/embed/">`
-   — a bare profile URL with `/embed/` appended. This is **not** Meta's
-   documented mechanism (that remains one post at a time via the
-   blockquote/`embed.js` from a post's own Embed menu). Whether the `/embed/`
-   suffix is a real, still-working exception for whole profiles is unverified
-   and could not be tested here — instagram.com is blocked at this container's
-   proxy. Grounds for real skepticism, not just generic caution: the same
-   Gemini file stood in a public Google *UK holidays* calendar
-   (`calendar.google.com/calendar/embed?src=en.uk%23holiday...`) in place of
-   the real Outlook calendar it could not embed, and shipped a client-side
-   "membership login" whose valid reference codes sit in plaintext in the
-   page's own JavaScript — a non-functional security theatre, not real
-   authentication. Ordinary Instagram profile pages both refuse to be framed
-   and gate logged-out viewers behind a login wall; the file gives no evidence
-   the `/embed/` suffix was ever seen rendering in a live browser rather than
-   just generated as plausible-looking code.
+4. **`embed: true` stays set in `union.js`** — this is the Union embed, asked
+   for explicitly (2026-09-20), and the 2026-09-21 decision to abandon
+   Instagram/Outlook embedding (see item 5) **does not apply to it**. Still
+   unverified here — leicesterunion.com is blocked at this container's egress
+   proxy, so a failed load here proves nothing either way. Check on a normal
+   network: a blank box under the action card means the Union refused the
+   frame, and `embed` should go back to `false`.
 
-   **Added as a testable switch**, same pattern as `union.js`'s `embed`:
-   `profileEmbed: false` in `assets/data/instagram.js`. Flip it, open Events,
-   look. A blank panel or a login wall inside the frame means no — set it back
-   to `false`; the existing card-and-posts design underneath is unaffected
-   either way and is the part known to work. Wiring verified here (frame `src`
-   set only on section open, via `biosoc:page`, with the real data file and
-   the flag flipped) — only the actual render on a live network is open.
+   The Outlook side of this item — a `mode: "outlook"` switch that tried
+   framing Outlook's own published calendar page — was built, then removed
+   entirely at the user's instruction (2026-09-21). See item 5 for why. The
+   exact prior code, if ever wanted again, is in the commit history —
+   `git log -p -S'outlookFrame' -- assets/js/events.js` finds it. Do not
+   rebuild it without being asked; the hand-drawn four-week grid
+   (`assets/js/events.js`, `fourWeeks()`) is now the only view and has no
+   switch pointing away from it.
 
-   Getting the documented, durable fetcher running still needs a Business or
-   Creator account, a Meta app with Instagram Business Login, a long-lived
-   token in `IG_TOKEN`, and a hand-run before the workflow moves into
-   `.github/workflows/`. That path does not depend on the answer above.
+5. **Instagram and Outlook embedding: abandoned, for now, by explicit
+   instruction (2026-09-21).** The full sequence, because it is easy to
+   mis-remember as "still open":
+
+   - The user supplied a second, Gemini-built version of this site as an HTML
+     file, prompted by their earlier claim that Gemini had "embedded Instagram
+     without issue." Its actual code: `<iframe
+     src="https://www.instagram.com/biosoc.leics/embed/">` — a bare profile
+     URL with `/embed/` appended, which is **not** Meta's documented mechanism
+     (that remains one post at a time via the blockquote/`embed.js` already
+     built). The same file also stood in a public Google *UK holidays*
+     calendar in place of the Outlook calendar it could not embed, and shipped
+     a client-side "membership login" whose valid codes sit in plaintext in
+     its own JavaScript — real reasons for scepticism about the Instagram URL
+     too, not just generic caution about AI-written code. None of this was
+     ever confirmed rendering in a live browser.
+   - A `profileEmbed: false` switch was built anyway (same shape as `union.js`'s
+     `embed`), verified to wire up correctly, and shipped as commit `a6741fb`.
+   - **The user then said: abandon trying to embed Instagram and Outlook, for
+     now at least, and implement nothing from the Gemini file** — it was an
+     earlier, more primitive test. Both switches (`profileEmbed` in
+     `instagram.js`, `mode: "outlook"` in `calendar.js`) were removed
+     completely, not just left off, in the commit after `a6741fb`. **None** of
+     the Gemini file's other content — the staff contact directory, the
+     candidate £5 membership price, the Harvard referencing guide text, the
+     `woolly-olives.github.io/Modules/` iframe — was ever implemented, and per
+     this instruction it stays that way unless separately asked for.
+
+   **Where this leaves things:** Instagram is the card-plus-pinned-posts
+   design only, exactly as documented in §6 Events. The calendar's four-week
+   view is the hand-drawn grid only, no switch. Getting a documented, durable
+   Instagram feed still needs a Business or Creator account, a Meta app with
+   Instagram Business Login, a long-lived token in `IG_TOKEN`, and a hand-run
+   of `tools/fetch-instagram.py` before its workflow moves into
+   `.github/workflows/` — that path is independent of the embedding question
+   above and was never in scope for this decision. Do not reopen either
+   embedding attempt without the user raising it again.
 6. **BS2033 and BS2059 are coloured by their own degree stream, confirmed
    correct.** The user confirmed field-trip modules should carry their stream
    colour like any other. Checked against `curriculum.js`: neither is in
@@ -417,15 +440,21 @@ Each was flagged to the user at the time. Do not quietly reverse them, and do
 not re-litigate them either.
 
 - **A four-week grid was drawn by hand** although the instruction was "do not
-  code your own calendar design, just show Outlook's". Outlook cannot be framed,
-  so the alternative was delivering nothing. `mode: "outlook"` was left in place
-  so the decision can be checked and undone.
+  code your own calendar design, just show Outlook's". Outlook cannot be
+  framed, so the alternative was delivering nothing. A `mode: "outlook"`
+  switch was tried and then removed at the user's instruction (2026-09-21,
+  see §10 item 5) — do not rebuild it unasked.
 - **The advice card keeps a fixed height**, which leaves space under short
   pieces. Without it the card resizes under the reader every 40 seconds.
 - **The page backgrounds were lifted** along with the wheel when "the colours"
   were called too dark. If only the wheel was meant, `--bg`, `--bg-deep` and
   `--surface` are a small revert.
-- **Instagram's rotation and the Union's hand-off ship without the thing that
-  was literally asked for** — a profile embed, an iframed Union page — because
-  neither is possible. Both were replaced with the nearest working thing and the
-  reason was given.
+- **Instagram ships without the thing that was literally asked for** — a
+  whole-profile embed — because there is no documented way to do it. An
+  unofficial one was tried and then removed at the user's instruction
+  (2026-09-21, §10 item 5); the card-and-posts design is what remains, and is
+  not to be replaced with an embedding attempt again unasked.
+- **The Union's hand-off is different from the two above and should not be
+  read as the same kind of "gave up".** `embed: true` in `union.js` is live,
+  asked for explicitly, and untouched by the 2026-09-21 decision — see §10
+  item 4.

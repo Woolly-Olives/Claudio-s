@@ -202,29 +202,3 @@
 }
 
 #instagram.is-unreachable .ig-foot { opacity: 1; }
-
-/* ---------- the optional whole-profile frame ---------- */
-/* off by default; see the note on `profileEmbed` in
-   assets/data/instagram.js before turning it on */
-
-#instagram .ig-frame {
-  margin: 1.75rem 0 0;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--surface);
-}
-
-#instagram .ig-frame__win {
-  display: block;
-  width: 100%;
-  height: min(70vh, 820px);
-  border: 0;
-}
-
-#instagram .ig-frame__note {
-  margin: 0.85rem 0 0;
-  font-size: 0.82rem;
-  line-height: 1.55;
-  color: var(--fg-soft);
-}
