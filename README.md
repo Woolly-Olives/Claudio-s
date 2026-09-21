@@ -682,9 +682,10 @@ than hand-editing the output.
 ## Renaming, reordering or changing the number of sections
 
 1. Edit the `SECTIONS` array at the top of `assets/js/app.js` — each entry has an
-   `id` (used in the URL), a `label` (shown on the wheel) and a `hue` (0–360).
-   Essential Links also carries `reveal: "zoom"`, which is what makes it open by
-   zooming; leave it off and a section gets the ordinary bubble.
+   `id` (used in the URL), a `label` (shown on the wheel), a `hue` (0–360), a
+   `sat` (saturation, %) and a `light` (lightness, %). Essential Links also
+   carries `reveal: "zoom"`, which is what makes it open by zooming; leave it
+   off and a section gets the ordinary bubble.
 2. Add, rename or remove the matching `<section class="page">` in `index.html`.
    Its `id` must be `page-` followed by the section `id`, and its `--hue` should
    match.
@@ -692,20 +693,28 @@ than hand-editing the output.
 The wheel divides itself evenly however many sections there are, and each slice's
 reveal origin is recalculated from its own angle, so nothing else needs changing.
 
-Each entry also carries a **`light`**, and it is not a free choice. A green at
-the same lightness as a blue is far brighter, so slices picked by eye come out
-uneven. These lightnesses were solved for: at 92% saturation every slice lands
-within a hair of the same luminance (0.418 to 0.421), bright and cheerful, and
-even across all seven. **Change a hue and its lightness has to be re-solved,
-not guessed**, or the wheel goes uneven again.
+**The current palette ("Amber Field") is not equal-luminance, and `sat` and
+`light` are not free choices even so.** An earlier palette here solved every
+slice's lightness at one fixed saturation so all seven landed on the same
+relative luminance — a green at a blue's lightness is far brighter, so picking
+by eye came out uneven. Amber Field replaced it: built from a real reference
+(two screenshots the user supplied — see `docs/HANDOVER.md` §10 item 10), with
+amber and magenta deliberately more saturated than the rest, and luminance
+deliberately uneven (amber's fill is *far* brighter than plum's) because
+equalising it would wash the dark hues out to pale lavender. Change a hue,
+`sat` or `light` and there's no shared target to re-solve against any more —
+what has to be re-checked instead is that slice's `ink`.
 
-The label colour on top is **white with a dark text-shadow**, not the plain
-dark ink (`--slice-ink`, still defined, 8:1 on every slice) it used to be —
-changed on request for white specifically. White measures 2.2:1 against every
-one of these fills, under WCAG AA for text this size; the shadow (four
-close, dark, offset copies plus a soft blur, in `styles.css`) is a practical
-stand-in for readability, not a fix for the contrast number. If that trade
-is ever reconsidered, `--slice-ink` is the one-line way back.
+**`ink` (`"dark"` or `"light"`) is what makes an uneven-luminance wheel still
+readable.** One label colour can't clear WCAG AA (4.5:1) on every slice when
+the slices themselves aren't equally bright, so each section picks whichever
+ink wins against its own fill — `"dark"` switches the label to `--slice-ink`
+via a `.slice-label--dark` class and drops the shadow; `"light"` keeps the
+original white-with-a-dark-shadow treatment (the shadow stands in for
+contrast the white colour alone doesn't provide on its own). All seven clear
+4.5:1 in whichever ink they got — `tools/check.mjs` checks this against the
+rendered page, not just the arithmetic. Change any of `hue`/`sat`/`light` and
+re-verify `ink` for that slice before trusting it.
 
 The seam between slices is also lighter-touch than it was: the stroke sits
 close to its own slice's lightness (-4% at rest, -9% on hover) rather than

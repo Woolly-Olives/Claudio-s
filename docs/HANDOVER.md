@@ -120,17 +120,22 @@ node tools/check.mjs
 once.** It exits non-zero on failure. Run it before every push, and add a case
 whenever something breaks that it would not have caught.
 
-It currently covers: seven slices; all slices within 0.01 luminance of each
-other; one label colour; the Join BioSoc newsletter frame having no `src`
-until the section is opened, and the right one once it has been; all seven
-sections opening scrolled to the top; 30 assessment rows; 13 fallback links;
-9 arc sections; 8 bento tiles; 27 pieces of advice; the veil's wording; the
-covered tiles being unfocusable; 11 degrees with unavailable modules hidden
-and only core/chosen in the top tier on every one of them, no box left
-mid-animation once settled, the show-all switch actually showing and hiding
-them, every intro arrow level with Year 1 Semester 1's, exactly one golden
-outline overlay each for Year 2 and Year 3 (never Year 1) and each one only
-lighting once its year actually reaches 120 credits; and an empty console.
+It currently covers: seven slices; every slice's label clearing WCAG AA
+(4.5:1) against its own fill and exactly two ink colours being in use across
+the seven (see §7 on Amber Field for why this isn't "all equal" any more);
+the light/dark toggle starting on dark with the right label, switching to
+light and remembering it, surviving a reload with no flash back to dark
+first, and switching back on a second click; the Join BioSoc newsletter
+frame having no `src` until the section is opened, and the right one once it
+has been; all seven sections opening scrolled to the top; 30 assessment
+rows; 13 fallback links; 9 arc sections; 8 bento tiles; 27 pieces of advice;
+the veil's wording; the covered tiles being unfocusable; 11 degrees with
+unavailable modules hidden and only core/chosen in the top tier on every one
+of them, no box left mid-animation once settled, the show-all switch
+actually showing and hiding them, every intro arrow level with Year 1
+Semester 1's, exactly one golden outline overlay each for Year 2 and Year 3
+(never Year 1) and each one only lighting once its year actually reaches 120
+credits; and an empty console.
 
 Beyond that, screenshot at 1400×950 dark, the same light, and 390×844 for the
 phone. Two habits that have repeatedly paid off:
@@ -501,36 +506,79 @@ Sway itself refuses framing, which was never actually confirmed.
 
 Each of these cost real debugging. The reason matters more than the rule.
 
-**The wheel's lightnesses are solved, not chosen.** A green at the same
-lightness as a blue is far brighter, so slices picked by eye come out uneven.
-At 92% saturation each hue's lightness is set so every slice lands on the same
-luminance (0.418–0.421) — that part is unchanged. **The label colour on top of
-it is not derived the same way any more.** It was dark ink at 8:1 (real
-contrast, on every slice); it is now **white with a dark text-shadow**, at the
-user's explicit request for white text (2026-09-21). Measured: white alone is
-2.2:1 against every one of these fills — under WCAG AA for text this size on
-all seven. The text-shadow (four 1px-offset dark copies plus a soft blur, in
-`assets/css/styles.css`) is a practical stand-in for the contrast the colour no
-longer provides, not a fix for it. `--slice-ink` is still defined in `:root`
-and clears 8:1 on every slice, if this is ever reconsidered on accessibility
-grounds. **Change a hue and its lightness must be re-solved numerically**
-regardless of which label colour is in use, or the luminance match breaks and
-the shadow trick reads unevenly across slices. Current pairs:
+**The wheel's colour is "Amber Field," replaced 2026-09-21 — read this
+before touching a hue, a saturation, or the label ink.** The three palettes
+this section describes, in order, are history, not options to pick between:
+the original solved-equal-luminance one; the brief white-label-on-it revision
+the same day; and Amber Field, which replaced both.
 
-| Section | Hue | Lightness | Result |
-| --- | --- | --- | --- |
-| Essential Links | 140 | 40.8% | `#08c848` |
-| Study Resources | 166 | 40.0% | `#08c498` |
-| Customise Your Degree | 192 | 47.5% | `#0abce9` |
-| Opportunities | 218 | 74.6% | `#83aefa` |
-| Connect | 254 | 80.5% | `#b5a0fb` |
-| Events | 288 | 76.3% | `#e48bfa` |
-| Join BioSoc | 330 | 75.8% | `#fa89c1` |
+*Until 2026-09-21*, every slice's lightness was solved so all seven landed on
+one shared relative luminance (0.418–0.421) at a single fixed saturation
+(92%) — a green at that lightness is far brighter than a blue at it, so
+picking lightness by eye came out uneven, and the fix was to solve for it
+instead. The label was originally dark ink at a real 8:1 on every slice, then
+briefly white-with-a-shadow at the user's explicit request (measured: a flat
+2.2:1 against every fill, under WCAG AA, the shadow a stand-in for contrast
+the colour no longer gave).
 
-The outline between slices was also softened on the same request ("less
+**Amber Field breaks the equal-luminance premise on purpose.** It was built
+from two reference images the user supplied (see §10 for the full derivation)
+whose amber and olive are pixel-identical, paired in one image with a bright
+violet and periwinkle, in the other with a dark, muted navy and plum. The
+user picked the dark pairing. Solving *that* palette's hues to one shared
+luminance the way the old palette's were would force navy and plum up to a
+pale lavender — losing exactly what makes them read as navy and plum, the
+point of picking this one over its brighter sibling. So luminance here is
+deliberately uneven (amber 0.45 down to plum 0.05), and saturation is no
+longer one fixed value either — `--slice-sat` (92%) is now a fallback only;
+every slice sets its own `--sat`, amber and magenta carrying more of it than
+the rest, matching the reference's own warm-pops-forward character.
+
+**That trade reopens the label question**, because one ink can no longer read
+well on every slice. The fix: `ink` per section (`"dark"` or `"light"`) in
+`assets/js/app.js`'s `SECTIONS`, applied as a `.slice-label--dark` class that
+switches to `--slice-ink` and drops the shadow (`assets/css/styles.css`) —
+dark ink where the slice is bright enough to carry it, the existing
+white-with-shadow where it isn't. Each was chosen, not guessed: every one of
+the seven clears WCAG AA (4.5:1) against its own fill, several well past it —
+worth stating plainly since the two revisions before this one both left every
+slice under that bar (8:1 was only true on the very first version, and only
+because every slice matched every other in brightness; the ink itself was
+never actually re-verified against variety). See the "every slice's label
+clears WCAG AA" and "two ink colours are in use" cases in `tools/check.mjs`,
+which check this directly against the rendered page rather than trusting the
+numbers below.
+
+**Change a hue, a saturation, or a lightness and the other two of that
+slice's `ink` decision have to be re-checked, not assumed** — nothing here is
+solved-once-for-all any more the way the old palette was. Current values:
+
+| Section | Hue | Sat | Lightness | Ink | Result |
+| --- | --- | --- | --- | --- | --- |
+| Essential Links | 40 | 72.0% | 56.0% | dark | `#e0aa3e` |
+| Study Resources | 89 | 43.0% | 43.0% | dark | `#6f9d3f` |
+| Customise Your Degree | 130 | 41.2% | 41.2% | dark | `#3e944c` |
+| Opportunities | 175 | 39.1% | 41.0% | dark | `#40918b` |
+| Connect | 223 | 37.0% | 37.0% | light | `#3b4f81` |
+| Events | 275 | 33.0% | 30.0% | light | `#513366` |
+| Join BioSoc | 330 | 50.2% | 41.4% | light | `#9f356a` |
+
+Essential Links (amber) and Study Resources (olive) are the two hues lifted
+directly from the user's reference images, pixel-identical to the source.
+Connect (navy) and Events (plum) are the other two anchors, also lifted
+directly. Customise Your Degree (teal), Opportunities (cyan-teal) and Join
+BioSoc (magenta) fill the remaining three slices the wheel needs, interpolated
+between the nearest two anchors in hue, saturation and lightness together —
+not solved, matched to whichever anchors they sit between. Opportunities'
+lightness (41.0%) is nudged 1.9 points above its raw interpolation (39.1%)
+specifically to clear 4.5:1 in dark ink — interpolation got it to 4.46:1,
+just short.
+
+The outline between slices was softened on an earlier request ("less
 contrasting"): the stroke's lightness offset from its own fill dropped from
 -13%/-26% (base/hover) to -4%/-9%. It now reads as a seam, not a border — that
-is deliberate, not a value picked and forgotten.
+is deliberate, not a value picked and forgotten, and is unchanged by Amber
+Field.
 
 **A container id must never match a section id.** The section ids double as URL
 hashes, so a `<div id="events">` made the browser scroll to it every time
@@ -732,6 +780,46 @@ genuinely open.
 9. **The assessment table stays the 2024/25 schedule until the user has the
    2026/27 one.** They will provide it when they have access. The caution note
    at the top of Study Resources stays until then.
+10. **The wheel's colour is "Amber Field," implemented 2026-09-21 after
+    three rounds of preview.** Full sequence, since the reasoning behind the
+    final numbers lives across all three and is easy to lose:
+    - Round one (an Artifact, not committed): the existing equal-luminance
+      method applied to five different hue *families* — a full spectrum,
+      a cool range, a warm range, a botanical range, and the existing hues
+      desaturated to pastel. All still solved to one shared luminance, same
+      as the palette live at the time.
+    - Round two (another Artifact): six options that changed the
+      *construction* instead — a golden-angle scatter, fluorescent
+      microscopy hues, hand-picked "nameable" primaries, a three-hue
+      repeating pattern, the existing hues muted and dimmed, and a
+      single-hue saturation ombré. Still all equal-luminance.
+    - Round three: the user supplied two screenshots — a four-colour block
+      image and a small striped icon — asking for two palettes referencing
+      them, explicitly not to be coded yet. Sampling both images pixel by
+      pixel turned up that they share one identical amber (`#e0a93e`) and
+      olive (`#6f9d3f`); they differ only in the cool half, which the block
+      image pairs with a dark, muted navy and plum and the icon pairs with
+      a brighter violet and periwinkle. Two options were built from this —
+      "Amber Field" (the muted pairing) and "Amber Bloom" (the bright
+      one) — each with the three additional hues the wheel needs
+      (beyond the four in the references) interpolated between the nearest
+      real anchors, in hue, saturation *and* lightness together, not
+      solved. This was flagged plainly as a departure: forcing these hues
+      to the wheel's usual shared luminance would wash the dark pairing out
+      to pale lavender, so this round deliberately did not do that — shown
+      un-equalised, with the label-contrast consequence spelled out rather
+      than fixed quietly.
+    - The user picked Amber Field and asked for it implemented. Since the
+      luminance really is uneven, the label-ink question raised in round
+      three needed an actual answer, not just a flagged concern: `ink` per
+      section, dark or white, whichever clears WCAG AA against that
+      slice's own fill (all seven now do; see §7). Opportunities' raw
+      interpolated lightness (39.1%) was nudged to 41.0% for exactly this
+      reason — 4.46:1 in dark ink, just under the bar.
+
+    See §7 for the current hue/sat/lightness/ink table and §4 for the
+    `tools/check.mjs` cases that verify the WCAG contrast claims above
+    against the rendered page, rather than trusting the arithmetic alone.
 
 ---
 

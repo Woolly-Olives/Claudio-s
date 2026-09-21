@@ -21,23 +21,36 @@
   "use strict";
 
   /*
-   * `light` is each slice's lightness, and it is not a free choice. A
-   * green at the same lightness as a blue is far brighter, so slices
-   * picked by eye come out uneven and the labels stop reading on some
-   * of them. These values were solved for instead: at 92% saturation
-   * every slice lands within a hair of the same luminance (0.418 to
-   * 0.421), which is bright enough to be cheerful and puts the dark
-   * label ink at 8:1 on all seven. Change a hue and the lightness
-   * beside it has to be re-solved, not guessed.
+   * "Amber Field" (2026-09-21): amber and olive as given by the user's
+   * own reference images, the rest of the wheel interpolated between
+   * those anchors and the muted navy/plum from the same reference —
+   * see docs/HANDOVER.md §7 before touching this palette.
+   *
+   * Unlike the palette this replaced, `light` is NOT solved to put
+   * every slice on one shared luminance — amber's 0.45 and plum's 0.05
+   * are both deliberate, not an oversight. `sat` varies per slice too,
+   * for the same reason: amber and magenta carry more of it than the
+   * rest, matching the reference's own warm-pops-forward character.
+   * Solving these to one luminance the way the old palette's hues were
+   * would force navy and plum up to a pale lavender, losing exactly
+   * what makes them read as navy and plum.
+   *
+   * The trade that unequal luminance forces: one uniform label colour
+   * can no longer read well on every slice. `ink` picks the winner per
+   * slice instead — "dark" for `--slice-ink`, "light" for the existing
+   * white-with-shadow — each chosen for whichever clears WCAG AA
+   * (4.5:1) against that slice's own fill. All seven do, some well
+   * past it; the previous uniform-white treatment cleared it on none
+   * of them (a flat 2.2:1 everywhere). See `tools/check.mjs`.
    */
   var SECTIONS = [
-    { id: "essential-links",        label: "Essential Links",       hue: 140, light: 40.8, reveal: "zoom" },
-    { id: "study-resources",        label: "Study Resources",       hue: 166, light: 40.0 },
-    { id: "customise-your-degree",  label: "Customise Your Degree", hue: 192, light: 47.5 },
-    { id: "opportunities",          label: "Opportunities",         hue: 218, light: 74.6 },
-    { id: "connect",                label: "Connect",               hue: 254, light: 80.5 },
-    { id: "events",                 label: "Events",                hue: 288, light: 76.3 },
-    { id: "join-biosoc",            label: "Join BioSoc",           hue: 330, light: 75.8 }
+    { id: "essential-links",        label: "Essential Links",       hue: 40,  sat: 72.0, light: 56.0, ink: "dark",  reveal: "zoom" },
+    { id: "study-resources",        label: "Study Resources",       hue: 89,  sat: 43.0, light: 43.0, ink: "dark" },
+    { id: "customise-your-degree",  label: "Customise Your Degree", hue: 130, sat: 41.2, light: 41.2, ink: "dark" },
+    { id: "opportunities",          label: "Opportunities",         hue: 175, sat: 39.1, light: 41.0, ink: "dark" },
+    { id: "connect",                label: "Connect",               hue: 223, sat: 37.0, light: 37.0, ink: "light" },
+    { id: "events",                 label: "Events",                hue: 275, sat: 33.0, light: 30.0, ink: "light" },
+    { id: "join-biosoc",            label: "Join BioSoc",           hue: 330, sat: 50.2, light: 41.4, ink: "light" }
   ];
 
   /* --- wheel geometry, in the SVG's 100x100 user units --- */
@@ -141,6 +154,7 @@
     link.setAttribute("class", "slice");
     link.setAttribute("aria-label", section.label);
     link.style.setProperty("--hue", section.hue);
+    link.style.setProperty("--sat", section.sat + "%");
     link.style.setProperty("--sl", section.light + "%");
     link.style.setProperty("--push-x", (dx * PUSH).toFixed(3) + "px");
     link.style.setProperty("--push-y", (dy * PUSH).toFixed(3) + "px");
@@ -153,7 +167,7 @@
 
     var pos = polar(R_LABEL, mid);
     var label = document.createElement("div");
-    label.className = "slice-label";
+    label.className = "slice-label" + (section.ink === "dark" ? " slice-label--dark" : "");
     label.textContent = section.label;
     label.style.setProperty("--hue", section.hue);
     label.style.setProperty("--sl", section.light + "%");

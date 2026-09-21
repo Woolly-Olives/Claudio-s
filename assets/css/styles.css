@@ -20,8 +20,8 @@
   --line-soft: rgba(255, 255, 255, 0.07);
   color-scheme: dark;
 
-  --slice-sat:         92%;
-  --slice-ink:         #0b1a14;   /* the label on every slice, 8:1 on all of them */
+  --slice-sat:         92%;   /* fallback only — every slice sets its own --sat now, see app.js */
+  --slice-ink:         #0b1a14;   /* the dark-ink label option, on whichever slices read better in it — see .slice-label--dark */
   --label-l:           80%;
   --page-tint:         0.2;
 
@@ -213,13 +213,15 @@ body.is-page-open .stage {
 .slice { cursor: pointer; }
 
 .slice__path {
-  /* solid, and the same weight of colour all the way round the wheel —
-     see the note on `light` in assets/js/app.js */
-  fill: hsl(var(--hue) var(--slice-sat) var(--sl));
+  /* --sat is per-slice (assets/js/app.js), not one fixed value any
+     more — Amber Field lets amber and magenta carry more saturation
+     than the rest, on purpose; see the note on `sat` in app.js. The
+     fallback keeps this safe if a slice were ever added without one. */
+  fill: hsl(var(--hue) var(--sat, var(--slice-sat)) var(--sl));
   /* the outline reads as a seam between slices, not a border around
      them, so it stays close to the fill's own lightness rather than
      cutting hard away from it */
-  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) - 4%));
+  stroke: hsl(var(--hue) var(--sat, var(--slice-sat)) calc(var(--sl) - 4%));
   stroke-width: 0.5;
   stroke-linejoin: round;
   transition: fill 260ms var(--ease), stroke 260ms var(--ease), transform 420ms var(--ease);
@@ -229,8 +231,8 @@ body.is-page-open .stage {
 .slice:hover .slice__path,
 .slice:focus-visible .slice__path,
 .slice.is-active .slice__path {
-  fill: hsl(var(--hue) var(--slice-sat) calc(var(--sl) + 6%));
-  stroke: hsl(var(--hue) var(--slice-sat) calc(var(--sl) - 9%));
+  fill: hsl(var(--hue) var(--sat, var(--slice-sat)) calc(var(--sl) + 6%));
+  stroke: hsl(var(--hue) var(--sat, var(--slice-sat)) calc(var(--sl) - 9%));
   transform: translate(var(--push-x, 0px), var(--push-y, 0px));
 }
 
@@ -262,17 +264,16 @@ body.is-page-open .stage {
   line-height: 1.22;
   letter-spacing: 0.01em;
   /*
-   * White, as asked — but white on these fills measures 2.2:1
-   * against every one of them (checked: essentially identical across
-   * all seven, since they share one luminance by construction). That
-   * is well under WCAG's 4.5:1 for text this size, and white alone
-   * would be genuinely hard to read on the lighter slices. The dark
-   * multi-directional text-shadow below is a stroke standing in for
-   * contrast the colour itself no longer provides — a real trade,
-   * not a free one, made because the instruction was for white text
-   * specifically. `--slice-ink` (the colour this replaced) is still
-   * defined in :root and clears 8:1 on every slice, if this ever
-   * needs to be reverted for accessibility reasons.
+   * White by default, with a dark multi-directional text-shadow
+   * standing in for contrast the colour alone can't provide — this
+   * was the only option while every slice shared one solved luminance
+   * (white then measured a flat 2.2:1 on all seven, well under WCAG's
+   * 4.5:1, but at least *even*). Amber Field's slices are deliberately
+   * NOT equal-luminance (see the note on `light` in app.js), which
+   * opens up a better option: pick per slice. `.slice-label--dark`
+   * below overrides this for whichever slices read better in the dark
+   * ink instead — every slice now clears 4.5:1 in whichever ink it
+   * got, whereas uniform white cleared it on none of them.
    */
   color: #fff;
   text-shadow:
@@ -283,6 +284,15 @@ body.is-page-open .stage {
      0 2px 7px hsl(var(--hue) 60% 8% / 0.4);
   text-wrap: balance;
   transition: transform 420ms var(--ease);
+}
+
+/* the brighter slices (amber, olive, teal, cyan) read better in dark
+   ink than in white-on-a-shadow — see assets/js/app.js's `ink` field.
+   No shadow needed: the ink itself already clears WCAG AA against its
+   own slice, which is what the shadow above exists to work around. */
+.slice-label--dark {
+  color: var(--slice-ink);
+  text-shadow: none;
 }
 
 .slice-label.is-active,

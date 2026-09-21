@@ -25,12 +25,17 @@ something breaks that it would not have caught. Work on branch
 - **A container id must never match a section id.** The section ids double as
   URL hashes, so a `<div id="events">` makes the browser scroll to it whenever
   `#events` opens. Hence `#calendar`.
-- **The wheel's lightnesses are solved, not chosen.** Each hue's lightness puts
-  every slice on the same luminance (0.418–0.421 at 92% saturation) — change a
-  hue and re-solve it numerically, or the slices stop being evenly bright. The
-  label colour on top is white with a dark text-shadow (2.2:1 on its own,
-  under WCAG AA — the shadow is a stand-in, not a fix), not the 8:1 dark ink
-  this used to be; see `docs/HANDOVER.md` §7 before changing either.
+- **The wheel's palette is "Amber Field," and it is deliberately NOT
+  equal-luminance.** Every earlier palette here solved each hue's lightness
+  so all seven shared one luminance; this one doesn't (amber 0.45, plum
+  0.05), because equalising it would wash the dark hues out to pale
+  lavender — see `docs/HANDOVER.md` §7 and §10 item 10 before "fixing" this.
+  Each slice picks its own `sat` too (`assets/js/app.js`), not one fixed
+  value. Because luminance is uneven, one label colour can't read well on
+  every slice any more: `ink` per section (`"dark"` or `"light"`) picks
+  whichever clears WCAG AA (4.5:1) against that slice's own fill — change a
+  hue, saturation or lightness and re-check `ink` for that slice, don't
+  assume it still holds.
 - **`inert` on a descendant does not survive the panel's `inert` being
   removed.** `app.js` re-asserts it on open. Without that the veiled
   Opportunities tiles are tabbable through their veil.

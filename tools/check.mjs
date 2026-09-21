@@ -35,20 +35,36 @@ await page.waitForTimeout(800);
 
 console.log("the wheel");
 check("seven slices", await page.locator("a.slice").count(), 7);
-/* every slice must carry the same weight of light, or the dark labels
-   stop reading on some of them — see the note in assets/js/app.js */
-const lum = await page.evaluate(() => {
+/* Amber Field (2026-09-21) is deliberately NOT equal-luminance — amber
+   and plum are meant to sit far apart (0.45 vs 0.05) — so a uniform
+   label colour can no longer read well on every slice. Each slice's
+   label picks whichever ink (white-with-shadow, or --slice-ink) clears
+   WCAG AA against that slice's own fill instead — see the note on
+   `ink` in assets/js/app.js. */
+function relLuminance([r, g, b]) {
   const chan = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
-  return [...document.querySelectorAll(".slice__path")].map(p => {
-    const [r, g, b] = getComputedStyle(p).fill.match(/\d+/g).map(Number);
-    return 0.2126 * chan(r) + 0.7152 * chan(g) + 0.0722 * chan(b);
-  });
+  return 0.2126 * chan(r) + 0.7152 * chan(g) + 0.0722 * chan(b);
+}
+function contrast(rgbA, rgbB) {
+  const a = relLuminance(rgbA), b = relLuminance(rgbB);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+/* .slice-label lives in #wheel-labels, not inside its .slice — both are
+   built from SECTIONS in the same order, so matched up by index */
+const slices = await page.evaluate(() => {
+  const paths = [...document.querySelectorAll(".slice__path")];
+  return [...document.querySelectorAll(".slice-label")].map((l, i) => ({
+    fill: getComputedStyle(paths[i]).fill,
+    ink: getComputedStyle(l).color,
+  }));
 });
-check("slices within 0.01 luminance of each other",
-      Math.max(...lum) - Math.min(...lum) < 0.01, true);
-check("every label is the same colour, whatever that colour currently is",
-      await page.evaluate(() => [...new Set([...document.querySelectorAll(".slice-label")]
-        .map(l => getComputedStyle(l).color))]).then(c => c.length), 1);
+const contrasts = slices.map(s => contrast(
+  s.fill.match(/\d+/g).map(Number),
+  s.ink.match(/\d+/g).map(Number)));
+check("every slice's label clears WCAG AA (4.5:1) against its own fill",
+      contrasts.every(c => c >= 4.5), true);
+check("two ink colours are in use, not one — dark on the brighter slices, white on the darker",
+      new Set(slices.map(s => s.ink)).size, 2);
 
 console.log("\nthe light/dark toggle");
 /* colorScheme: "dark" above, so the page opens with no override and the
