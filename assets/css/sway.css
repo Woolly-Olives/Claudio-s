@@ -1,0 +1,102 @@
+/* =============================================================
+   Join BioSoc — the newsletter, on Microsoft Sway.
+   Built by assets/js/sway.js. Scoped to #sway.
+   ============================================================= */
+
+#sway { display: block; }
+
+/* ---------- the one thing to do on this page ---------- */
+
+#sway .sw-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.35rem 1.5rem;
+  border: 1px solid hsl(var(--hue) 45% 55% / 0.4);
+  border-radius: 18px;
+  background: hsl(var(--hue) 45% 50% / 0.12);
+  text-decoration: none;
+  color: inherit;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease);
+}
+
+#sway .sw-action:hover {
+  background: hsl(var(--hue) 50% 50% / 0.22);
+  border-color: hsl(var(--hue) 60% 60% / 0.65);
+}
+
+#sway .sw-action__text { display: grid; gap: 0.3rem; min-width: 0; }
+
+#sway .sw-action__name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+#sway .sw-action__blurb {
+  font-size: 0.96rem;
+  line-height: 1.5;
+  color: var(--fg-soft);
+}
+
+#sway .sw-action__host {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: hsl(var(--hue) 55% var(--label-l));
+}
+
+#sway .sw-action__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.3rem;
+  border-radius: 999px;
+  background: hsl(var(--hue) 60% 52%);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#sway .sw-action__go svg {
+  width: 1.05em;
+  height: 1.05em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 620px) {
+  #sway .sw-action { grid-template-columns: minmax(0, 1fr); }
+  #sway .sw-action__go { justify-self: start; }
+}
+
+/* ---------- the frame ---------- */
+
+#sway .sw-frame {
+  margin: 1.5rem 0 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+#sway .sw-frame__win {
+  display: block;
+  width: 100%;
+  height: min(68vh, 700px);
+  border: 0;
+}
+
+#sway .sw-foot {
+  margin: 0.85rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--fg-soft);
+}

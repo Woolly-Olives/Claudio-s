@@ -77,6 +77,7 @@ shown otherwise,"** not "blocked if it's on this list":
 | `instagram.com`, `graph.instagram.com` | blocked (403 at the proxy) |
 | `leicesterunion.com` | blocked |
 | `outlook.live.com`, `outlook.office.com`, `outlook.office365.com` | blocked |
+| `sway.cloud.microsoft` | **blocked** (found 2026-09-21, same `connect_rejected` 403) |
 | any `le.ac.uk` subdomain, and `le.ac.uk` itself | **blocked** (found 2026-09-21) |
 | `github.com` | works (all pushes go through it) |
 | npm, PyPI | bypass the proxy entirely |
@@ -84,9 +85,9 @@ shown otherwise,"** not "blocked if it's on this list":
 | `WebFetch` | same block list as curl |
 
 Consequences to remember rather than rediscover:
-- The Instagram fetcher and anything touching the Union, Outlook, or **any
-  University of Leicester system** **cannot be tested here**. Say so when
-  shipping them.
+- The Instagram fetcher and anything touching the Union, Outlook, Microsoft
+  Sway, or **any University of Leicester system** **cannot be tested here**.
+  Say so when shipping them.
 - **Do not hand-reconstruct a trademark or brand mark from memory** to work
   around this (a company logo, an icon) — an unverified guess at someone else's
   mark risks being visibly wrong, which is worse than leaving the honest
@@ -120,13 +121,16 @@ once.** It exits non-zero on failure. Run it before every push, and add a case
 whenever something breaks that it would not have caught.
 
 It currently covers: seven slices; all slices within 0.01 luminance of each
-other; one label colour; all seven sections opening scrolled to the top; 30
-assessment rows; 13 fallback links; 9 arc sections; 8 bento tiles; 27 pieces of
-advice; the veil's wording; the covered tiles being unfocusable; 11 degrees with
-unavailable modules hidden and only core/chosen in the top tier on every one of
-them, no box left mid-animation once settled, the show-all switch actually
-showing and hiding them, only Year 1 carrying the 120-credit outline by
-default; and an empty console.
+other; one label colour; the Join BioSoc newsletter frame having no `src`
+until the section is opened, and the right one once it has been; all seven
+sections opening scrolled to the top; 30 assessment rows; 13 fallback links;
+9 arc sections; 8 bento tiles; 27 pieces of advice; the veil's wording; the
+covered tiles being unfocusable; 11 degrees with unavailable modules hidden
+and only core/chosen in the top tier on every one of them, no box left
+mid-animation once settled, the show-all switch actually showing and hiding
+them, every intro arrow level with Year 1 Semester 1's, exactly one golden
+outline overlay each for Year 2 and Year 3 (never Year 1) and each one only
+lighting once its year actually reaches 120 credits; and an empty console.
 
 Beyond that, screenshot at 1400×950 dark, the same light, and 390×844 for the
 phone. Two habits that have repeatedly paid off:
@@ -151,7 +155,7 @@ phone. Two habits that have repeatedly paid off:
 | `assets/js/modulemap.js`, `assets/css/modulemap.css` | Customise Your Degree. |
 | `assets/js/events.js`, `assets/css/events.css` | The calendar: subscribe card, four-week grid, Coming up list. |
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Instagram block on Events. |
-| `assets/js/union.js`, `assets/css/union.css` | Join BioSoc. |
+| `assets/js/sway.js`, `assets/css/sway.css` | Join BioSoc — the Sway newsletter embed. |
 | `assets/js/advice.js`, `assets/css/advice.css` | Connect. |
 | `tools/check.mjs` | The regression run. |
 
@@ -164,7 +168,7 @@ phone. Two habits that have repeatedly paid off:
 | `assets/data/advice.js` | `tools/advice-to-js.py` | the collected advice text file |
 | `assets/data/instagram-posts.js` | `tools/fetch-instagram.py` | Instagram's API |
 
-Hand-edited data files: `links.js`, `calendar.js`, `instagram.js`, `union.js`.
+Hand-edited data files: `links.js`, `calendar.js`, `instagram.js`, `sway.js`.
 
 **Parked workflows.** `tools/refresh-events.yml` and
 `tools/refresh-instagram.yml` are GitHub Actions that are deliberately **not**
@@ -423,9 +427,33 @@ Instagram first, then the calendar.
   the last slot reads *+N more*.
 
 ### Join BioSoc
-A hand-off to the Union's page rather than a signup of our own. Steps written
-without sight of that page carry a dashed **confirm** tag, and the facts strip
-ships empty rather than guessing at a membership price.
+**Replaced 2026-09-21, at explicit instruction**: the Union membership
+hand-off (steps, facts strip, related links, and its own try-it-and-look
+frame — everything §6 used to describe here) was removed outright and the
+section now embeds BioSoc's newsletter, hosted on Microsoft Sway, instead.
+**The site no longer tells a visitor how to actually join the Society or
+what it costs** — that information existed only in the removed hand-off
+(`assets/data/union.js`, recoverable from git history if this is ever
+revisited) and nowhere else in the site. If a join/membership pathway is
+wanted back, it needs to be re-added, possibly alongside the newsletter
+rather than instead of it.
+
+`assets/js/sway.js` builds the same "action card, then a best-effort frame,
+then a footnote for if the frame stays empty" shape `union.js` used, because
+it is the right shape for any hand-off to a service that might refuse to be
+framed, not because the code was reused verbatim — `union.js` is deleted,
+not repurposed. Sway's own embed code supplied the frame's `sandbox`
+attribute (`allow-forms allow-modals allow-orientation-lock allow-popups
+allow-same-origin allow-scripts`), carried over unchanged rather than
+loosened or tightened. **`sway.cloud.microsoft` is blocked at this
+container's egress** (§3), so whether it actually allows framing has never
+been observed — confirmed instead that the browser's own request fails
+(`net::ERR_TUNNEL_CONNECTION_FAILED`, the same shape as the `curl`
+`connect_rejected` from the CLI), which is enough to know the frame will be
+empty on this network but nothing about any other one. The footnote says
+"most likely, your organisation's network will not allow it to appear
+here" for exactly that reason — it names the likely cause without claiming
+Sway itself refuses framing, which was never actually confirmed.
 
 ---
 
@@ -478,9 +506,10 @@ any value above zero is invisible at the hub and a wedge at the rim. If a gap is
 ever wanted back it must be a constant arc length.
 
 **`biosoc:page` is the contract for section-scoped work.** `app.js` fires it on
-open with `{ id }` and on close with `{ id: null }`. Instagram, the Union frame
-and the advice clock all wait for it, so nothing runs — and nothing is fetched
-from a third party — before anyone has asked to see it. Keep new work on it.
+open with `{ id }` and on close with `{ id: null }`. Instagram, the Sway
+newsletter frame and the advice clock all wait for it, so nothing runs — and
+nothing is fetched from a third party — before anyone has asked to see it.
+Keep new work on it.
 
 **Transitions must not start from the wrong place.** `arc.js` commits its zoom
 start position with a forced reflow while the panel is unmounted; the CSS
@@ -511,11 +540,14 @@ Do not spend time re-attempting these without new information.
   (2026-09-21), separate from the technical findings above. Both switches were
   built, then deliberately taken back out rather than left dormant — see §10
   items 4 and 5 before rebuilding either.
-- **The Union's pages are very likely unframeable too**, for the same reason.
-  `embed: true` in `assets/data/union.js` is a try-it-and-look switch, **still
-  in place** — the Instagram/Outlook decision above does not apply to it; the
-  user asked for this one specifically and it has never been told to come out.
-  It has never been tested, because the host is blocked here.
+- **The Union's pages are very likely unframeable too**, for the same reason —
+  moot now, since the Union hand-off that tried it (`union.js`, `embed: true`)
+  was removed on 2026-09-21; see §6 Join BioSoc. Its replacement,
+  `assets/js/sway.js`, is the same try-it-and-look shape, this time for
+  Sway. Whether Sway allows framing has also never been tested, because
+  `sway.cloud.microsoft` is blocked here too (§3) — the browser's own request
+  fails with `net::ERR_TUNNEL_CONNECTION_FAILED`, confirmed with Playwright,
+  which says nothing about what happens on a normal network.
 - **A browser cannot fetch the Outlook `.ics` directly** — no CORS headers. That
   is why the fetching happens in a generator or an Action instead.
 
@@ -577,15 +609,21 @@ genuinely open.
    confirmed a committee member's own account is acceptable, rotated each year
    as committees change. Not a defect — no action needed. The address is still
    effectively public, so nothing private should go in that calendar.
-3. **Join BioSoc's two `check: true` steps** still need reading against the
-   Union's page, and the facts strip still needs a membership price.
-4. **`embed: true` stays set in `union.js`** — this is the Union embed, asked
-   for explicitly (2026-09-20), and the 2026-09-21 decision to abandon
-   Instagram/Outlook embedding (see item 5) **does not apply to it**. Still
-   unverified here — leicesterunion.com is blocked at this container's egress
-   proxy, so a failed load here proves nothing either way. Check on a normal
-   network: a blank box under the action card means the Union refused the
-   frame, and `embed` should go back to `false`.
+3. **Superseded, not just closed, on 2026-09-21**: Join BioSoc's two
+   `check: true` steps and the facts strip's missing membership price were
+   what remained of the Union hand-off, which has since been removed
+   outright (see §6 Join BioSoc) — there is no longer a hand-off for either
+   to belong to. Restoring a join/membership pathway is a fresh task, not a
+   matter of confirming these two old facts.
+4. **`embed: true` in `union.js` is moot: `union.js` was deleted on
+   2026-09-21**, at explicit instruction, along with the rest of the Union
+   hand-off — see §6 Join BioSoc and item 3 above. It was never verified,
+   because leicesterunion.com is blocked at this container's egress proxy,
+   so this is now unresolved rather than closed: if the Union hand-off is
+   ever rebuilt, whether its pages can be framed is exactly as unknown as it
+   always was. Its replacement, the Sway newsletter frame in
+   `assets/js/sway.js`, is in the same unverified position for the same
+   reason (`sway.cloud.microsoft` is also blocked here).
 
    The Outlook side of this item — a `mode: "outlook"` switch that tried
    framing Outlook's own published calendar page — was built, then removed
@@ -670,7 +708,10 @@ not re-litigate them either.
   unofficial one was tried and then removed at the user's instruction
   (2026-09-21, §10 item 5); the card-and-posts design is what remains, and is
   not to be replaced with an embedding attempt again unasked.
-- **The Union's hand-off is different from the two above and should not be
-  read as the same kind of "gave up".** `embed: true` in `union.js` is live,
-  asked for explicitly, and untouched by the 2026-09-21 decision — see §10
-  item 4.
+- **The Union's hand-off was, until 2026-09-21, different from the two above
+  and not to be read as the same kind of "gave up"**: `embed: true` in
+  `union.js` was live, asked for explicitly, and untouched by that day's
+  earlier Instagram/Outlook decision. Later the same day the user gave a
+  separate, explicit instruction to clear the section out and replace it
+  with the Sway newsletter — `union.js` is now deleted; see §6 Join BioSoc
+  and §10 items 3–4.

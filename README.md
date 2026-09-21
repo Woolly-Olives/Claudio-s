@@ -49,8 +49,8 @@ pick the branch and the `/ (root)` folder.
 | `tools/ics-to-events.py` | Turns the published .ics into that file. |
 | `assets/data/advice.js` | Students' advice on Connect. **Generated** — see below. |
 | `tools/advice-to-js.py` | Turns the collected text file into it. |
-| `assets/data/union.js` | The Students' Union hand-off on Join BioSoc. |
-| `assets/js/union.js`, `assets/css/union.css` | How that page is built. |
+| `assets/data/sway.js` | The Sway newsletter embed on Join BioSoc. |
+| `assets/js/sway.js`, `assets/css/sway.css` | How that page is built. |
 
 ## Adding your content
 
@@ -440,42 +440,34 @@ re-measures when the window changes. The `min-height` in the stylesheet is only
 a floor for before that runs: how tall the longest piece runs depends on how
 wide the card is, so it cannot be a fixed figure.
 
-## The Students' Union (Join BioSoc)
+## The newsletter (Join BioSoc)
 
-Membership is the Union's, not ours, so that page hands over to
-[BioSoc on leicesterunion.com](https://www.leicesterunion.com/sportsandsocs/societies/biosoc/)
-rather than pretending to take a signup itself: one large action card, the steps
-in order, an optional strip of facts, and a couple of related Union pages.
-Everything is in **`assets/data/union.js`**.
+This page used to hand off to the Students' Union's own signup page instead of
+pretending to take a signup itself. That hand-off was removed on 2026-09-21,
+at explicit instruction, and replaced with an embed of BioSoc's newsletter,
+hosted on Microsoft Sway: one action card that always opens the newsletter
+directly, and a best-effort frame of it below. **The page no longer tells a
+visitor how to actually join the Society or what it costs** — that lived only
+in the removed hand-off. Everything is in **`assets/data/sway.js`**.
 
-### The "confirm" tags
+### Framing the newsletter
 
-Lines marked `check: true` carry a small dashed **confirm** tag on the page.
-They were written without sight of the Union's page, so they are plausible
-rather than known — the tag is there so nothing unverified is put to students as
-fact. **Read each one against the Union's page, correct it, and delete its
-`check` flag**; the tag then disappears. The `facts` strip ships empty for the
-same reason: add the membership price and the rest only once you have checked
-them, and until then the page simply does not draw that strip.
+Most services that host a page like this refuse to let another domain frame
+it — the browser then shows an empty box, and says why only in its console,
+where no student will look. Nothing on our side can detect that: a
+cross-origin frame that the other site refuses is silent to script.
 
-### Framing the Union's page
+**Whether Sway allows it has never been tested on a real network** —
+`sway.cloud.microsoft` is blocked at this container's egress proxy, so nothing
+run inside it proves either way. Confirmed instead: the browser's own request
+to it fails outright here (`net::ERR_TUNNEL_CONNECTION_FAILED`), which only
+shows that this particular network blocks it, not that Sway itself would. The
+action card above the frame always opens the newsletter directly regardless,
+and a line beneath the frame tells anyone staring at an empty panel what to
+do — most likely, an organisation's own network is what is stopping it, the
+same as here.
 
-`embed: true` puts the Union's page in a frame below the action card. Most
-Students' Union sites refuse to be framed by another domain — the browser then
-shows an empty box, and says why only in its console, where no student will
-look. Nothing on our side can detect that: a cross-origin frame that the other
-site refuses is silent to script.
-
-**It is currently on**, at the user's request. It has still never been tested
-on a real network — leicesterunion.com is blocked at this container's egress
-proxy, so nothing run inside it proves the switch works. Open Join BioSoc on
-an ordinary connection and look: if the Union's page appears, leave it on. If
-the box is blank, the Union blocks framing, and `embed` should go back to
-`false` — the hand-off is the honest version of the same thing either way.
-The action card above the frame always opens the real page, and a line
-beneath it tells anyone staring at an empty panel what to do.
-
-The frame's address is not set until someone opens Join BioSoc, so the Union is
+The frame's address is not set until someone opens Join BioSoc, so Sway is
 not fetched for visitors who never go there — the same `biosoc:page` event the
 Instagram embeds wait for.
 

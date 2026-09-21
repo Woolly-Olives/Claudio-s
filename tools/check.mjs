@@ -50,6 +50,16 @@ check("every label is the same colour, whatever that colour currently is",
       await page.evaluate(() => [...new Set([...document.querySelectorAll(".slice-label")]
         .map(l => getComputedStyle(l).color))]).then(c => c.length), 1);
 
+console.log("\nthe Join BioSoc newsletter frame");
+/* sway.js must not fetch sway.cloud.microsoft for a visitor who never
+   opens this section — checked before the loop below opens every
+   section once, join-biosoc included, which arms it for good */
+check("newsletter frame has no src before the section is opened",
+  await page.evaluate(() => {
+    const el = document.querySelector("#sway .sw-frame__win");
+    return el && el.getAttribute("src");
+  }), null);
+
 console.log("\nopening and closing every section");
 for (const id of SECTIONS) {
   await page.evaluate(i => { location.hash = "#" + i; }, id);
@@ -65,6 +75,12 @@ for (const id of SECTIONS) {
   await page.keyboard.press("Escape");
   await page.waitForTimeout(400);
 }
+
+check("newsletter frame is set once Join BioSoc has been opened",
+  await page.evaluate(() => {
+    const el = document.querySelector("#sway .sw-frame__win");
+    return el && el.getAttribute("src");
+  }), "https://sway.cloud.microsoft/s/aXDghXvO80G1eDwD/embed");
 
 console.log("\ncontent that has gone missing before");
 await page.evaluate(() => { location.hash = "#study-resources"; });
