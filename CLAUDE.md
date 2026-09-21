@@ -34,6 +34,12 @@ something breaks that it would not have caught. Work on branch
 - **`inert` on a descendant does not survive the panel's `inert` being
   removed.** `app.js` re-asserts it on open. Without that the veiled
   Opportunities tiles are tabbable through their veil.
+- **Colour is three-state now, not two**: system dark, system light, or
+  forced by `[data-theme]` from the light/dark toggle (`assets/js/theme.js`,
+  top right). A component that hardcodes a colour instead of `var(--token)`
+  is only right in whichever state it was written in. See `docs/HANDOVER.md`
+  §5 before touching the toggle or its CSS — the override structure and the
+  icon-swap CSS deliberately mirror each other and must be edited together.
 - **Module map boxes move now, on purpose** — core to the top, unavailable
   hidden by default, an optional module sliding up once picked. This reverses
   the project's own earlier "boxes never move" rule; see `docs/HANDOVER.md` §6

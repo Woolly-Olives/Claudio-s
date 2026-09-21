@@ -18,6 +18,7 @@
   --fg-soft:   #a9c2b7;
   --line:      rgba(255, 255, 255, 0.14);
   --line-soft: rgba(255, 255, 255, 0.07);
+  color-scheme: dark;
 
   --slice-sat:         92%;
   --slice-ink:         #0b1a14;   /* the label on every slice, 8:1 on all of them */
@@ -32,8 +33,17 @@
           "Helvetica Neue", Arial, sans-serif;
 }
 
+/*
+ * Dark is the default (the bare :root above), so only light needs a
+ * second block — dark never needs one of its own, forced or not: with
+ * nothing here to override the bare tokens, dark is just what happens.
+ * [data-theme] is set by assets/js/theme.js, the light/dark toggle;
+ * :not([data-theme="dark"]) keeps a system-light visitor on the light
+ * tokens right up until they explicitly force dark, at which point this
+ * whole block stops applying and the bare (dark) tokens show through.
+ */
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme="dark"]) {
     --bg:        #f4f8f5;
     --bg-deep:   #e6eee9;
     --surface:   #ffffff;
@@ -41,10 +51,27 @@
     --fg-soft:   #4d6559;
     --line:      rgba(9, 32, 23, 0.16);
     --line-soft: rgba(9, 32, 23, 0.08);
+    color-scheme: light;
 
     --label-l:           30%;
     --page-tint:         0.14;
   }
+}
+
+/* forced light, regardless of the system — the toggle, overriding a
+   dark system rather than just following a light one */
+:root[data-theme="light"] {
+  --bg:        #f4f8f5;
+  --bg-deep:   #e6eee9;
+  --surface:   #ffffff;
+  --fg:        #0d1c16;
+  --fg-soft:   #4d6559;
+  --line:      rgba(9, 32, 23, 0.16);
+  --line-soft: rgba(9, 32, 23, 0.08);
+  color-scheme: light;
+
+  --label-l:           30%;
+  --page-tint:         0.14;
 }
 
 /* ---------- 2. Base ---------- */
@@ -71,6 +98,59 @@ a { color: hsl(var(--hue, 160) 70% var(--label-l)); }
   outline-offset: 3px;
   border-radius: 4px;
 }
+
+/* ---------- the light/dark toggle ----------
+   Fixed at the document level, not inside .stage, so it stays put (and
+   crisp) whichever page is open — see assets/js/theme.js. Neutral
+   furniture, like the hub: no --hue, the same everywhere. */
+
+.theme-toggle {
+  position: fixed;
+  z-index: 30;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  color: var(--fg-soft);
+  background: hsl(0 0% 50% / 0.1);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease), color 200ms var(--ease);
+}
+
+.theme-toggle:hover {
+  color: var(--fg);
+  background: hsl(0 0% 50% / 0.2);
+  border-color: var(--line-soft);
+}
+
+.theme-toggle__icon {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* dark is the default, so the moon (dark's own icon) shows by default;
+   the same override shape as the tokens above decides when the sun
+   shows instead — system-light, or forced light, but never both rules
+   fighting over the same state */
+.theme-toggle__icon--sun { display: none; }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .theme-toggle__icon--sun { display: block; }
+  :root:not([data-theme="dark"]) .theme-toggle__icon--moon { display: none; }
+}
+
+:root[data-theme="light"] .theme-toggle__icon--sun { display: block; }
+:root[data-theme="light"] .theme-toggle__icon--moon { display: none; }
 
 /* ---------- 3. Stage + wheel ---------- */
 .stage {
@@ -875,6 +955,7 @@ body.is-page-open .stage {
 .no-js .page__head,
 .no-js .page__body { opacity: 1; transform: none; }
 .no-js .page__chrome { display: none; }
+.no-js .theme-toggle { display: none; }   /* does nothing without assets/js/theme.js */
 
 @media (prefers-reduced-motion: reduce) {
   .wheel { animation: none; }

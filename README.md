@@ -38,6 +38,7 @@ pick the branch and the `/ (root)` folder.
 | `index.html` | The wheel container and the seven section panels. **Your content goes here.** |
 | `assets/css/styles.css` | All styling, including the reveal animation and the content helper classes below. |
 | `assets/js/app.js` | Builds the wheel, handles the reveals, and routes `#section-id` URLs. |
+| `assets/js/theme.js` | The light/dark toggle, top right. Styling is in `styles.css`. |
 | `assets/data/links.js` | The Essential Links content. |
 | `assets/js/arc.js`, `assets/css/arc.css` | The Essential Links arc and its zoom. |
 | `assets/data/instagram.js` | The Instagram account and the posts pinned to Events. |
@@ -51,6 +52,27 @@ pick the branch and the `/ (root)` folder.
 | `tools/advice-to-js.py` | Turns the collected text file into it. |
 | `assets/data/sway.js` | The Sway newsletter embed on Join BioSoc. |
 | `assets/js/sway.js`, `assets/css/sway.css` | How that page is built. |
+
+## The light/dark toggle
+
+A circular button, fixed top right of every page — the wheel and any open
+section — built by `assets/js/theme.js`. Dark is the site's default and
+always was; the toggle adds a way to override it, either direction,
+regardless of what the visitor's system prefers. The choice is written to
+`localStorage` and read back out **before the page paints**, in a small
+inline `<script>` in `index.html`'s own `<head>` (the same one that clears
+the `no-js` class) — reading it later, once `theme.js` itself runs at the
+bottom of the page, would show the wrong theme first and then snap to the
+right one.
+
+Every colour lives as a token in `assets/css/styles.css`'s `:root` block, in
+three layers: the bare values (dark, the default), a
+`@media (prefers-color-scheme: light)` block guarded with
+`:not([data-theme="dark"])`, and an unguarded `:root[data-theme="light"]`
+block for an explicit override that beats the system either way. Forced dark
+needs no block of its own — with nothing overriding the bare tokens, dark is
+just what happens. **A component that hardcodes a colour instead of
+`var(--token)` will be wrong in two of these three states.**
 
 ## Adding your content
 

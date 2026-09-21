@@ -50,6 +50,37 @@ check("every label is the same colour, whatever that colour currently is",
       await page.evaluate(() => [...new Set([...document.querySelectorAll(".slice-label")]
         .map(l => getComputedStyle(l).color))]).then(c => c.length), 1);
 
+console.log("\nthe light/dark toggle");
+/* colorScheme: "dark" above, so the page opens with no override and the
+   toggle should read as offering to switch to light */
+check("starts on dark, with a label offering light",
+  await page.evaluate(() => ({
+    theme: document.documentElement.getAttribute("data-theme"),
+    label: document.getElementById("theme-toggle").getAttribute("aria-label"),
+  })),
+  { theme: null, label: "Switch to light mode" });
+
+await page.click("#theme-toggle");
+await page.waitForTimeout(150);
+check("one click switches to light and remembers it",
+  await page.evaluate(() => ({
+    theme: document.documentElement.getAttribute("data-theme"),
+    bg: getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(),
+    stored: localStorage.getItem("biosoc-theme"),
+  })),
+  { theme: "light", bg: "#f4f8f5", stored: "light" });
+
+await page.reload();
+await page.waitForTimeout(400);
+check("the choice survives a reload with no flash back to dark first",
+  await page.evaluate(() => document.documentElement.getAttribute("data-theme")), "light");
+
+/* back to dark, the state every check below this point assumes */
+await page.click("#theme-toggle");
+await page.waitForTimeout(150);
+check("a second click switches back to dark",
+  await page.evaluate(() => document.documentElement.getAttribute("data-theme")), "dark");
+
 console.log("\nthe Join BioSoc newsletter frame");
 /* sway.js must not fetch sway.cloud.microsoft for a visitor who never
    opens this section — checked before the loop below opens every

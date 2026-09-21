@@ -151,6 +151,7 @@ phone. Two habits that have repeatedly paid off:
 | `index.html` | The wheel container and the seven panels. Content lives here unless a section has a data file. |
 | `assets/css/styles.css` | Tokens, wheel, panels, shared content helpers, the bento and its veil. |
 | `assets/js/app.js` | Builds the wheel, both reveals, hash routing, the `biosoc:page` event. |
+| `assets/js/theme.js` | The light/dark toggle, top right. Styled in `styles.css`, not its own file — see below. |
 | `assets/js/arc.js`, `assets/css/arc.css` | Essential Links' arc and its zoom. |
 | `assets/js/modulemap.js`, `assets/css/modulemap.css` | Customise Your Degree. |
 | `assets/js/events.js`, `assets/css/events.css` | The calendar: subscribe card, four-week grid, Coming up list. |
@@ -174,6 +175,45 @@ Hand-edited data files: `links.js`, `calendar.js`, `instagram.js`, `sway.js`.
 `tools/refresh-instagram.yml` are GitHub Actions that are deliberately **not**
 in `.github/workflows/`, so nothing runs against the repository until someone
 decides it should. Do not move them without being asked.
+
+**The light/dark toggle** (added 2026-09-21) is site-wide chrome, not a
+section, so it lives outside the per-section table above and outside §6
+below. A circular button, fixed top right, everywhere — the wheel and every
+open page — built by `assets/js/theme.js`, styled in `styles.css` right after
+the token block it depends on.
+
+- **Dark is the default** (the site's original, only palette, still the bare
+  `:root` values). Light is the second palette, added the same way
+  `prefers-color-scheme: light` already applied it before this toggle
+  existed. The toggle adds a third state on top: forced, either direction,
+  via `[data-theme="light"]` or `[data-theme="dark"]` on `<html>`.
+- **The override shape matches the tokens exactly, because it has to.** The
+  system-light block gained a `:not([data-theme="dark"])` guard, and one new
+  unguarded `:root[data-theme="light"]` block was added for forced light —
+  forced dark needs nothing of its own, since with nothing overriding the
+  bare (dark) tokens, dark is just what happens. The toggle's own icon-swap
+  CSS (which icon is visible) uses the identical three-rule shape, on
+  purpose, so the two can never disagree about which theme is showing.
+  **Anything that changes what counts as "light" must edit both places** —
+  the token block and the icon-swap block — not one.
+- **The choice is read back out before first paint**, in index.html's own
+  inline `<script>` (the one that also strips the `no-js` class), not in
+  `theme.js` at the bottom of the page. `theme.js` runs after the DOM and
+  every other script; by the time it does, a returning visitor with a stored
+  preference has already been rendering in the wrong theme for however long
+  the rest of the page took to load and parse, and `theme.js` running would
+  only correct it after the fact — a visible flash of the wrong theme
+  followed by a snap to the right one. The inline script sets `[data-theme]`
+  synchronously, before the stylesheet is even used to paint anything, so
+  there is nothing to flash away from.
+- **`localStorage` reads are wrapped in try/catch, twice** — once in the
+  inline head script, once in `theme.js`'s own write — because a private
+  window, or a visitor with storage blocked entirely, throws rather than
+  returning `null`. Both places fail open: no stored value (or a throw)
+  means no override, which means the system preference decides, exactly as
+  it did before this toggle existed.
+- **Hidden entirely under `.no-js`**, same as `.page__chrome`. A button that
+  does nothing without `theme.js` is worse than no button.
 
 ---
 
@@ -504,6 +544,13 @@ tiles were tabbable straight through the veil.
 **`GAP_DEG` is 0.** A gap held at a constant *angle* grows with the radius, so
 any value above zero is invisible at the hub and a wedge at the rim. If a gap is
 ever wanted back it must be a constant arc length.
+
+**A colour token only ever belongs in `:root` or a `[data-theme]`/media block
+— never hand-picked for one component.** The light/dark toggle (§5) means
+three states now decide colour (system dark, system light, and either forced
+by `[data-theme]`), and every one of them has to agree. A component that sets
+its own literal colour instead of a `var(--token)` is correct in whichever
+state it was written in and wrong in the others.
 
 **`biosoc:page` is the contract for section-scoped work.** `app.js` fires it on
 open with `{ id }` and on close with `{ id: null }`. Instagram, the Sway
