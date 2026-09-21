@@ -246,16 +246,11 @@
     });
   }
 
-  /** Drop picks that the newly chosen degree cannot take. */
-  function prunePicks() {
-    COLUMNS.forEach(function (c) {
-      state.picks[c.id] = state.picks[c.id].filter(function (code) {
-        var d = degree();
-        var opts = (d.options && d.options[c.id]) || [];
-        if (opts.indexOf(code) === -1) { return false; }
-        return !fixedIn(d, c.id).some(function (x) { return clashesWith(code).indexOf(x) !== -1; });
-      });
-    });
+  /** Every pick is the previous degree's plan, not necessarily this one's
+      — so a degree switch drops all of them rather than keeping whichever
+      happen to also be valid under the new degree. */
+  function clearPicks() {
+    COLUMNS.forEach(function (c) { state.picks[c.id] = []; });
   }
 
   /* ---------- rendering ---------- */
@@ -521,8 +516,22 @@
         '<p class="sheet__req"><strong>Required by:</strong> ' +
           (needs.length ? needs.map(function (d) { return esc(d.name); }).join(", ")
                         : "no degree — it is optional throughout") + '</p>' +
+        '<p class="sheet__req"><strong>About the module:</strong>' +
+          (m.overview ? "" : " N/A") + '</p>' +
+        (m.overview ? overviewList(m.overview) : "") +
       '</div>' +
     '</div>';
+  }
+
+  /** Renders `overview` — a plain string is one bullet, {text, items} is a
+      bullet with its own sub-bullets. See the SCHEMA note in curriculum.js. */
+  function overviewList(items) {
+    return '<ul class="sheet__overview">' + items.map(function (item) {
+      if (typeof item === "string") { return '<li>' + esc(item) + '</li>'; }
+      return '<li>' + esc(item.text) +
+        '<ul>' + item.items.map(function (sub) { return '<li>' + esc(sub) + '</li>'; }).join("") + '</ul>' +
+      '</li>';
+    }).join("") + '</ul>';
   }
 
   function render() {
@@ -788,11 +797,16 @@
   root.addEventListener("click", function (event) {
     var t = event.target.closest("button");
     if (t && t.dataset.degree) {
-      state.degree = t.dataset.degree;
-      prunePicks();
+      /* clicking the already-selected degree again resets to the default
+         (Biological Sciences) rather than doing nothing */
+      var wasAlreadyOn = t.dataset.degree === state.degree;
+      state.degree = wasAlreadyOn ? DATA.degrees[0].id : t.dataset.degree;
+      clearPicks();
       writeUrl();
       rerender();
-      say(t.textContent + " selected");
+      say(wasAlreadyOn
+        ? "Reset to " + degree().name + ", your picks were cleared"
+        : t.textContent + " selected, your picks were cleared");
       return;
     }
     if (t && t.dataset.info) { state.open = t.dataset.info; render(); return; }

@@ -30,6 +30,46 @@ for c, cr, sem, stream, title in y1:
 M["BS1070"]["about"] = "Taken by every degree except the four Medical Sciences streams, which take MB1080 instead."
 M["MB1080"]["about"] = "Taken only by the four Medical Sciences streams, in place of BS1070."
 
+# `overview` is what "About the module:" shows in the details sheet — a
+# list of bullet points, straight from the society, not the handbooks.
+# A plain string is one bullet; {"text", "items"} is a bullet with its
+# own sub-bullets. Modules with no `overview` show "N/A" instead — see
+# assets/js/modulemap.js's details().
+M["BS1030"]["overview"] = [
+ "The study of the molecules of life — DNA, RNA & proteins",
+ "How life works at a molecular level",
+ "How the regulation of molecules defines how the cell works",
+ "Molecular techniques",
+]
+M["BS1040"]["overview"] = [
+ "From the origins of life, through its evolution to today’s biodiverse planet",
+ "Viruses, bacteria, fungi, parasites, cells, disease, ecology and food",
+ "How the molecules of life make cells work and interact with other cells",
+]
+M["BS1050"]["overview"] = [
+ "How is genetic information passed on from generation to generation?",
+ "How do populations evolve?",
+ "How is genetics used in ancestry, forensics, conservation and biotechnology?",
+ "How is genetics used to understand disease and improve health?",
+]
+M["BS1060"]["overview"] = [
+ {"text": "The physiology and pharmacology of the human body:", "items": [
+   "How cells maintain a constant environment for optimal function",
+   "How individual organs work",
+   "How the nervous system coordinates organ function to maintain homeostasis",
+ ]},
+]
+M["BS1070"]["overview"] = [
+ "Understand the diversity of animals and plants and adaptations to their environments – all in the context of evolution",
+]
+M["MB1080"]["overview"] = [
+ {"text": "Learning how to use basic science and apply analytical methods to understand topics such as:", "items": [
+   "The microbiome",
+   "Cancer genomics",
+   "Atherosclerosis",
+ ]},
+]
+
 # ---- Year 2 (all 15 credits)
 y2 = [
  ("BS2200","Research Skills 1",1,"skills"), ("BS2009","Genomes",1,"genetics"),
@@ -220,10 +260,15 @@ out = ['''/* =============================================================
    SCHEMA
    ------
    module:  { code, title?, credits, year, semester, theme, about?,
-              display?, linked?, field?, stream? }
+              overview?, display?, linked?, field?, stream? }
               stream   names a stream colour outright, instead of deriving it
                        from which degrees hold the module as core
               schoolCore  true when every degree holds it as core (generated)
+              overview a list of bullet points for "About the module:" in
+                       the details sheet — a plain string is one bullet,
+                       {text, items} is a bullet with its own sub-bullets.
+                       No `overview` shows "N/A" instead. From the society,
+                       not the handbooks.
    degree:  { id, name, hue, core, options, coreOneOf?, groups? }
               core      required per slot, keyed y1s1 … y3s2
               options   what the handbook lists as choosable in that slot
@@ -302,9 +347,13 @@ for code in sorted(M, key=lambda c: (M[c]["year"], M[c]["semester"], "0" if M[c]
     if m.get("linked"): parts.append("linked: %s" % jd(m["linked"]))
     if m.get("field"): parts.append("field: true")
     line = "    { " + ", ".join(parts)
-    if m.get("about"):
+    tail = []
+    if m.get("about"): tail.append("about: %s" % jd(m["about"]))
+    if m.get("overview"): tail.append("overview: %s" % jd(m["overview"]))
+    if tail:
         out.append(line + ",")
-        out.append("      about: %s }," % jd(m["about"]))
+        for i, t in enumerate(tail):
+            out.append("      " + t + ("," if i < len(tail) - 1 else " },"))
     else:
         out.append(line + " },")
 out[-1] = out[-1].rstrip(",")

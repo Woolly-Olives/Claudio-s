@@ -766,6 +766,26 @@
 
 #module-map .sheet__req strong { color: var(--fg); }
 
+/* the bullet list under "About the module:" — sits right under its
+   sheet__req label, so it pulls up into that paragraph's own bottom
+   margin rather than doubling the gap */
+#module-map .sheet__overview {
+  margin: -0.35rem 0 0.7rem;
+  padding-left: 1.15rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--fg-soft);
+}
+
+#module-map .sheet__overview li { margin: 0 0 0.3rem; }
+#module-map .sheet__overview li:last-child { margin-bottom: 0; }
+
+#module-map .sheet__overview ul {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+  list-style: circle;
+}
+
 #module-map .mm__live {
   margin: 1rem 0 0;
   min-height: 1.2em;

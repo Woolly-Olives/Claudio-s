@@ -15,10 +15,15 @@
    SCHEMA
    ------
    module:  { code, title?, credits, year, semester, theme, about?,
-              display?, linked?, field?, stream? }
+              overview?, display?, linked?, field?, stream? }
               stream   names a stream colour outright, instead of deriving it
                        from which degrees hold the module as core
               schoolCore  true when every degree holds it as core (generated)
+              overview a list of bullet points for "About the module:" in
+                       the details sheet — a plain string is one bullet,
+                       {text, items} is a bullet with its own sub-bullets.
+                       No `overview` shows "N/A" instead. From the society,
+                       not the handbooks.
    degree:  { id, name, hue, core, options, coreOneOf?, groups? }
               core      required per slot, keyed y1s1 … y3s2
               options   what the handbook lists as choosable in that slot
@@ -125,14 +130,20 @@ window.BIOSOC_CURRICULUM = {
   ],
 
   modules: [
-    { code: "BS1030", title: "The Molecules of Life — An Introduction to Biochemistry and Molecular Biology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "biochemistry", schoolCore: true },
-    { code: "BS1040", title: "The Cell — An Introduction to Cell Biology and Microbiology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "microbiology", schoolCore: true },
-    { code: "BS1050", title: "From Individuals to Populations — An Introduction to Genetics", credits: 15, year: 1, semester: 2, theme: "year1", stream: "genetics", schoolCore: true },
-    { code: "BS1060", title: "Multicellular Organisation — An Introduction to Physiology, Pharmacology and Neuroscience", credits: 30, year: 1, semester: 2, theme: "year1", stream: "physiology", schoolCore: true },
+    { code: "BS1030", title: "The Molecules of Life — An Introduction to Biochemistry and Molecular Biology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "biochemistry", schoolCore: true,
+      overview: ["The study of the molecules of life — DNA, RNA & proteins", "How life works at a molecular level", "How the regulation of molecules defines how the cell works", "Molecular techniques"] },
+    { code: "BS1040", title: "The Cell — An Introduction to Cell Biology and Microbiology", credits: 30, year: 1, semester: 1, theme: "year1", stream: "microbiology", schoolCore: true,
+      overview: ["From the origins of life, through its evolution to today’s biodiverse planet", "Viruses, bacteria, fungi, parasites, cells, disease, ecology and food", "How the molecules of life make cells work and interact with other cells"] },
+    { code: "BS1050", title: "From Individuals to Populations — An Introduction to Genetics", credits: 15, year: 1, semester: 2, theme: "year1", stream: "genetics", schoolCore: true,
+      overview: ["How is genetic information passed on from generation to generation?", "How do populations evolve?", "How is genetics used in ancestry, forensics, conservation and biotechnology?", "How is genetics used to understand disease and improve health?"] },
+    { code: "BS1060", title: "Multicellular Organisation — An Introduction to Physiology, Pharmacology and Neuroscience", credits: 30, year: 1, semester: 2, theme: "year1", stream: "physiology", schoolCore: true,
+      overview: [{"text": "The physiology and pharmacology of the human body:", "items": ["How cells maintain a constant environment for optimal function", "How individual organs work", "How the nervous system coordinates organ function to maintain homeostasis"]}] },
     { code: "BS1070", title: "Biodiversity and Behaviour — An Introduction to Zoology", credits: 15, year: 1, semester: 2, theme: "year1", stream: "zoology",
-      about: "Taken by every degree except the four Medical Sciences streams, which take MB1080 instead." },
+      about: "Taken by every degree except the four Medical Sciences streams, which take MB1080 instead.",
+      overview: ["Understand the diversity of animals and plants and adaptations to their environments – all in the context of evolution"] },
     { code: "MB1080", title: "Introduction to Medical Bioscience", credits: 15, year: 1, semester: 2, theme: "year1",
-      about: "Taken only by the four Medical Sciences streams, in place of BS1070." },
+      about: "Taken only by the four Medical Sciences streams, in place of BS1070.",
+      overview: [{"text": "Learning how to use basic science and apply analytical methods to understand topics such as:", "items": ["The microbiome", "Cancer genomics", "Atherosclerosis"]}] },
     { code: "BS2009", title: "Genomes", credits: 15, year: 2, semester: 1, theme: "genetics" },
     { code: "BS2013", title: "Physiology and Pharmacology", credits: 15, year: 2, semester: 1, theme: "physiology" },
     { code: "BS2015", title: "Physiology of Excitable Cells", credits: 15, year: 2, semester: 1, theme: "physiology" },

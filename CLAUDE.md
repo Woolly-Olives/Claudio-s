@@ -53,6 +53,11 @@ something breaks that it would not have caught. Work on branch
   reduced-motion checks in both `playFlip()` and `runIntro()` are load-bearing
   — a naive "just call render()" loses the slide, and a naive intro rewrite
   can reintroduce the flash-then-hide bug documented there.
+- **A degree click always clears every pick, including a still-valid one**
+  (`clearPicks()`), and clicking the already-active degree resets to
+  Biological Sciences rather than doing nothing. Don't reintroduce the old
+  `prunePicks()` behaviour (keep whichever picks the new degree also
+  allows) without being asked — see `docs/HANDOVER.md` §6.
 - **`biosoc:page` is the contract**: `app.js` fires it on open with `{ id }` and
   on close with `{ id: null }`. Section-scoped work — anything that runs a
   timer or fetches from a third party — waits for it, so nothing happens before

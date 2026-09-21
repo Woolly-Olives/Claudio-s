@@ -173,6 +173,30 @@ await page.waitForTimeout(3600);   // let the opening reveal finish before touch
 const degrees = await page.locator("#module-map .dbtn").count();
 check("eleven degrees", degrees, 11);
 
+console.log("\n\"About the module:\" in the details sheet");
+async function overviewOf(code) {
+  await page.evaluate(c => document.querySelector('[data-info="' + c + '"]').click(), code);
+  await page.waitForTimeout(200);
+  const result = await page.evaluate(() => {
+    const card = document.querySelector("#module-map .sheet__card");
+    const list = card.querySelector(".sheet__overview");
+    return {
+      hasNA: card.textContent.includes("About the module:") && card.textContent.includes("N/A") && !list,
+      topLevel: list ? list.querySelectorAll(":scope > li").length : 0,
+      nested: list ? list.querySelectorAll("li ul li").length : 0,
+    };
+  });
+  await page.evaluate(() => document.querySelector("[data-close]").click());
+  await page.waitForTimeout(150);
+  return result;
+}
+check("BS1030 (flat list) shows 4 bullets, no nesting",
+  await overviewOf("BS1030"), { hasNA: false, topLevel: 4, nested: 0 });
+check("BS1060 (nested list) shows 1 bullet with 3 sub-bullets",
+  await overviewOf("BS1060"), { hasNA: false, topLevel: 1, nested: 3 });
+check("a module with no overview (BS2009) shows N/A instead",
+  await overviewOf("BS2009"), { hasNA: true, topLevel: 0, nested: 0 });
+
 /*
  * Boxes MOVE between degrees now, on purpose (core to the top, unavailable
  * hidden) — see docs/HANDOVER.md on why this reverses the project's
@@ -216,10 +240,32 @@ await page.waitForTimeout(520);
 check("switching it back off hides them again",
   await page.locator("#module-map .box--unavailable").count(), 0);
 
-/* the unspecialised degree, not Zoology (left selected above) — its
-   options in Year 2 are known to fill both semesters exactly to 60 */
-await page.locator("#module-map .dbtn", { hasText: "Biological Sciences" }).click();
+/* a degree switch is a fresh plan, not a merge — every pick drops, even
+   ones that would still be valid under the new degree */
+await page.locator("#module-map .box--optional").first().click();
+await page.waitForTimeout(420);
+check("picking a module under Zoology leaves one selected",
+  await page.locator("#module-map .box--selected").count(), 1);
+await page.locator("#module-map .dbtn", { hasText: /^Genetics$/ }).click();
 await page.waitForTimeout(520);
+check("switching to a different degree drops every pick",
+  await page.locator("#module-map .box--selected").count(), 0);
+
+/* clicking the already-selected degree again is a full reset, not a
+   no-op — back to Biological Sciences, and any picks made under it drop */
+await page.locator("#module-map .box--optional").first().click();
+await page.waitForTimeout(420);
+await page.locator("#module-map .dbtn", { hasText: /^Genetics$/ }).click();
+await page.waitForTimeout(520);
+check("clicking the active degree again resets to Biological Sciences",
+  await page.evaluate(() => document.querySelector("#module-map .dbtn.is-on").textContent.trim()),
+  "Biological Sciences");
+check("...and drops whatever was picked under it too",
+  await page.locator("#module-map .box--selected").count(), 0);
+
+/* Biological Sciences is already selected, picks already clear, from
+   the reset just above — its options in Year 2 are known to fill both
+   semesters exactly to 60, needed for the outline checks below */
 
 /* The golden outline is one overlay per year (Year 2, Year 3 — never
    Year 1, which is fully core on every degree and would always be "done"

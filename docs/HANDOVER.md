@@ -275,11 +275,43 @@ move on purpose:
   unavailable). Picking an optional module moves it from the second tier to the
   first; switching degree can move anything, since what counts as core, chosen,
   optional or unavailable is recomputed from scratch.
+- **A degree click drops every pick, even a still-valid one — and clicking
+  the active degree again is a reset, not a no-op.** Changed 2026-09-21,
+  at explicit instruction; before this, `prunePicks()` kept whichever picks
+  the new degree could also offer and only dropped the rest — a pick under
+  Zoology that happened to also be optional under Genetics would survive a
+  switch to Genetics. `clearPicks()` replaced it: unconditional, every
+  time, on the reasoning that a pick is the *previous* degree's plan, not
+  necessarily the new one's, so nothing should carry over silently. On top
+  of that, clicking the degree button that is already selected is a second,
+  distinct action — `state.degree` resets to `DATA.degrees[0].id`
+  (Biological Sciences) rather than leaving the click a no-op, alongside
+  the same unconditional pick-clear every other degree click gets. One
+  consequence worth knowing: the "a year that stays done through a degree
+  switch is only repositioned, never re-faded" behaviour on the golden
+  outline (below) is now rarely reachable *for a degree switch specifically*
+  — a fresh degree starts with zero picks, so a year is essentially never
+  still at 120 credits right after one. `yearOutlineShown`'s cross-render
+  persistence still matters for a plain pick/drop rerender within the same
+  degree, which is unaffected by this change.
 - **Strictly unavailable modules are hidden by default**, not just styled
   dim. A checkbox switch (`state.showAll`, persisted in the URL as `?all=1`,
   the label reading "Show modules this degree does not offer") brings them
   back, styled exactly as the old `.box--unavailable` convention already drew
   them.
+- **"About the module:" in the details sheet** (added 2026-09-21), styled
+  identically to "Required by:" above it (both are `.sheet__req`) — content
+  is `overview` on the module, a new field in `curriculum.js`'s schema: a
+  plain string is one bullet, `{text, items}` is a bullet with its own
+  sub-bullets (`overviewList()` in `modulemap.js` renders either shape; the
+  nesting only goes one level deep, since nothing has needed more). No
+  `overview` shows **N/A**. Currently set for the six Year 1 modules only
+  (BS1030, BS1040, BS1050, BS1060, BS1070, MB1080), straight from the
+  society, not transcribed from any handbook — unlike `about`, the
+  existing short caveat line a few paragraphs above it in the same sheet,
+  which mostly is. `overview` is edited in `tools/build-curriculum.py`
+  (the generator) and the site's own `assets/data/curriculum.js` is never
+  hand-touched, same as every other generated field.
 - **The move is animated with FLIP** (First-Last-Invert-Play), in
   `assets/js/modulemap.js`: `rerender()` measures every box's position before
   `render()` throws the DOM away and rebuilds it, then `playFlip()` starts each

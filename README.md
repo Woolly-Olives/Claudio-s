@@ -507,7 +507,8 @@ Three clicks do everything, and nothing needs more:
 
 | One click on | Does |
 | --- | --- |
-| a degree button | recolours the whole board for that degree |
+| a degree button | recolours the whole board for that degree, and clears every pick |
+| the already-selected degree button | resets to Biological Sciences, and clears every pick |
 | a module box | takes or drops an optional module |
 | a module's **i** | opens its details |
 
@@ -546,6 +547,25 @@ soft gold outline fades in around both of that year's columns, as one frame
 rather than two. Year 1 is 120 credits of core on every degree, so an outline
 on it would say nothing and it never gets one; Year 2 and Year 3 earn theirs
 as you pick, so at most two outlines can ever be on screen at once.
+
+**Every pick drops on any degree click** (`clearPicks()` in
+`assets/js/modulemap.js`, added 2026-09-21) — including a pick that would
+still be valid under the new degree. Picks are the previous degree's plan,
+not necessarily the new one's, so nothing carries over silently. Clicking
+the degree that is *already* selected is a second, distinct action: it
+resets back to Biological Sciences (`DATA.degrees[0]`) rather than doing
+nothing, on top of clearing picks the same as any other degree click.
+
+### About the module
+
+Every module's details panel ends with an **"About the module:"** line,
+styled exactly like the "Required by:" line above it. Its content is
+`overview` in `assets/data/curriculum.js` (**generated** — edit the six
+entries near the top of `tools/build-curriculum.py` and re-run it, never
+the output directly): a list where a plain string is one bullet and
+`{text, items}` is a bullet with its own sub-bullets. A module with no
+`overview` shows **N/A**. From the society, not the handbooks — unlike
+`about`, the short caveat line above it, which is.
 
 The move itself is animated as a slide, not a jump or a re-fade — a box
 between board rebuilds; if it just appeared (newly available, or revealed by
