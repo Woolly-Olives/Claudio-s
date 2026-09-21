@@ -911,7 +911,7 @@
    * module picks use rerender()'s FLIP slide instead, and would be a
    * poor place for a multi-second cover-and-reveal to keep replaying.
    */
-  var STEP_MS = 260, VEIL_MS = 420, FLOAT_MS = 640;
+  var STEP_MS = 260, VEIL_MS = 420, FLOAT_MS = 1000;
 
   function runIntro() {
     if (reduceMotion.matches) { return; }
@@ -944,12 +944,30 @@
       var veil = document.createElement("div");
       veil.className = "mm__veil";
       veil.innerHTML =
-        '<svg class="mm__veil__arrow" viewBox="0 0 48 48" aria-hidden="true">' +
-          '<path d="M6 24h30M23 12l13 12-13 12" fill="none" stroke="currentColor" ' +
-            'stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>' +
-        '</svg>' +
-        '<span class="mm__veil__label">Year ' + meta.year + '<br>Semester ' + meta.semester + '</span>';
+        '<div class="mm__veil__inner">' +
+          '<svg class="mm__veil__arrow" viewBox="0 0 48 48" aria-hidden="true">' +
+            '<path d="M6 24h30M23 12l13 12-13 12" fill="none" stroke="currentColor" ' +
+              'stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '</svg>' +
+          '<span class="mm__veil__label">Year ' + meta.year + '<br>Semester ' + meta.semester + '</span>' +
+        '</div>';
       colEl.appendChild(veil);
+    });
+
+    /*
+     * Every arrow lines up level with Year 1 Semester 1's, whatever that
+     * column's own module count happens to make its height, rather than
+     * each one centring in its own (taller or shorter) column — since
+     * columns are grid-top-aligned, the same pixel offset from each
+     * veil's own top lands at the same height on the page for all of
+     * them. Measured off the column itself (not the veil, which does not
+     * exist until the loop above has run), half its rendered height is
+     * where Year 1 Semester 1's own arrow naturally centres.
+     */
+    var levelPx = cols[0].getBoundingClientRect().height / 2;
+    cols.forEach(function (colEl) {
+      var inner = colEl.querySelector(".mm__veil__inner");
+      if (inner) { inner.style.top = levelPx + "px"; }
     });
 
     /*

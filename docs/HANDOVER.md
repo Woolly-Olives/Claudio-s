@@ -294,12 +294,46 @@ move on purpose:
   Before this, the float and the reveal were the same pass: a column
   floated its own modules into view and lost its veil in the same beat,
   so column 2 could already be revealing itself while column 5 had not
-  even floated in yet. `FLOAT_MS` (640ms) is the Phase A transition
-  duration and must stay in step with the `transition` on `.col.is-floated`
-  in `modulemap.css`; the earlier float direction/speed change (from
+  even floated in yet. `FLOAT_MS` is the Phase A transition duration and
+  must stay in step with the `transition` on `.col.is-floated` in
+  `modulemap.css`; the earlier float direction/speed change (from
   `translateY(16px)→none` floating *up* over 380ms, to floating *down*
   and slowed) carried straight over into this structure, now applied to
   the whole column rather than to each box individually.
+
+  Revised again 2026-09-21, twice more:
+  - **The float is longer, slower and gentler**: `translateY(-40px)` →
+    `translateY(-120px)`, `FLOAT_MS` 640ms → 1000ms, and the timing
+    function `var(--ease)` (the site-wide `cubic-bezier(0.22, 1, 0.36,
+    1)`, a snappy ease-out used for most of the site's other motion) →
+    plain `ease-in-out`, chosen deliberately *unlike* the site-wide curve
+    — `--ease` front-loads nearly all of its motion in the first third
+    and spends the rest barely moving, which reads as a quick arrival
+    rather than a float; `ease-in-out` accelerates through the middle and
+    decelerates at both ends, closer to an actual falling-and-settling
+    motion. Confirmed with Playwright by sampling the column's computed
+    `transform` through the transition: barely moved in the first ~200ms,
+    most of the distance covered in the middle third, tapering into place
+    by the end — the ease-in-out shape, not a front-loaded one.
+  - **Every arrow now lines up level with Year 1 Semester 1's**, instead
+    of each one centring vertically in its own veil. The columns hold
+    different numbers of modules, so each veil was a different height,
+    and centring independently put every arrow at a different height
+    across the row. The arrow and label moved into a new
+    `.mm__veil__inner` wrapper, positioned with `top` set inline by
+    `runIntro()` — not centred by flexbox on the veil itself any more.
+    The value is `cols[0].getBoundingClientRect().height / 2`: half of
+    Year 1 Semester 1's own rendered height, applied as the same pixel
+    `top` to every column's inner wrapper. This works only because
+    `.mm__board` already has `align-items: start`, so every column's top
+    edge (and therefore every veil's top edge, `inset` from it) sits at
+    the same board Y-coordinate — the same pixel offset from each
+    veil's own top therefore lands at the same absolute height on the
+    page for all six. Set once, synchronously, before any column has
+    started floating, so it is stable to check regardless of animation
+    timing — see the "every intro arrow lines up level" case in
+    `tools/check.mjs`, which does exactly that rather than racing the
+    float/reveal sequence.
 
 **A real bug worth knowing if this is ever touched again:** the first version
 of the intro removed a column's `is-revealed` class as soon as that column's

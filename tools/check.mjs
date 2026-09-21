@@ -90,9 +90,22 @@ check("covered tiles are not focusable", await page.evaluate(() => {
 
 console.log("\nthe module map");
 await page.evaluate(() => { location.hash = "#customise-your-degree"; });
-await page.waitForTimeout(1600);
+
+/* checked early, not after the reveal settles: runIntro() sets each
+   veil's arrow group to the same pixel offset (measured off Year 1
+   Semester 1) synchronously, before any column has actually floated —
+   so this is a stable invariant to check regardless of animation
+   timing, rather than racing the float/reveal sequence to catch a
+   moment where every column happens to be floated but not yet revealed */
+await page.waitForTimeout(700);
+check("every intro arrow lines up level with Year 1 Semester 1's",
+  await page.evaluate(() => [...new Set([...document.querySelectorAll("#module-map .mm__veil__inner")]
+    .map(el => el.style.top))]).then(tops => tops.length),
+  1);
+
+await page.waitForTimeout(900);
 await page.evaluate(() => document.fonts && document.fonts.ready);
-await page.waitForTimeout(2200);   // let the opening reveal finish before touching anything
+await page.waitForTimeout(3600);   // let the opening reveal finish before touching anything
 
 const degrees = await page.locator("#module-map .dbtn").count();
 check("eleven degrees", degrees, 11);

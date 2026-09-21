@@ -818,15 +818,17 @@
    regardless (below), by their own rule, so what is seen sliding down is
    the veil, arrow and label included, covering what is underneath.
    FLOAT_MS in modulemap.js is this transition's duration and must stay
-   in step with it. */
+   in step with it, and the starting offset below is this transition's
+   distance — a longer, slower, gentler glide (ease-in-out, not the
+   snappier site-wide --ease) reads as a float rather than a slide. */
 
 #module-map .mm__board--intro .col {
-  transform: translateY(-40px);
+  transform: translateY(-120px);
 }
 
 #module-map .col.is-floated {
   transform: none;
-  transition: transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 1000ms ease-in-out;
 }
 
 /* Phase B: only once every column has floated into place does a veil
@@ -847,11 +849,6 @@
   position: absolute;
   inset: -0.4rem -0.5rem;
   z-index: 4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
   border-radius: 14px;
   background: hsl(var(--dh) 45% 12% / 0.82);
   backdrop-filter: blur(3px);
@@ -869,6 +866,26 @@
 #module-map .mm__veil.is-gone {
   opacity: 0;
   transform: scale(0.94);
+}
+
+/* Positioned by runIntro() in modulemap.js, not centred in its own
+   veil's height — every column's veil is a different height (as many
+   modules as that semester has), so centring each independently put the
+   arrows at different levels across the board. `top` is set inline to
+   the same pixel offset for every column, measured off Year 1 Semester
+   1, and the veils are already grid-top-aligned with each other, so the
+   same offset lands at the same height everywhere. Falls back to
+   centred (50%) if that inline style is ever missing. */
+#module-map .mm__veil__inner {
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 #module-map .mm__veil__arrow {
