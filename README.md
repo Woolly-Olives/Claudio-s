@@ -114,6 +114,18 @@ fade, in `assets/css/styles.css`) — `assets/js/app.js` needed no changes,
 since it only ever adds/removes an `is-open` class and lets CSS decide what
 that means.
 
+**Going back the other way doesn't bubble either.** Closing a Guides page
+back into its section reopens that section (its own close, moments
+earlier, was already instant, so it needs reopening) — and since that
+reopen normally looks identical to a fresh click on the wheel, `app.js`
+marks it with one more state, `is-returning`, applied in `openPage()` only
+when the page just closing is a Guides page and the page opening is the
+section it belongs to. `styles.css` gives `.page.is-returning` the exact
+same fade `.page--flat` gets. A later *fresh* open of that same section
+(from the wheel) clears the flag again on its own — `openPage()` always
+sets it with `classList.toggle(...)`, never just adds it, so there's
+nothing to separately clean up.
+
 ## Adding your content
 
 Everything you add goes inside the `<div class="page__body">` of the relevant

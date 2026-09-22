@@ -245,6 +245,15 @@
   function openPage(id, animate) {
     var panel = panelFor(id);
     if (!panel) { return; }
+    /* returning to a section from one of its own Guides pages: the
+       section was never really gone (its close, just below, is always
+       instant, not the bubble), so reopening it with the bubble would
+       read as a brand new page rather than "back" — this one
+       transition fades instead, the same way a Guides page itself
+       does (.page--flat in styles.css), at explicit instruction
+       (2026-09-22). Checked before openId is overwritten below. */
+    var returningFromGuide = GUIDE_IDS.indexOf(openId) !== -1 && !!slices[id];
+    panel.classList.toggle("is-returning", returningFromGuide);
     if (openId && openId !== id) { hidePage(openId, false); }
 
     var slice = slices[id];

@@ -516,20 +516,33 @@ body.is-page-open .stage {
    own bubble a moment earlier, reads as one reveal too many. These
    fade in place instead; the section-level bubble above is untouched.
    At explicit instruction (2026-09-22). Same shape as .page--zoom in
-   arc.css, which solved the same problem for a different reason. */
+   arc.css, which solved the same problem for a different reason.
+
+   .is-returning is the same treatment, applied for one transition only
+   (app.js's openPage()) when a section reopens after one of its own
+   Guides pages closes — the section was never really gone, so bubbling
+   it back open would read as a fresh page rather than "back". Also at
+   explicit instruction (2026-09-22). */
 .page--flat,
 .page--flat.is-open,
-.page--flat.is-settled {
+.page--flat.is-settled,
+.page.is-returning,
+.page.is-returning.is-open,
+.page.is-returning.is-settled {
   clip-path: none;
 }
 
-.page--flat {
+.page--flat,
+.page.is-returning {
   opacity: 0;
   transition: opacity 380ms var(--ease);
 }
 
-.page--flat.is-open { opacity: 1; }
-.page--flat::before { display: none; }
+.page--flat.is-open,
+.page.is-returning.is-open { opacity: 1; }
+
+.page--flat::before,
+.page.is-returning::before { display: none; }
 
 .page__scroll {
   position: absolute;

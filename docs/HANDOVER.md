@@ -460,6 +460,31 @@ CSS-only reveal variant is free. **The seven wheel sections, Essential
 Links' zoom included, keep their bubble — this only touches the ten pages
 one level under Study Resources.**
 
+**Going back the other way — a Guides page to its section — doesn't bubble
+either, 2026-09-22, same instruction taken further.** The first pass above
+only fixed the Guides page's *own* open/close; it didn't touch what
+happens to Study Resources itself when a Guides page closes back into it.
+That reopen goes through the exact same `openPage("study-resources", true)`
+call a fresh click on the wheel would make — same `animate: true`, same
+bubble CSS — because from `app.js`'s point of view it *is* a fresh open;
+nothing before this recorded that the section was still standing behind
+the Guides page the whole time (its own close, when the Guides page opened,
+was already instant — see `hidePage(openId, false)` inside `openPage()`).
+Fixed with one more state, `is-returning`, toggled onto the panel in
+`openPage()` right before the bubble/fade branch: true exactly when the
+page now closing (`openId`, still holding its old value at that point) is
+a Guides id and the page now opening is a real wheel section. `styles.css`
+gives `.page.is-returning` the identical treatment `.page--flat` gets —
+same selector group, both listed together — so returning fades the same
+way a Guides page itself opens, rather than bubbling. The class is
+recomputed with `classList.toggle(...)` on every single `openPage()` call,
+never just added, so a later **fresh** open of the same section (from the
+wheel, `openId` not a Guides id) clears it back off on its own — no
+separate cleanup needed, and no risk of a stale flag suppressing a bubble
+that should still happen. Only this one specific transition is affected;
+opening a section from the wheel, or from any other section, still bubbles
+exactly as before.
+
 ### Customise Your Degree
 The whole curriculum on one board: **57 modules, 11 degrees, 39 timetable clash
 pairs**, six subject streams (physiology, neuroscience, biochemistry, genetics,

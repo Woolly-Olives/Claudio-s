@@ -149,6 +149,44 @@ check("every Guides page carries page--flat and so starts with no clip-path",
 check("a real section keeps its clip-path circle, unaffected", await page.evaluate(() =>
   getComputedStyle(document.getElementById("page-study-resources")).clipPath), "circle(0px at 50% 50%)");
 
+console.log("\n...and neither does going back from one to its section");
+await page.evaluate(() => { location.hash = "#study-resources"; });
+await page.waitForTimeout(120);
+check("a fresh open of the section still bubbles (a real clip-path circle)",
+  await page.evaluate(() => {
+    const cp = getComputedStyle(document.getElementById("page-study-resources")).clipPath;
+    return cp !== "none" && cp.indexOf("circle") === 0;
+  }), true);
+await page.waitForTimeout(900);
+
+await page.click('#page-study-resources a[href="#guide-lab-skills"]');
+await page.waitForTimeout(900);
+await page.click("#page-guide-lab-skills [data-back]");
+await page.waitForTimeout(80);
+check("returning to the section fades instead — no clip-path mid-transition",
+  await page.evaluate(() => ({
+    clipPath: getComputedStyle(document.getElementById("page-study-resources")).clipPath,
+    isReturning: document.getElementById("page-study-resources").classList.contains("is-returning"),
+  })),
+  { clipPath: "none", isReturning: true });
+await page.waitForTimeout(900);
+check("...and settles open normally", await page.evaluate(() =>
+  document.getElementById("page-study-resources").classList.contains("is-open")), true);
+
+await page.keyboard.press("Escape");
+await page.waitForTimeout(900);
+await page.evaluate(() => { location.hash = "#study-resources"; });
+await page.waitForTimeout(120);
+check("a later fresh open, all the way from the wheel, bubbles again — the flag doesn't stick",
+  await page.evaluate(() => {
+    const el = document.getElementById("page-study-resources");
+    const cp = getComputedStyle(el).clipPath;
+    return { bubbles: cp !== "none" && cp.indexOf("circle") === 0, stale: el.classList.contains("is-returning") };
+  }),
+  { bubbles: true, stale: false });
+await page.keyboard.press("Escape");
+await page.waitForTimeout(900);
+
 console.log("\nthe Join BioSoc newsletter frame");
 /* sway.js must not fetch sway.cloud.microsoft for a visitor who never
    opens this section — checked before the loop below opens every
