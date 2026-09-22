@@ -782,7 +782,8 @@ body.is-page-open .stage {
 }
 
 .link-list a,
-.link-sublist a {
+.link-sublist a,
+.link-group {
   display: block;
   padding: 0.5rem 0.7rem;
   border-radius: 10px;
@@ -793,6 +794,11 @@ body.is-page-open .stage {
 
 .link-list a:hover,
 .link-sublist a:hover { background: hsl(var(--hue) 40% 50% / 0.12); }
+
+/* a group heading (no link of its own, e.g. "Research resources") —
+   same shape as the links around it, minus the hover wash and cursor,
+   since it doesn't go anywhere itself; only the sublist under it does */
+.link-group { cursor: default; }
 
 .link-list strong,
 .link-sublist strong {

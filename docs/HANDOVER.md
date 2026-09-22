@@ -245,6 +245,37 @@ thing, and none was hand-drawn from memory: a wrong reconstruction of a
 company's mark is worse than the plain number it would replace. Add real ones
 from a normal network.
 
+**Reorganised 2026-09-22, at explicit instruction, into three levels
+instead of a flat nine.** Three of the nine now carry a `more` list of their
+own (Library, Students' Union, University SharePoint), and a brand new
+fourth top-level entry, "Research resources", is nothing but a `more` list —
+see the GROUPS note in `links.js`. This needed one small extension `arc.js`
+didn't have before: a top-level link can now leave `href` out entirely, and
+its wedge stops being a real link (no `href` attribute at all — genuinely
+not a link, not just styled to look inert, so it drops out of tab order the
+same way any `<a>` without `href` does) while its `more` pills underneath
+stay fully clickable; `.seg--group` in `arc.css` drops the pointer cursor
+and hover wash to match. This is the only entry that works this way so far
+— every other top-level link, `more` or not, keeps a real destination of
+its own.
+
+Two apps (UoL Citizen, replacing the old "MyUoL" website link; SafeZone,
+new) each ship as **two separate `more` entries** — "\<app\> (Google Play)"
+and "\<app\> (App Store)" — rather than teaching the schema a second href
+per item. Simpler, and the existing single-href `more` shape didn't need
+touching for it.
+
+`more` items' `note` is now genuinely optional (Google Scholar, Advice, and
+the SafeZone pair have none) — `arc.js` used to assume every `more` item
+had one; `esc(m.note || "")` fixed the version-in-templates that would
+otherwise have baked the literal string `"undefined"` into the arc's hover
+readout for exactly these new entries. Two names' spelling was corrected
+against what the user actually meant while implementing this, both flagged
+back to them at the time: "Centre to Academic Achievement" → **for**, and
+"most useful websites to for your online research" → **for** (dropping the
+duplicated word) — neither is a content decision, just a typo fix during
+transcription.
+
 ### Study Resources
 A 30-row assessment table transcribed from the **2024/25** schedule the user
 screenshotted. It carries a visible caution to check every date against

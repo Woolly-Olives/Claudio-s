@@ -133,10 +133,35 @@ console.log("\ncontent that has gone missing before");
 await page.evaluate(() => { location.hash = "#study-resources"; });
 await page.waitForTimeout(700);
 check("assessment rows", await page.locator(".assessment-table tbody tr").count(), 30);
-check("essential links in the no-arc fallback", await page.locator(".links-fallback a").count(), 13);
+check("essential links in the no-arc fallback", await page.locator(".links-fallback a").count(), 22);
 check("arc sections", await page.locator("#links-arc .seg").count(), 9);
 check("bento tiles", await page.locator(".bento__tile").count(), 8);
 check("advice pieces", await page.evaluate(() => window.BIOSOC_ADVICE.items.length), 27);
+
+console.log("\nEssential Links reorganisation");
+await page.evaluate(() => { location.hash = "#essential-links"; });
+await page.waitForTimeout(700);
+check("list form runs Blackboard, Outlook, Library, Research resources, Students' Union, "
+  + "My Student Record, AccessAbility, University SharePoint, Open Timetable in that order",
+  await page.evaluate(() => [...document.querySelectorAll(".link-list > li")]
+    .map(li => (li.querySelector(":scope > a strong, :scope > .link-group strong") || {}).textContent)),
+  ["Blackboard", "Outlook - university email and calendar", "Library", "Research resources",
+   "Students’ Union", "My Student Record", "AccessAbility", "University SharePoint", "Open Timetable"]);
+check("arc runs University SharePoint, My Student Record, Research resources, Outlook, "
+  + "Blackboard, Library, Students' Union, AccessAbility, Open Timetable left to right",
+  await page.evaluate(() => [...document.querySelectorAll("#links-arc .seg-label__name")].map(el => el.textContent)),
+  ["University SharePoint", "My Student Record", "Research resources", "Outlook - university email and calendar",
+   "Blackboard", "Library", "Students’ Union", "AccessAbility", "Open Timetable"]);
+check("Research resources has no destination of its own — a heading, not a link, in both forms",
+  await page.evaluate(() => ({
+    fallbackIsGroup: !!document.querySelector(".link-list > li > .link-group"),
+    arcHasNoHref: [...document.querySelectorAll("#links-arc .seg")]
+      .find(s => s.getAttribute("aria-label") === "Research resources").getAttribute("href"),
+  })), { fallbackIsGroup: true, arcHasNoHref: null });
+check("every other Essential Links segment still has a real href",
+  await page.evaluate(() => [...document.querySelectorAll("#links-arc .seg")]
+    .filter(s => s.getAttribute("aria-label") !== "Research resources")
+    .every(s => !!s.getAttribute("href"))), true);
 
 console.log("\nthe Opportunities veil");
 await page.evaluate(() => { location.hash = "#opportunities"; });

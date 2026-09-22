@@ -178,8 +178,17 @@ Content lives in **`assets/data/links.js`**, not in `index.html`:
   committee listed them in) and a `rank`. **`rank` is what places a link on the
   arc**: rank 1 goes in the middle, which is the most prominent spot, and the
   rest fan out alternately left and right. Change a `rank` to move a link.
-- `more` holds nested links — the Students' Union's three — drawn as small pills
-  inside its section.
+- `more` holds nested links, drawn as small pills inside a section — Library,
+  Students' Union and University SharePoint all carry one. Each `more` item
+  needs `name` and `href`; `note` on a `more` item is optional (leave it out
+  and the readout stays blank for that pill).
+- **A top-level entry can leave `href` out entirely** — "Research resources"
+  does, since it exists only to hold its four `more` links, not to go
+  anywhere itself. Its wedge then gets no `href` attribute at all (not just
+  a styled-inert one — a real link needs `href`, so without it there is
+  nothing to navigate to or tab into) and no pointer cursor; only its `more`
+  pills are clickable. Every other top-level entry, `more` or not, still
+  keeps its own real destination.
 - `note` is the sentence shown above the curve when you point at a section.
 - `logo` (optional) is the path to an image — `"assets/img/logos/blackboard.svg"`
   — shown in place of the numbered circle. Leave it out and the number shows,

@@ -126,6 +126,15 @@
     stroke-width: 2;
   }
 
+  /* a group heading (no href of its own — see the GROUPS note in
+     links.js) is not a real link, so it gets no pointer cursor and no
+     hover wash; only its `more` pills below are interactive. Comes after
+     the rules above so it wins at equal specificity. */
+  #links-arc .seg--group { cursor: default; }
+  #links-arc .seg--group:hover .seg__path,
+  #links-arc .seg--group.is-hot .seg__path,
+  #links-arc .seg--group:focus-visible .seg__path { opacity: 0; }
+
   /* ---------- the labels riding on the sections ---------- */
 
   #links-arc .arc__labels {

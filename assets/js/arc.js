@@ -181,13 +181,17 @@
       var i1 = polar(Ri, a0), i2 = polar(Ri, a1);
 
       /* the whole sector is the link: hit area first, so the lines and
-         labels above it never intercept the click */
+         labels above it never intercept the click. A link with no `href`
+         (a group heading, like "Research resources" — see the GROUPS
+         note in links.js) gets no href attribute at all, which makes it
+         not a real link (no navigation, out of tab order) — only its
+         `more` list underneath is actually clickable. */
       var a = document.createElementNS(NS, "a");
-      a.setAttribute("href", link.href);
-      a.setAttribute("class", "seg");
+      if (link.href) { a.setAttribute("href", link.href); }
+      a.setAttribute("class", "seg" + (link.href ? "" : " seg--group"));
       a.setAttribute("aria-label", link.name);
       a.dataset.name = link.name;
-      a.dataset.note = link.note;
+      a.dataset.note = link.note || "";
 
       var path = document.createElementNS(NS, "path");
       path.setAttribute("class", "seg__path");
@@ -240,7 +244,7 @@
         (link.more
           ? '<span class="seg-label__more">' + link.more.map(function (m) {
               return '<a href="' + esc(m.href) + '" data-seg="' + i +
-                     '" data-name="' + esc(m.name) + '" data-note="' + esc(m.note) +
+                     '" data-name="' + esc(m.name) + '" data-note="' + esc(m.note || "") +
                      '">' + esc(m.name) + '</a>';
             }).join("") + '</span>'
           : "");
