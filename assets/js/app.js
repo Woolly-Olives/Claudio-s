@@ -16,6 +16,10 @@
      2. add/edit the matching <section class="page"> in index.html
         (id must be "page-" + the section id).
    The wheel re-divides itself evenly however many sections there are.
+
+   A Guides page (Study Resources) is one level deeper than that and
+   not a wheel slice — see the GUIDE_IDS comment below before adding,
+   removing or renaming one of those instead.
    ============================================================= */
 (function () {
   "use strict";
@@ -53,6 +57,24 @@
     { id: "join-biosoc",            label: "Join BioSoc",           hue: 330, sat: 50.2, light: 41.4, ink: "light" }
   ];
 
+  /*
+   * The ten Guides tiles in Study Resources (index.html) each open one
+   * more .page, one level deeper than the seven above — not a wheel
+   * slice, so they stay out of SECTIONS (which would turn each into an
+   * eighth-through-seventeenth pie slice) but still go through the same
+   * openPage()/hidePage()/route() as everything else; see the guard on
+   * `slice` throughout this file for where the two paths differ. Their
+   * back button reads `data-back="study-resources"` instead of the
+   * seven's plain `data-back`, so goToParent() sends them there instead
+   * of to the wheel.
+   */
+  var GUIDE_IDS = [
+    "guide-balancing-university-life", "guide-how-to-take-notes", "guide-lab-skills",
+    "guide-coding-and-stats-skills", "guide-online-research-guides", "guide-how-to-write-essays",
+    "guide-how-to-write-lab-reports", "guide-how-to-revise-for-exams", "guide-presentation-skills",
+    "guide-poster-and-infographic-design"
+  ];
+
   /* --- wheel geometry, in the SVG's 100x100 user units --- */
   var CENTRE   = 50;
   var R_OUTER  = 48;
@@ -77,6 +99,11 @@
   var openId = null;
   var hideTimer = null;
   var pushedHistory = false;
+  /* set by the Guides-tile click handler below, read once by the very
+     next openPage() call (the one that click's own hashchange causes)
+     and then cleared — a guide page reached any other way (typed URL,
+     forward/back) has no tile to bubble from, so it opens from centre */
+  var guideOrigin = null;
 
   /* ---------- geometry helpers ---------- */
 
@@ -221,7 +248,12 @@
     if (openId && openId !== id) { hidePage(openId, false); }
 
     var slice = slices[id];
-    var origin = originFor(id);
+    /* a wheel slice bubbles from its own tip (originFor); a Guides page
+       bubbles from whichever tile was just clicked (guideOrigin, set by
+       the click handler below) or, reached any other way, from centre */
+    var origin = slice ? originFor(id) :
+      (guideOrigin || { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    guideOrigin = null;
     panel.style.setProperty("--ox", Math.round(origin.x) + "px");
     panel.style.setProperty("--oy", Math.round(origin.y) + "px");
     panel.style.setProperty("--r", coveringRadius(origin.x, origin.y) + "px");
@@ -284,9 +316,15 @@
     }
 
     if (animate && !reduceMotion.matches) {
-      var origin = originFor(id);             // re-measure: the viewport may have changed
-      panel.style.setProperty("--ox", Math.round(origin.x) + "px");
-      panel.style.setProperty("--oy", Math.round(origin.y) + "px");
+      /* re-measure: the viewport may have changed since this opened —
+         only meaningful for a wheel slice, which has a fixed spot to
+         re-measure; a Guides page just shrinks back to the --ox/--oy
+         its own tile set on the way in */
+      if (slice) {
+        var origin = originFor(id);
+        panel.style.setProperty("--ox", Math.round(origin.x) + "px");
+        panel.style.setProperty("--oy", Math.round(origin.y) + "px");
+      }
       panel.classList.remove("is-settled");
       void panel.offsetWidth;
       panel.classList.remove("is-open");
@@ -333,7 +371,7 @@
 
   function currentHashId() {
     var id = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
-    return slices[id] ? id : null;
+    return (slices[id] || GUIDE_IDS.indexOf(id) !== -1) ? id : null;
   }
 
   function route(animate) {
@@ -354,18 +392,29 @@
    */
   window.addEventListener("popstate", function () { route(true); });
 
+  /* a Guides tile is a plain <a href="#guide-…">, so the hashchange above
+     already opens it — this only records where to bubble it from before
+     that happens, mirroring the wheel slices' own click listener */
+  document.addEventListener("click", function (event) {
+    var a = event.target.closest("a[href^='#']");
+    if (!a || GUIDE_IDS.indexOf(a.getAttribute("href").slice(1)) === -1) { return; }
+    pushedHistory = true;
+    var r = a.getBoundingClientRect();
+    guideOrigin = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  });
+
   document.addEventListener("click", function (event) {
     var back = event.target.closest("[data-back]");
     if (!back) { return; }
     event.preventDefault();
-    goToMenu();
+    var target = back.getAttribute("data-back");
+    if (target) { goToParent(target); } else { goToMenu(); }
   });
 
   document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && openId) {
-      event.preventDefault();
-      goToMenu();
-    }
+    if (event.key !== "Escape" || !openId) { return; }
+    event.preventDefault();
+    if (GUIDE_IDS.indexOf(openId) !== -1) { goToParent("study-resources"); } else { goToMenu(); }
   });
 
   /** Back to the wheel, without leaving a trail of hashes in history. */
@@ -377,6 +426,18 @@
       history.replaceState(null, "", location.pathname + location.search);
       route(true);
     }
+  }
+
+  /**
+   * Back to `target` (currently only "study-resources", from a Guides
+   * page) rather than all the way to the wheel. Unlike goToMenu(), this
+   * never clears `pushedHistory`: if the wheel is still one more "back"
+   * away, that later goToMenu() call needs it to still read true so it
+   * also uses history.back() rather than jumping straight there.
+   */
+  function goToParent(target) {
+    if (pushedHistory) { history.back(); }     // hashchange does the rest
+    else { location.hash = "#" + target; }
   }
 
   /* a deep link lands on its page already open — nothing to animate from yet */

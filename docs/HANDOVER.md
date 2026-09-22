@@ -282,6 +282,79 @@ screenshotted. It carries a visible caution to check every date against
 Blackboard. That caution stays until the dates are re-verified for the current
 year.
 
+**A "Guides" heading and ten bento tiles were added above it, 2026-09-22,
+at explicit instruction — and these needed something Opportunities'
+bento never did: each tile is a real, clickable link to its own full
+page, not a veiled placeholder.** Opportunities' tiles sit under an
+`inert` bento behind a `.bento-veil` that blurs the grid and says
+"Coming soon!" over the top of it — nothing there is reachable. Here,
+the instruction was the opposite: the *tiles* work normally, and it is
+each one's *destination* that currently says "Coming soon!"
+(`<p class="guide-soon">` — see the CONTENT comment on the Guides bento
+in `index.html`), to be replaced with real content guide by guide later.
+That ruled out reusing the veil pattern outright.
+
+**This needed a second, shallower kind of page, not just more content**,
+because `assets/js/app.js`'s entire routing was built assuming exactly
+one level: the wheel, and the seven sections one hash away from it —
+`currentHashId()` only recognised a hash that named a wheel slice, and
+`openPage()` unconditionally called `originFor(id)`, which reads
+`slices[id].mid` and would throw for anything that is not one.  Ten new
+wheel slices was never on the table (`SECTIONS.length` divides the
+wheel evenly — ten more would turn it into a 17-slice wheel, wrecking
+every degree the seven currently occupy), so a **second, independent
+id-space** was added instead: `GUIDE_IDS` in `app.js`, ten ids
+(`guide-balancing-university-life`, …) each with a matching
+`<section class="page" id="page-guide-…">` in `index.html`, exactly the
+`page-` + id convention the seven sections already use, but never added
+to `SECTIONS`.
+- `currentHashId()` now accepts a hash in *either* set.
+- `openPage()`/`hidePage()` branch on whether `slices[id]` exists: a
+  wheel slice still bubbles from its own tip (`originFor()`,
+  unchanged); a Guides page bubbles from whichever tile was actually
+  clicked — a new `guideOrigin` variable, set by a click listener that
+  reads the clicked `<a>`'s own `getBoundingClientRect()` (mirroring
+  `originFor()`'s geometry, just off an arbitrary element instead of a
+  wheel angle) — or, reached any other way (typed hash, forward/back),
+  from the viewport centre. One-shot: read once by the very next
+  `openPage()` call, then cleared, so a later reopen by hash alone
+  doesn't reuse a stale tile position.
+- **The back button and Escape needed to go one level up (to Study
+  Resources), not two (straight to the wheel), and the existing
+  `data-back`/`goToMenu()` pair only knew the second.** Fixed by giving
+  a Guides page's back button `data-back="study-resources"` (a real
+  value) instead of the seven pages' plain `data-back` (no value); the
+  click handler now checks for one and calls a new `goToParent(target)`
+  instead of `goToMenu()` when present. Escape does the same check
+  against `GUIDE_IDS` before choosing which to call.
+  `goToParent()` mirrors `goToMenu()`'s `history.back()`-when-possible
+  logic (so the browser's own back button still works, and back-to-
+  Study-Resources doesn't pile up a redundant history entry) but
+  **never clears `pushedHistory`** the way `goToMenu()` does — a
+  Guides page is two `history.back()` calls from the wheel
+  (page → Study Resources → wheel), and `goToMenu()`'s own later call,
+  from Study Resources, still needs to see `pushedHistory` as true to
+  know a `history.back()` is safe rather than a raw hash clear.
+- Every other slice-only code path — `wheelDisc()`, the `reveal: "zoom"`
+  check, `slice.link`/`slice.label` active-state classes — is already
+  guarded by `if (slice)` or was never reachable for a non-slice id in
+  the first place, so none of it needed touching.
+
+The ten bento tiles themselves needed their sizes worked out by hand for
+CSS Grid's sparse auto-placement (`grid-auto-flow` is left at its default,
+not `dense`, same as Opportunities): "Balancing university life"
+(`bento__tile--wide bento__tile--tall`, 2×2) and "How to take notes"
+(`bento__tile--tall`, 1×2) placed first, in that order, fill the left three
+columns of a 2-row band with two 1×1 tiles ("Lab skills", "Coding and stats
+skills") completing the fourth column beside them — 4+2+1+1 = 8 cells,
+one full 4-wide, 2-tall block, so the next tile in source order starts
+a fresh row rather than being pushed somewhere unexpected by the sparse
+algorithm. The remaining six 1×1 tiles then run a full row of four
+followed by a row of two — a legitimately **shorter** last row (not a
+hole in the middle of the grid, which is what the "keep tiling exactly"
+warning on Opportunities' own bento is actually about), since 14 tile-units
+across 4 columns was never going to be a whole number of full rows.
+
 ### Customise Your Degree
 The whole curriculum on one board: **57 modules, 11 degrees, 39 timetable clash
 pairs**, six subject streams (physiology, neuroscience, biochemistry, genetics,

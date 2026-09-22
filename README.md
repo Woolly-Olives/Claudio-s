@@ -230,6 +230,35 @@ leaves holes; the current eight tiles fill four rows with nothing left over. The
 grid drops to two columns below 900px and one below 560px, where all spans are
 ignored.
 
+## Bento tiles, the other kind (Study Resources' Guides)
+
+Ten more `.bento__tile` links, under a "Guides" heading at the top of Study
+Resources — same grid, same `--wide`/`--tall` sizing, but **not** veiled
+or `inert`: every tile is a real, working link, unlike Opportunities'.
+What's a placeholder here is each tile's *destination* — a `<p
+class="guide-soon">Coming soon!</p>` — not the tile itself. Replace that
+paragraph with the real guide as each one gets written; nothing else
+about its page needs to change.
+
+Ten one-off tile-units don't divide evenly into a 4-wide grid (14 across
+4 columns), so the last row is legitimately shorter than the rest —
+that's not the "holes" warning above, which is about a gap opening up
+*mid*-grid from careless ordering, not a shorter final row.
+
+**Each tile opens its own full page, one level deeper than the wheel's
+seven sections** — `#guide-lab-skills` and the other nine, each with a
+`<section class="page" id="page-guide-…">` in `index.html`, styled and
+animated exactly like the seven (same bubble-reveal, same `.page__head`/
+`.page__body`), but never added to `app.js`'s `SECTIONS` — doing that
+would make each one an eighth-through-seventeenth wheel slice instead of
+a Study Resources sub-page. They're routed through a second id list,
+`GUIDE_IDS` in `app.js`, and the reveal bubbles from whichever tile was
+actually clicked rather than a slice's fixed position. Their back button
+carries `data-back="study-resources"` (the seven's own back buttons
+carry plain `data-back`, no value) so it — and Escape — return to Study
+Resources, not the wheel; see the GUIDE_IDS comment in `app.js` before
+adding, renaming or removing one.
+
 ## The calendar (Events)
 
 Events come from a calendar published out of Outlook. The page leads with a

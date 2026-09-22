@@ -465,6 +465,16 @@ body.is-page-open .stage {
   color: var(--fg-soft);
 }
 
+/* the whole body of a Guides sub-page, for now — see the CONTENT comment
+   on the Guides bento in the Study Resources section of index.html */
+.guide-soon {
+  margin: 3rem 0;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
 .page.is-open .page__body { opacity: 1; transform: none; }
 
 .page__empty {

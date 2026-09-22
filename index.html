@@ -186,6 +186,61 @@ try {
         <h1 class="page__title" id="h-study-resources" tabindex="-1">Study Resources</h1>
       </header>
       <div class="page__body">
+        <h2>Guides</h2>
+
+        <!-- CONTENT: Guides
+             Unlike the Opportunities bento, these tiles are real links —
+             not veiled placeholders — each opening its own full page
+             (assets/js/app.js's GUIDE_IDS list, further down this file).
+             What is placeholder for now is only what each page says:
+             "Coming soon!" in a <p class="guide-soon">. Replace that
+             paragraph with the guide's real content as each one is
+             written; nothing else about the page needs to change.
+             Tile size is set by the bento__tile--* classes, same as
+             Opportunities — keep the spans tiling the 4-column grid
+             exactly, or the layout leaves holes. -->
+        <div class="bento">
+          <a class="bento__tile bento__tile--wide bento__tile--tall" href="#guide-balancing-university-life">
+            <strong class="bento__title">Balancing university life</strong>
+          </a>
+
+          <a class="bento__tile bento__tile--tall" href="#guide-how-to-take-notes">
+            <strong class="bento__title">How to take notes</strong>
+          </a>
+
+          <a class="bento__tile" href="#guide-lab-skills">
+            <strong class="bento__title">Lab skills</strong>
+          </a>
+
+          <a class="bento__tile" href="#guide-coding-and-stats-skills">
+            <strong class="bento__title">Coding and stats skills</strong>
+          </a>
+
+          <a class="bento__tile" href="#guide-online-research-guides">
+            <strong class="bento__title">Online research guides</strong>
+          </a>
+
+          <a class="bento__tile" href="#guide-how-to-write-essays">
+            <strong class="bento__title">How to write essays</strong>
+          </a>
+
+          <a class="bento__tile" href="#guide-how-to-write-lab-reports">
+            <strong class="bento__title">How to write lab reports</strong>
+          </a>
+
+          <a class="bento__tile" href="#guide-how-to-revise-for-exams">
+            <strong class="bento__title">How to revise for exams</strong>
+          </a>
+
+          <a class="bento__tile" href="#guide-presentation-skills">
+            <strong class="bento__title">Presentation skills</strong>
+          </a>
+
+          <a class="bento__tile" href="#guide-poster-and-infographic-design">
+            <strong class="bento__title">Poster and infographic design</strong>
+          </a>
+        </div>
+
         <h2>Assessment schedule</h2>
 
         <div class="note">
@@ -415,6 +470,213 @@ try {
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- The ten Guides tiles above each open one of these — see the GUIDE_IDS
+     list and the openPage()/goToParent() changes in assets/js/app.js.
+     data-back="study-resources" (not the plain data-back the seven main
+     pages use) sends the back button and Escape to Study Resources
+     instead of the wheel; assets/js/app.js's goToParent() is what reads
+     that value. Each is otherwise a normal .page, just one level deeper —
+     replace <p class="guide-soon"> with real content as each is written. -->
+<section class="page" id="page-guide-balancing-university-life" data-section="guide-balancing-university-life" style="--hue: 166" aria-labelledby="h-guide-balancing-university-life" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-balancing-university-life" tabindex="-1">Balancing university life</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-guide-how-to-take-notes" data-section="guide-how-to-take-notes" style="--hue: 166" aria-labelledby="h-guide-how-to-take-notes" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-how-to-take-notes" tabindex="-1">How to take notes</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-guide-lab-skills" data-section="guide-lab-skills" style="--hue: 166" aria-labelledby="h-guide-lab-skills" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-lab-skills" tabindex="-1">Lab skills</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-guide-coding-and-stats-skills" data-section="guide-coding-and-stats-skills" style="--hue: 166" aria-labelledby="h-guide-coding-and-stats-skills" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-coding-and-stats-skills" tabindex="-1">Coding and stats skills</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-guide-online-research-guides" data-section="guide-online-research-guides" style="--hue: 166" aria-labelledby="h-guide-online-research-guides" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-online-research-guides" tabindex="-1">Online research guides</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-guide-how-to-write-essays" data-section="guide-how-to-write-essays" style="--hue: 166" aria-labelledby="h-guide-how-to-write-essays" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-how-to-write-essays" tabindex="-1">How to write essays</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-guide-how-to-write-lab-reports" data-section="guide-how-to-write-lab-reports" style="--hue: 166" aria-labelledby="h-guide-how-to-write-lab-reports" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-how-to-write-lab-reports" tabindex="-1">How to write lab reports</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-guide-how-to-revise-for-exams" data-section="guide-how-to-revise-for-exams" style="--hue: 166" aria-labelledby="h-guide-how-to-revise-for-exams" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-how-to-revise-for-exams" tabindex="-1">How to revise for exams</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-guide-presentation-skills" data-section="guide-presentation-skills" style="--hue: 166" aria-labelledby="h-guide-presentation-skills" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-presentation-skills" tabindex="-1">Presentation skills</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="page-guide-poster-and-infographic-design" data-section="guide-poster-and-infographic-design" style="--hue: 166" aria-labelledby="h-guide-poster-and-infographic-design" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back="study-resources">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Study Resources</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner">
+      <header class="page__head">
+        <p class="page__eyebrow">Guides</p>
+        <h1 class="page__title" id="h-guide-poster-and-infographic-design" tabindex="-1">Poster and infographic design</h1>
+      </header>
+      <div class="page__body">
+        <p class="guide-soon">Coming soon!</p>
       </div>
     </div>
   </div>

@@ -135,8 +135,66 @@ await page.waitForTimeout(700);
 check("assessment rows", await page.locator(".assessment-table tbody tr").count(), 30);
 check("essential links in the no-arc fallback", await page.locator(".links-fallback a").count(), 22);
 check("arc sections", await page.locator("#links-arc .seg").count(), 9);
-check("bento tiles", await page.locator(".bento__tile").count(), 8);
+check("Opportunities bento tiles", await page.locator("#page-opportunities .bento__tile").count(), 8);
+check("Guides bento tiles", await page.locator("#page-study-resources .bento__tile").count(), 10);
 check("advice pieces", await page.evaluate(() => window.BIOSOC_ADVICE.items.length), 27);
+
+console.log("\nthe Guides bento");
+check("ten tiles, in order, sized 4/2/1×8 as asked",
+  await page.evaluate(() => [...document.querySelectorAll("#page-study-resources .bento__tile")].map(a => ({
+    href: a.getAttribute("href").slice(1),
+    title: a.querySelector(".bento__title").textContent,
+    wide: a.classList.contains("bento__tile--wide"),
+    tall: a.classList.contains("bento__tile--tall"),
+  }))),
+  [
+    { href: "guide-balancing-university-life", title: "Balancing university life", wide: true, tall: true },
+    { href: "guide-how-to-take-notes", title: "How to take notes", wide: false, tall: true },
+    { href: "guide-lab-skills", title: "Lab skills", wide: false, tall: false },
+    { href: "guide-coding-and-stats-skills", title: "Coding and stats skills", wide: false, tall: false },
+    { href: "guide-online-research-guides", title: "Online research guides", wide: false, tall: false },
+    { href: "guide-how-to-write-essays", title: "How to write essays", wide: false, tall: false },
+    { href: "guide-how-to-write-lab-reports", title: "How to write lab reports", wide: false, tall: false },
+    { href: "guide-how-to-revise-for-exams", title: "How to revise for exams", wide: false, tall: false },
+    { href: "guide-presentation-skills", title: "Presentation skills", wide: false, tall: false },
+    { href: "guide-poster-and-infographic-design", title: "Poster and infographic design", wide: false, tall: false },
+  ]);
+check("none of the ten tiles are veiled or inert — real links, unlike Opportunities",
+  await page.evaluate(() => ({
+    bentoInert: document.querySelector("#page-study-resources .bento").hasAttribute("inert"),
+    hasVeil: !!document.querySelector("#page-study-resources .bento-veil"),
+  })), { bentoInert: false, hasVeil: false });
+
+await page.click('#page-study-resources a[href="#guide-lab-skills"]');
+await page.waitForTimeout(700);
+check("a tile opens its own full page, titled to match, saying just \"Coming soon!\"",
+  await page.evaluate(() => ({
+    open: document.querySelector("#page-guide-lab-skills").classList.contains("is-open"),
+    title: document.querySelector("#page-guide-lab-skills .page__title").textContent,
+    body: document.querySelector("#page-guide-lab-skills .guide-soon").textContent,
+    studyResourcesInert: document.querySelector("#page-study-resources").hasAttribute("inert"),
+  })),
+  { open: true, title: "Lab skills", body: "Coming soon!", studyResourcesInert: true });
+check("its back button reads \"Study Resources\", not \"Menu\"",
+  await page.evaluate(() => document.querySelector("#page-guide-lab-skills .page__back span").textContent),
+  "Study Resources");
+await page.click("#page-guide-lab-skills [data-back]");
+await page.waitForTimeout(700);
+check("that back button returns to Study Resources, not all the way to the wheel",
+  await page.evaluate(() => ({
+    hash: location.hash,
+    studyResourcesOpen: document.querySelector("#page-study-resources").classList.contains("is-open"),
+  })), { hash: "#study-resources", studyResourcesOpen: true });
+
+await page.click('#page-study-resources a[href="#guide-how-to-take-notes"]');
+await page.waitForTimeout(700);
+await page.keyboard.press("Escape");
+await page.waitForTimeout(700);
+check("Escape from a Guides page also goes back one level, not straight to the wheel",
+  await page.evaluate(() => ({
+    hash: location.hash,
+    anyPageOpen: document.body.classList.contains("is-page-open"),
+  })), { hash: "#study-resources", anyPageOpen: true });
 
 console.log("\nEssential Links reorganisation");
 await page.evaluate(() => { location.hash = "#essential-links"; });
