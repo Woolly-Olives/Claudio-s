@@ -933,23 +933,25 @@
   }
 
   /*
-   * The entrance runs in two full passes over the six columns, not one
+   * The entrance runs in two full passes over the three years, not one
    * interleaved sequence:
    *
-   *   Phase A — float in, still veiled. Each column — a giant arrow, a
-   *   "Year N / Semester N" label below it, and the modules underneath,
-   *   all still hidden by the veil sitting on top — floats down into
-   *   place, Year 1 Semester 1 first, one column after another. The
-   *   veil is an absolutely-positioned child of `.col`, so transforming
-   *   the whole column carries the veil down with it: what is actually
-   *   seen sliding into place is the veil, arrow and label included, the
-   *   modules obscured underneath exactly as asked.
+   *   Phase A — float in, still veiled. Each year — a giant arrow, a
+   *   "Year N" label below it, and both of that year's semester columns
+   *   underneath, all still hidden by one veil spanning the two of them
+   *   — floats down into place, Year 1 first, one year after another.
+   *   The veil is a sibling of `.col` now (`.mm__board`'s own child, not
+   *   nested in either column, since it has to span both), so it cannot
+   *   simply inherit its motion from being carried along inside one — it
+   *   gets its own inline-managed transform, sized and started to track
+   *   its year's two columns exactly (see the measurement comment below).
    *
-   *   Phase B — reveal, only once every column has finished floating
-   *   in. Starting again from Year 1 Semester 1, each veil fades away in
-   *   turn to uncover that column's modules (its header and credit bar
-   *   were under the veil too, and need no opacity rule of their own —
-   *   they simply appear as the veil above them goes).
+   *   Phase B — reveal, only once every year has finished floating in.
+   *   Starting again from Year 1, each veil fades away in turn to
+   *   uncover that year's two columns at once (their header, credit bar
+   *   and the "Year N" bar above them were under the veil too, and need
+   *   no opacity rule of their own — they simply appear as the veil
+   *   above them goes).
    *
    * Every board is already fully rendered before this starts — the plan
    * you left it in, same as always — this only delays when it becomes
@@ -966,109 +968,146 @@
     var board = root.querySelector(".mm__board");
     var cols = board && Array.prototype.slice.call(board.querySelectorAll(".col"));
     var yearHeads = board && Array.prototype.slice.call(board.querySelectorAll(".mm__year-head"));
-    if (!board || !cols || !cols.length) { return; }
+    if (!board || !cols || cols.length !== 6 || !yearHeads || yearHeads.length !== 3) { return; }
+    root.querySelectorAll(".mm__veil").forEach(function (v) { v.remove(); });   // a run cut short leaves one behind otherwise
 
     /*
      * .is-floated and .is-revealed, once a column has either, are never
-     * removed mid-sequence — only the veil goes, when its own column is
+     * removed mid-sequence — only the veil goes, when its own year is
      * revealed. They have to stay for as long as .mm__board--intro sits
-     * on the board (which is until the very last column of Phase B, not
-     * whenever this column's own part finishes), because that
-     * board-level class is what holds every column off-position and
-     * every box at opacity 0 by default; dropping a per-column class
-     * early would let that column fall straight back under the default
-     * and vanish or jump again before the others have caught up. Both
-     * are reset to nothing at the top of every run, so a second opening
-     * starts clean rather than inheriting classes render() has no
-     * reason to have removed.
+     * on the board (which is until the very last year of Phase B, not
+     * whenever this year's own part finishes), because that board-level
+     * class is what holds every column off-position and every box at
+     * opacity 0 by default; dropping a per-column class early would let
+     * that column fall straight back under the default and vanish or
+     * jump again before the others have caught up. Reset to nothing at
+     * the top of every run, so a second opening starts clean rather than
+     * inheriting classes render() has no reason to have removed.
      */
     cols.forEach(function (colEl) {
       colEl.classList.remove("is-floated");
       colEl.classList.remove("is-revealed");
     });
-    yearHeads.forEach(function (el) { el.classList.remove("is-revealed"); });
+
+    /*
+     * One veil per year, spanning both of its semester columns and the
+     * "Year N" bar above them — three panels obscuring the board, not
+     * six. Its rest position (where it must sit once floated in) is
+     * measured now, from getBoundingClientRect(), before
+     * .mm__board--intro goes on the board and starts pushing the
+     * columns off-position with a `transform` — that transform would
+     * otherwise be baked straight into this measurement, since
+     * getBoundingClientRect() reports the current painted position, not
+     * the underlying layout one. The veil's own float is then driven by
+     * an inline transform kept exactly in step with the columns' CSS
+     * one (same delay, duration and easing — see Phase A below), so
+     * even though it is positioned independently the two always agree
+     * on where they are, without either having to measure the other
+     * mid-flight.
+     */
+    var br = board.getBoundingClientRect();
+    var ox = board.scrollLeft - br.left;
+    var PAD_X = 8, PAD_Y = 6;
+    var years = [0, 1, 2].map(function (y) {
+      var head = yearHeads[y], c1 = cols[y * 2], c2 = cols[y * 2 + 1];
+      var rh = head.getBoundingClientRect(), r1 = c1.getBoundingClientRect(), r2 = c2.getBoundingClientRect();
+      var left = Math.min(rh.left, r1.left, r2.left) + ox - PAD_X;
+      var right = Math.max(rh.right, r1.right, r2.right) + ox + PAD_X;
+      var top = rh.top - br.top - PAD_Y;
+      var bottom = Math.max(r1.bottom, r2.bottom) - br.top + PAD_Y;
+      return { left: left, top: top, width: right - left, height: bottom - top };
+    });
+
     board.classList.add("mm__board--intro");
-    cols.forEach(function (colEl, i) {
-      var meta = COLUMNS[i];
-      if (!meta) { return; }
+
+    var veils = years.map(function (rect, y) {
       var veil = document.createElement("div");
       veil.className = "mm__veil";
+      veil.style.left = rect.left + "px";
+      veil.style.top = rect.top + "px";
+      veil.style.width = rect.width + "px";
+      veil.style.height = rect.height + "px";
+      veil.style.transform = "translateY(-120px)";   // Phase A's starting point, matching .col's own
       veil.innerHTML =
         '<div class="mm__veil__inner">' +
           '<svg class="mm__veil__arrow" viewBox="0 0 48 48" aria-hidden="true">' +
             '<path d="M6 24h30M23 12l13 12-13 12" fill="none" stroke="currentColor" ' +
               'stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>' +
           '</svg>' +
-          '<span class="mm__veil__label">Year ' + meta.year + '<br>Semester ' + meta.semester + '</span>' +
+          '<span class="mm__veil__label">Year ' + (y + 1) + '</span>' +
         '</div>';
-      colEl.appendChild(veil);
+      board.appendChild(veil);
+      return veil;
     });
 
     /*
      * Every arrow lines up level with Year 1 Semester 1's, whatever that
      * column's own module count happens to make its height, rather than
-     * each one centring in its own (taller or shorter) column — since
+     * each one centring in its own (taller or shorter) veil — since
      * columns are grid-top-aligned, the same pixel offset from each
-     * veil's own top lands at the same height on the page for all of
-     * them. Measured off the column itself (not the veil, which does not
-     * exist until the loop above has run), half its rendered height is
-     * where Year 1 Semester 1's own arrow naturally centres.
+     * veil's own top lands at the same height on the page for all
+     * three. Measured off the column itself, not the veil (which spans
+     * a whole year and would give a different answer for each one),
+     * half its rendered height is where Year 1 Semester 1's own arrow
+     * naturally centres.
      */
     var levelPx = cols[0].getBoundingClientRect().height / 2;
-    cols.forEach(function (colEl) {
-      var inner = colEl.querySelector(".mm__veil__inner");
+    veils.forEach(function (veil) {
+      var inner = veil.querySelector(".mm__veil__inner");
       if (inner) { inner.style.top = levelPx + "px"; }
     });
 
     /*
-     * Column 0 has nothing to wait for, so without a head start its
-     * float timer fires on the very next macrotask — before the browser
-     * has ever painted the "hidden, off-position" state just set above.
+     * Year 0 has nothing to wait for, so without a head start its float
+     * timer fires on the very next macrotask — before the browser has
+     * ever painted the "hidden, off-position" state just set above.
      * With no painted "before" to transition away from, the style
-     * change reads as old-equals-new and the column snaps straight into
-     * place instead of floating like every other column. START_MS
+     * change reads as old-equals-new and everything snaps straight into
+     * place instead of floating like every other year. START_MS
      * guarantees at least one real paint of the hidden state first, so
-     * every column — the first included — gets the same float.
+     * every year — the first included — gets the same float.
      */
     var START_MS = 60;
 
-    /* Phase A: float every column into place, in sequence. */
-    cols.forEach(function (colEl, i) {
+    /* Phase A: float every year's pair of columns, and its veil, into
+       place together, one year after another. */
+    veils.forEach(function (veil, y) {
       window.setTimeout(function () {
-        colEl.classList.add("is-floated");
-      }, START_MS + i * STEP_MS);
+        cols[y * 2].classList.add("is-floated");
+        cols[y * 2 + 1].classList.add("is-floated");
+        veil.style.transition = "transform " + FLOAT_MS + "ms ease-in-out";
+        veil.style.transform = "";
+      }, START_MS + y * STEP_MS);
     });
 
     /*
-     * Phase B does not begin until the last column's own float
-     * transition has actually finished — not just started — so nothing
-     * is revealed while a column is still sliding in.
+     * Phase B does not begin until the last year's own float transition
+     * has actually finished — not just started — so nothing is revealed
+     * while a year is still sliding in.
      */
-    var lastFloatEnds = START_MS + (cols.length - 1) * STEP_MS + FLOAT_MS;
+    var lastFloatEnds = START_MS + (veils.length - 1) * STEP_MS + FLOAT_MS;
     var REVEAL_PAUSE_MS = 150;
 
     window.setTimeout(function () {
-      /* the "Year N" bars have no veil of their own to lift — they simply
-         fade in together, once, as the first veil starts lifting, rather
-         than trying to time each one to its own pair of columns */
-      yearHeads.forEach(function (el) { el.classList.add("is-revealed"); });
-      cols.forEach(function (colEl, i) {
+      veils.forEach(function (veil, y) {
         window.setTimeout(function () {
-          var veil = colEl.querySelector(".mm__veil");
-          colEl.classList.add("is-revealed");
-          if (veil) { veil.classList.add("is-gone"); }
+          cols[y * 2].classList.add("is-revealed");
+          cols[y * 2 + 1].classList.add("is-revealed");
+          veil.style.transition = "opacity " + VEIL_MS + "ms var(--ease), " +
+                                   "transform " + VEIL_MS + "ms cubic-bezier(0.4, 0, 0.7, 0.2)";
+          veil.style.opacity = "0";
+          veil.style.transform = "scale(0.94)";
           window.setTimeout(function () {
-            if (veil) { veil.remove(); }
-            if (i === cols.length - 1) {
+            veil.remove();
+            if (y === veils.length - 1) {
               board.classList.remove("mm__board--intro");
               cols.forEach(function (c) {
                 c.classList.remove("is-floated");
                 c.classList.remove("is-revealed");
               });
-              yearHeads.forEach(function (el) { el.classList.remove("is-revealed"); });
             }
           }, VEIL_MS + 200);
-        }, i * STEP_MS);
+        }, y * STEP_MS);
       });
     }, lastFloatEnds + REVEAL_PAUSE_MS);
   }

@@ -190,6 +190,21 @@ check("every intro arrow lines up level with Year 1 Semester 1's",
   await page.evaluate(() => [...new Set([...document.querySelectorAll("#module-map .mm__veil__inner")]
     .map(el => el.style.top))]).then(tops => tops.length),
   1);
+check("three veils, not six — one per year, labelled just \"Year N\"",
+  await page.evaluate(() => [...document.querySelectorAll("#module-map .mm__veil__label")].map(el => el.textContent)),
+  ["Year 1", "Year 2", "Year 3"]);
+check("each veil spans both of that year's semester columns, not just one",
+  await page.evaluate(() => {
+    const cols = [...document.querySelectorAll("#module-map .col")];
+    const veils = [...document.querySelectorAll("#module-map .mm__veil")];
+    return veils.map((v, y) => {
+      const vr = v.getBoundingClientRect();
+      const c1 = cols[y * 2].getBoundingClientRect(), c2 = cols[y * 2 + 1].getBoundingClientRect();
+      const left = Math.min(c1.left, c2.left), right = Math.max(c1.right, c2.right);
+      return Math.abs(vr.left - left) < 12 && Math.abs(vr.right - right) < 12;
+    });
+  }),
+  [true, true, true]);
 
 await page.waitForTimeout(900);
 await page.evaluate(() => document.fonts && document.fonts.ready);

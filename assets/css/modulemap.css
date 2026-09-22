@@ -899,22 +899,15 @@
   transition: transform 1000ms ease-in-out;
 }
 
-/* the "Year N" bars have no column of their own to float or a veil to
-   hide behind, so they simply stay invisible through Phase A and fade in
-   together at the start of Phase B — see runIntro() in modulemap.js. */
-#module-map .mm__board--intro .mm__year-head {
-  opacity: 0;
-}
+/* the "Year N" bars have no opacity rule of their own — same reasoning
+   as the column header/credit bar below: a veil spanning both of that
+   year's columns (and this bar above them) covers it visually the whole
+   time Phase A/B run, so it simply appears once that veil is gone. */
 
-#module-map .mm__year-head.is-revealed {
-  opacity: 1;
-  transition: opacity 420ms var(--ease);
-}
-
-/* Phase B: only once every column has floated into place does a veil
-   start to fade, uncovering that column's modules (and its header and
-   credit bar, which needed no opacity rule of their own — the veil was
-   covering them too, and simply goes). */
+/* Phase B: only once every year has floated into place does its veil
+   start to fade, uncovering that year's two columns (and their headers
+   and credit bars, which needed no opacity rule of their own — the veil
+   was covering them too, and simply goes). */
 
 #module-map .mm__board--intro .box {
   opacity: 0;
@@ -925,9 +918,18 @@
   transition: opacity 420ms var(--ease);
 }
 
+/* One per year, spanning both of its semester columns — sized and
+   positioned inline by runIntro() in modulemap.js, which also drives
+   its transform/opacity there rather than through classes here: it
+   needs the float-in transform (translateY, 1000ms ease-in-out) and the
+   fade-and-shrink-out transform (scale, 420ms cubic-bezier) to run at
+   different times with different durations on the same `transform`
+   property, which a stylesheet transition (one value, however it is
+   selected) can't hand off between mid-sequence without a class-order
+   fight — inline styles sidestep that entirely, same reasoning as
+   playFlip()'s own transform handling elsewhere in this file. */
 #module-map .mm__veil {
   position: absolute;
-  inset: -0.4rem -0.5rem;
   z-index: 4;
   border-radius: 14px;
   background: hsl(var(--dh) 45% 12% / 0.82);
@@ -935,27 +937,20 @@
   -webkit-backdrop-filter: blur(3px);
   color: hsl(var(--dh) 70% 92%);
   pointer-events: none;
-  opacity: 1;
-  transition: opacity 420ms var(--ease), transform 420ms cubic-bezier(0.4, 0, 0.7, 0.2);
 }
 
 @media (prefers-color-scheme: light) {
   #module-map .mm__veil { background: hsl(var(--dh) 55% 22% / 0.85); }
 }
 
-#module-map .mm__veil.is-gone {
-  opacity: 0;
-  transform: scale(0.94);
-}
-
 /* Positioned by runIntro() in modulemap.js, not centred in its own
-   veil's height — every column's veil is a different height (as many
-   modules as that semester has), so centring each independently put the
-   arrows at different levels across the board. `top` is set inline to
-   the same pixel offset for every column, measured off Year 1 Semester
-   1, and the veils are already grid-top-aligned with each other, so the
-   same offset lands at the same height everywhere. Falls back to
-   centred (50%) if that inline style is ever missing. */
+   veil's height — each year's veil is a different height (as many
+   modules as its taller semester has), so centring each independently
+   put the arrows at different levels across the board. `top` is set
+   inline to the same pixel offset for all three, measured off Year 1
+   Semester 1, and the columns are already grid-top-aligned with each
+   other, so the same offset lands at the same height everywhere. Falls
+   back to centred (50%) if that inline style is ever missing. */
 #module-map .mm__veil__inner {
   position: absolute;
   left: 0.5rem;

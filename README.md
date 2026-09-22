@@ -612,16 +612,17 @@ for exactly which modules and what was decided before changing any of this.
 ### Opening the page
 
 The first time you open this section — from the wheel or a direct link — it
-plays in two passes. First, every column floats slowly down into place from
-well above, one after another, Year 1 Semester 1 first, each one still
-covered by its own veil — a giant right-pointing arrow over a "Year N /
-Semester N" label, on a translucent backdrop — so what you see arriving is
-the veil, not the modules underneath. Every arrow lines up level with Year 1
-Semester 1's, whatever that column's own module count makes each veil's
-height. Only once every column has floated into place does the second pass
-begin: the veils fade away, again Year 1 Semester 1 first, uncovering each
-column's modules in turn. It
-plays once per opening, not on every click inside the page, and is skipped
+plays in two passes, one year at a time rather than one column at a time.
+First, each year's two semester columns float slowly down into place
+together from well above, Year 1 first, one year after another, all still
+covered by one veil spanning both columns — a giant right-pointing arrow
+over a "Year N" label, on a translucent backdrop — so what you see arriving
+is the veil, not the modules underneath: three panels obscuring the board,
+not six. Every arrow lines up level with Year 1 Semester 1's, whatever that
+column's own module count makes each veil's height. Only once every year
+has floated into place does the second pass begin: the veils fade away,
+again Year 1 first, uncovering each year's two columns together. It plays
+once per opening, not on every click inside the page, and is skipped
 entirely under reduced motion.
 
 ### Year-long modules

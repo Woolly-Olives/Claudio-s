@@ -512,6 +512,49 @@ move on purpose:
     `tools/check.mjs`, which does exactly that rather than racing the
     float/reveal sequence.
 
+  **Revised again 2026-09-22, at explicit instruction: six per-column
+  veils became three per-year ones**, each spanning both of that year's
+  semester columns (and the "Year N" bar above them — see below), with
+  the label reading just "Year N" instead of "Year N / Semester N".
+  - The veil is no longer a child of `.col` (it cannot be — it has to
+    span two of them), it is now `.mm__board`'s own child, sized and
+    positioned with an inline `left/top/width/height` computed in
+    `runIntro()` from `getBoundingClientRect()` on that year's
+    `.mm__year-head` and both semester columns — the same measure-then-position
+    approach `drawYearOutlines()` already used for the golden outline,
+    reused here rather than invented fresh. That measurement has to
+    happen **before** `.mm__board--intro` goes on the board: that class
+    is what pushes the columns off-position with a CSS `transform`, and
+    `getBoundingClientRect()` reports the current painted position, not
+    the underlying layout one — measuring after would bake the
+    off-position offset straight into the veil's "rest" rectangle.
+  - The columns underneath still float via their own existing CSS
+    transform (`.mm__board--intro .col` / `.col.is-floated`, untouched).
+    The veil now gets its **own** transform, driven inline rather than
+    through a class, kept in lock-step by using the exact same delay,
+    duration (`FLOAT_MS`) and easing as the two columns it covers: since
+    both are animating the identical transform curve from the identical
+    "rest" reference frame, they stay visually aligned at every instant
+    without either one measuring the other mid-flight.
+  - This is also why the veil's fade-and-shrink-out on reveal
+    (`opacity`, `transform: scale(0.94)`) is set with an inline
+    `element.style.transition` at the moment it is needed, rather than
+    through an `.is-gone` class the way it worked before: the veil now
+    needs the `transform` property to run two *different* transitions in
+    sequence (the 1000ms float-in, then the 420ms shrink-out), and CSS
+    classes competing for the same shorthand `transition` property don't
+    hand off between each other mid-sequence — whichever class is more
+    specific wins outright, for every property the shorthand lists, not
+    just the one that changed. Inline styles sidestep this outright, the
+    same reasoning `playFlip()` already uses elsewhere in this file for
+    exactly this kind of one-off, dynamically-timed transform.
+  - `.mm__year-head` needed no opacity/reveal handling of its own after
+    this change (a short-lived addition from earlier the same day, since
+    reverted) — once its bar sits *inside* the area the combined veil
+    covers, it is hidden by the veil the same way a column's own header
+    and credit bar always were: no opacity rule, just visually covered
+    until the veil above it goes.
+
 - **The "Year N" label now spans both of that year's semester columns,
   separated from the credit bar, added 2026-09-22.** Previously each
   column's own heading read "Year N" (bold) with "Semester N" underneath
@@ -539,17 +582,9 @@ move on purpose:
   but the accessible name is still the full "Year N Semester N" it always
   was, one self-contained heading per column, same as before.
 
-  **The intro animation needed a small addition, not a rewrite**, since
-  `.mm__year-head` has no column of its own to float behind or a veil to
-  hide under: it simply stays at `opacity: 0` for the whole of Phase A
-  (`.mm__board--intro .mm__year-head`) and fades in, all three together,
-  the moment Phase B begins (`yearHeads.forEach(el => el.classList.add
-  ("is-revealed"))`, right where the per-column veil-lifting loop starts
-  in `runIntro()`) rather than trying to time each one to its own pair of
-  columns finishing individually — deliberately simpler than the
-  column-by-column stagger, since three short label bars appearing
-  together reads fine and did not seem worth the extra bookkeeping of
-  tracking two columns per year.
+  **What the intro animation does with `.mm__year-head` changed again the
+  same day, when the six per-column veils became three per-year ones —
+  see "A one-time entrance animation" below for the current mechanism.**
 - **The credit tracker bar is twice as thick, also 2026-09-22**: `.col__bar`
   `height: 5px` → `10px` in `modulemap.css`. Nothing else about it changed
   — `.col__bar__fill`'s `height: 100%` already tracks its parent.
