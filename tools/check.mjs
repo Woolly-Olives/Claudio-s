@@ -198,6 +198,29 @@ await page.waitForTimeout(3600);   // let the opening reveal finish before touch
 const degrees = await page.locator("#module-map .dbtn").count();
 check("eleven degrees", degrees, 11);
 
+console.log("\nthe Year headers span both semesters");
+check("three \"Year N\" bars, each spanning two grid columns and decorative only",
+  await page.evaluate(() => [...document.querySelectorAll("#module-map .mm__year-head")].map(el => ({
+    text: el.textContent.trim(),
+    ariaHidden: el.getAttribute("aria-hidden"),
+    spansTwo: getComputedStyle(el).gridColumn.replace(/\s/g, "") === "span2",
+  }))),
+  [{ text: "Year 1", ariaHidden: "true", spansTwo: true },
+   { text: "Year 2", ariaHidden: "true", spansTwo: true },
+   { text: "Year 3", ariaHidden: "true", spansTwo: true }]);
+check("each column's own heading shows just \"Semester N\", but still reads \"Year N Semester N\" to assistive tech",
+  await page.evaluate(() => [...document.querySelectorAll("#module-map .col__name")].map(h => {
+    const clone = h.cloneNode(true);
+    clone.querySelectorAll(".visually-hidden").forEach(s => s.remove());
+    return { visible: clone.textContent.trim(), full: h.textContent.trim() };
+  })),
+  [{ visible: "Semester 1", full: "Year 1 Semester 1" }, { visible: "Semester 2", full: "Year 1 Semester 2" },
+   { visible: "Semester 1", full: "Year 2 Semester 1" }, { visible: "Semester 2", full: "Year 2 Semester 2" },
+   { visible: "Semester 1", full: "Year 3 Semester 1" }, { visible: "Semester 2", full: "Year 3 Semester 2" }]);
+check("credit tracker bar is doubled to 10px thick",
+  await page.evaluate(() => getComputedStyle(document.querySelector("#module-map .col__bar")).height),
+  "10px");
+
 console.log("\n\"About the module:\" in the details sheet");
 async function overviewOf(code) {
   await page.evaluate(c => document.querySelector('[data-info="' + c + '"]').click(), code);

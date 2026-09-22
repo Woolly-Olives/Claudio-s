@@ -510,7 +510,9 @@ That page is an app rather than prose, so its content lives in one data file:
 Every module in the School sits on one screen. Six columns run left to right,
 Year 1 Semester 1 through Year 3 Semester 2; within a column the modules stack
 top to bottom, and each box is as tall as it is heavy — a 30-credit module is
-drawn exactly double a 15-credit one, the gap between boxes included.
+drawn exactly double a 15-credit one, the gap between boxes included. A "Year
+N" heading spans each pair of semester columns; the column itself is headed
+just "Semester N" underneath.
 
 Three clicks do everything, and nothing needs more:
 
@@ -525,7 +527,7 @@ States are shown by fill *and* shape, not colour alone: **core** is solid,
 **chosen** has a heavy border and a tick, **optional** is a dashed outline, and
 **not available** is hatched and struck through. Each column counts its credits
 against the 60-credit cap and refuses anything that would breach it, and shows
-the running total as a thin fill bar under the column heading, not just as the
+the running total as a fill bar under the column heading, not just as the
 `used/60` figure.
 
 ### The degree buttons

@@ -512,6 +512,48 @@ move on purpose:
     `tools/check.mjs`, which does exactly that rather than racing the
     float/reveal sequence.
 
+- **The "Year N" label now spans both of that year's semester columns,
+  separated from the credit bar, added 2026-09-22.** Previously each
+  column's own heading read "Year N" (bold) with "Semester N" underneath
+  it (smaller, `.col__name span`); now three `.mm__year-head` elements
+  (`grid-column: span 2`, `aria-hidden="true"`) sit above the six `.col`
+  as siblings in `.mm__board`, one per year, and each column's own
+  `<h3 class="col__name">` shows only "Semester N". Nothing is measured
+  or positioned in JS for this — `.mm__year-head` relies entirely on grid
+  auto-placement: the three of them, appearing first in source order, each
+  consume two of the six `grid-template-columns` tracks and fill row 1;
+  the six `.col` that follow auto-place into row 2, exactly as before.
+  `drawYearOutlines()`, `runIntro()`'s `cols[0]` measurement and every
+  other piece of column geometry code was untouched and needed no
+  changes — they all query by `[data-col="…"]` or `.col`, which still
+  resolve to the same six elements in the same order regardless of what
+  else sits in the grid.
+
+  **The "Year N" text moving out of each column's own `<h3>` would have
+  broken the heading outline for screen readers** — three `<h2>`/`<h3>`
+  "Year N" headings all announced up front, before any "Semester N", with
+  no way to tell which pair of semesters belonged to which year. Avoided
+  by keeping `.mm__year-head` purely decorative (`aria-hidden`, not a
+  heading at all) and instead prefixing each column's own `<h3>` with a
+  `.visually-hidden` "Year N " span — visually only "Semester N" shows,
+  but the accessible name is still the full "Year N Semester N" it always
+  was, one self-contained heading per column, same as before.
+
+  **The intro animation needed a small addition, not a rewrite**, since
+  `.mm__year-head` has no column of its own to float behind or a veil to
+  hide under: it simply stays at `opacity: 0` for the whole of Phase A
+  (`.mm__board--intro .mm__year-head`) and fades in, all three together,
+  the moment Phase B begins (`yearHeads.forEach(el => el.classList.add
+  ("is-revealed"))`, right where the per-column veil-lifting loop starts
+  in `runIntro()`) rather than trying to time each one to its own pair of
+  columns finishing individually — deliberately simpler than the
+  column-by-column stagger, since three short label bars appearing
+  together reads fine and did not seem worth the extra bookkeeping of
+  tracking two columns per year.
+- **The credit tracker bar is twice as thick, also 2026-09-22**: `.col__bar`
+  `height: 5px` → `10px` in `modulemap.css`. Nothing else about it changed
+  — `.col__bar__fill`'s `height: 100%` already tracks its parent.
+
 **A real bug worth knowing if this is ever touched again:** the first version
 of the intro removed a column's `is-revealed` class as soon as that column's
 own reveal finished, while the board-level `.mm__board--intro` (which holds

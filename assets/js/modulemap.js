@@ -451,7 +451,8 @@
 
     return '<section class="col" data-col="' + col.id + '">' +
              '<header class="col__head">' +
-               '<h3 class="col__name">Year ' + col.year + '<span>Semester ' + col.semester + '</span></h3>' +
+               '<h3 class="col__name"><span class="visually-hidden">Year ' + col.year + ' </span>' +
+                 'Semester ' + col.semester + '</h3>' +
                '<p class="col__cr col__cr--' + status + '"><strong>' + used + '</strong>/' + CAP + '</p>' +
              '</header>' +
              '<div class="col__bar" style="--pct:' + pct + '%">' +
@@ -586,6 +587,11 @@
       '<div class="mm__board">' +
         '<div class="mm__year-outline" data-year="2" hidden></div>' +
         '<div class="mm__year-outline" data-year="3" hidden></div>' +
+        /* decorative only, not a heading — each column's own <h3> below still
+           carries "Year N" for assistive tech (visually-hidden there), so the
+           heading outline stays one self-contained "Year N Semester N" per
+           column rather than three Years announced before any Semester */
+        [1, 2, 3].map(function (y) { return '<div class="mm__year-head" aria-hidden="true">Year ' + y + '</div>'; }).join("") +
         COLUMNS.map(column).join("") +
         '<svg class="mm__links" aria-hidden="true"></svg>' +
         '<div class="mm__hub" hidden></div>' +
@@ -959,6 +965,7 @@
     if (reduceMotion.matches) { return; }
     var board = root.querySelector(".mm__board");
     var cols = board && Array.prototype.slice.call(board.querySelectorAll(".col"));
+    var yearHeads = board && Array.prototype.slice.call(board.querySelectorAll(".mm__year-head"));
     if (!board || !cols || !cols.length) { return; }
 
     /*
@@ -979,6 +986,7 @@
       colEl.classList.remove("is-floated");
       colEl.classList.remove("is-revealed");
     });
+    yearHeads.forEach(function (el) { el.classList.remove("is-revealed"); });
     board.classList.add("mm__board--intro");
     cols.forEach(function (colEl, i) {
       var meta = COLUMNS[i];
@@ -1040,6 +1048,10 @@
     var REVEAL_PAUSE_MS = 150;
 
     window.setTimeout(function () {
+      /* the "Year N" bars have no veil of their own to lift — they simply
+         fade in together, once, as the first veil starts lifting, rather
+         than trying to time each one to its own pair of columns */
+      yearHeads.forEach(function (el) { el.classList.add("is-revealed"); });
       cols.forEach(function (colEl, i) {
         window.setTimeout(function () {
           var veil = colEl.querySelector(".mm__veil");
@@ -1053,6 +1065,7 @@
                 c.classList.remove("is-floated");
                 c.classList.remove("is-revealed");
               });
+              yearHeads.forEach(function (el) { el.classList.remove("is-revealed"); });
             }
           }, VEIL_MS + 200);
         }, i * STEP_MS);

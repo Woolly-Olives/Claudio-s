@@ -269,6 +269,24 @@
 
 #module-map .col { position: relative; min-width: 0; }
 
+/* spans both of a year's semester columns — grid auto-placement puts the
+   three of these in row 1 (each grid-column: span 2, filling all six
+   tracks) and the six .col in row 2, entirely from source order; nothing
+   here is measured or positioned in JS. Decorative only (aria-hidden) —
+   each column's own <h3> below still carries "Year N" for assistive tech,
+   see column() in modulemap.js. */
+#module-map .mm__year-head {
+  grid-column: span 2;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid hsl(var(--dh) 50% 50% / 0.35);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--fg);
+}
+
 #module-map .col__head {
   display: flex;
   gap: 0.5rem;
@@ -287,13 +305,6 @@
   color: var(--fg);
 }
 
-#module-map .col__name span {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--fg-soft);
-}
-
 #module-map .col__cr {
   margin: 0;
   font-size: 0.74rem;
@@ -309,7 +320,7 @@
 /* how much of the semester's 60 credits is spoken for */
 #module-map .col__bar {
   --pct: 0%;
-  height: 5px;
+  height: 10px;
   margin: 0 0 0.65rem;
   border-radius: 999px;
   background: hsl(var(--dh) 20% 50% / 0.2);
@@ -886,6 +897,18 @@
 #module-map .col.is-floated {
   transform: none;
   transition: transform 1000ms ease-in-out;
+}
+
+/* the "Year N" bars have no column of their own to float or a veil to
+   hide behind, so they simply stay invisible through Phase A and fade in
+   together at the start of Phase B — see runIntro() in modulemap.js. */
+#module-map .mm__board--intro .mm__year-head {
+  opacity: 0;
+}
+
+#module-map .mm__year-head.is-revealed {
+  opacity: 1;
+  transition: opacity 420ms var(--ease);
 }
 
 /* Phase B: only once every column has floated into place does a veil
