@@ -190,15 +190,19 @@ Content lives in **`assets/data/links.js`**, not in `index.html`:
   pills are clickable. Every other top-level entry, `more` or not, still
   keeps its own real destination.
 - `note` is the sentence shown above the curve when you point at a section.
-- `logo` (optional) is the path to an image — `"assets/img/logos/blackboard.svg"`
+- `logo` (optional) is the path to an image — `"assets/img/logos/blackboard.jpg"`
   — shown in place of the numbered circle. Leave it out and the number shows,
   same as always; if the path 404s the number reappears automatically, so a
-  typo never leaves a blank badge. None are filled in as shipped — every one
-  of these services' domains was unreachable from the environment that built
-  this, `le.ac.uk` included, so nothing could be fetched and checked, and
-  nothing was hand-drawn from memory instead (a wrong reconstruction of a
-  company's mark is worse than the plain number). Add real ones from a normal
-  network.
+  typo never leaves a blank badge. Four of the nine have one — Blackboard,
+  Outlook, Library, Students' Union — supplied as real image files by the
+  user directly, not fetched or drawn here: every one of these services'
+  domains is unreachable from the environment that built this, `le.ac.uk`
+  included, so nothing could ever have been fetched and checked against the
+  real thing, and nothing was hand-drawn from memory instead (a wrong
+  reconstruction of a company's mark is worse than the plain number) — a
+  supplied file sidesteps both problems. The other five still have none. Add
+  real ones the same way, from a normal network or the committee's own
+  files.
 
 **Below 821px wide or 621px tall, and with JavaScript off, the arc is hidden, the
 plain list in `index.html` takes over, and the page opens with the same bubble as

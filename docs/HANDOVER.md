@@ -233,17 +233,28 @@ the `.links-fallback` list in `index.html` hold the same links and must be kept
 in step.** Below 821px wide or 621px tall the arc is hidden, the list shows, and
 the page opens with the ordinary bubble.
 
-**Logo infrastructure exists; no logos are filled in.** A link can carry
-`logo: "assets/img/logos/<name>.svg"` in `assets/data/links.js` and `arc.js`
-draws it in place of the numbered circle, falling back to the number
-automatically if the image 404s (`onerror` adds `.is-broken`, tested with both
-a working and a broken path). **Every one of these services' domains is
-blocked from this container** — see §3, and note the finding there that the
-block turned out to be far broader than previously documented, covering even
-`le.ac.uk` itself — so no logo could be fetched and checked against the real
-thing, and none was hand-drawn from memory: a wrong reconstruction of a
-company's mark is worse than the plain number it would replace. Add real ones
-from a normal network.
+**Logo infrastructure exists, and four of the nine now use it, 2026-09-22.**
+A link can carry `logo: "assets/img/logos/<name>.<ext>"` in
+`assets/data/links.js` and `arc.js` draws it in place of the numbered
+circle, falling back to the number automatically if the image 404s
+(`onerror` adds `.is-broken`, tested with both a working and a broken
+path). **Every one of these services' domains is blocked from this
+container** — see §3, and note the finding there that the block turned
+out to be far broader than previously documented, covering even
+`le.ac.uk` itself — so nothing here could ever have been fetched, and
+none was hand-drawn from memory: a wrong reconstruction of a company's
+mark is worse than the plain number it would replace. What changed the
+situation was the user supplying the actual image files directly —
+Blackboard, Outlook, Library and Students' Union — landed as
+`assets/img/logos/{blackboard.jpg, outlook.webp, library.jpg,
+students-union.jpg}`, real assets, not fetched or drawn here, so the
+concern above never applied to them. The other five links still have
+none. Outlook's own file arrived at 960×909 and ~185KB, absurd for a
+badge that renders at 1.45rem — downsized to 256×256 (~9KB) with
+`PIL.Image.resize`, still comfortably above the size it ever displays
+at; the other three arrived at sensible sizes already and were used
+as-is. Add the remaining five the same way when they turn up, from a
+normal network or the committee's own files.
 
 **Reorganised 2026-09-22, at explicit instruction, into three levels
 instead of a flat nine.** Three of the nine now carry a `more` list of their

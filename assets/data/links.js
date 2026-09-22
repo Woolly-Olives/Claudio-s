@@ -14,20 +14,21 @@
    touching.
 
    LOGOS: give a link a `logo` (a path to an image file, e.g.
-   "assets/img/logos/blackboard.svg") and it replaces the numbered
+   "assets/img/logos/blackboard.jpg") and it replaces the numbered
    circle with that image. Leave `logo` out and the number shows, same
    as always — nothing breaks either way. If an image fails to load
    (missing file, bad path) the number reappears automatically.
 
-   None are filled in below. This environment's network policy blocks
-   every one of these services' own domains, including le.ac.uk itself,
-   so no logo here could be fetched and checked against the real thing.
-   Hand-drawing a company's trademark from memory, unverified, risks
-   getting it visibly wrong — worse than the plain number it would
-   replace — so none were guessed either. Add real ones (downloaded
-   from the service's own site, or exported from the committee's own
-   files) as `assets/img/logos/<name>.svg` or `.png` and point `logo`
-   at them; do this from a normal network, not this one.
+   Four are filled in (2026-09-22) — Blackboard, Outlook, Library,
+   Students' Union — files the user supplied directly, not fetched or
+   hand-drawn here (this environment's network policy blocks every one
+   of these services' own domains, including le.ac.uk itself, so
+   nothing here could be fetched and checked against the real thing,
+   and a trademark hand-drawn from memory, unverified, risks getting it
+   visibly wrong — worse than the plain number it would replace). The
+   remaining five have none yet. Add real ones the same way — from the
+   service's own site, or exported from the committee's own files — as
+   `assets/img/logos/<name>.<ext>` and point `logo` at them.
 
    GROUPS: a top-level link can leave `href` out entirely (see "Research
    resources" below) — its wedge then has no destination of its own and
@@ -53,14 +54,17 @@ window.BIOSOC_LINKS = {
   links: [
     { n: 1, rank: 1, name: "Blackboard",
       href: "https://blackboard.le.ac.uk/ultra/course",
+      logo: "assets/img/logos/blackboard.jpg",
       note: "Try both the website and the app to see which one works better for you." },
 
     { n: 2, rank: 2, name: "Outlook - university email and calendar",
       href: "https://outlook.office.com/mail/",
+      logo: "assets/img/logos/outlook.webp",
       note: "Download the app on your phone, and we highly recommend adding the calendar widget." },
 
     { n: 3, rank: 3, name: "Library",
       href: "https://le.ac.uk/library",
+      logo: "assets/img/logos/library.jpg",
       note: "Search the library database, both physical and online books.",
       more: [
         { name: "Book rooms", href: "https://connect2.le.ac.uk/",
@@ -83,6 +87,7 @@ window.BIOSOC_LINKS = {
 
     { n: 5, rank: 5, name: "Students’ Union",
       href: "https://www.leicesterunion.com/",
+      logo: "assets/img/logos/students-union.jpg",
       note: "Union news, student elections, Advice Service.",
       more: [
         { name: "Societies", href: "https://www.leicesterunion.com/opportunities/societies/findasociety/",

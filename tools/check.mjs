@@ -220,6 +220,36 @@ check("every other Essential Links segment still has a real href",
   await page.evaluate(() => [...document.querySelectorAll("#links-arc .seg")]
     .filter(s => s.getAttribute("aria-label") !== "Research resources")
     .every(s => !!s.getAttribute("href"))), true);
+check("Blackboard, Outlook, Library and Students' Union show their real logo, loaded and not broken",
+  await page.evaluate(() => {
+    const wait = (img) => img.complete ? Promise.resolve() : new Promise((res) => { img.onload = img.onerror = res; });
+    const names = ["Blackboard", "Outlook - university email and calendar", "Library", "Students’ Union"];
+    return Promise.all(names.map(async (name) => {
+      const label = [...document.querySelectorAll("#links-arc .seg-label")]
+        .find((l) => l.querySelector(".seg-label__name").textContent === name);
+      const img = label.querySelector(".seg-label__n--logo img");
+      if (img) { await wait(img); }
+      return {
+        name,
+        hasLogo: !!img,
+        loaded: !!img && img.naturalWidth > 0,
+        broken: !!label.querySelector(".seg-label__n--logo.is-broken"),
+      };
+    }));
+  }),
+  [
+    { name: "Blackboard", hasLogo: true, loaded: true, broken: false },
+    { name: "Outlook - university email and calendar", hasLogo: true, loaded: true, broken: false },
+    { name: "Library", hasLogo: true, loaded: true, broken: false },
+    { name: "Students’ Union", hasLogo: true, loaded: true, broken: false },
+  ]);
+check("the other five Essential Links segments still show a plain number, no logo",
+  await page.evaluate(() => {
+    const named = ["Blackboard", "Outlook - university email and calendar", "Library", "Students’ Union"];
+    return [...document.querySelectorAll("#links-arc .seg-label")]
+      .filter((l) => !named.includes(l.querySelector(".seg-label__name").textContent))
+      .every((l) => !l.querySelector(".seg-label__n--logo"));
+  }), true);
 
 console.log("\nthe Opportunities veil");
 await page.evaluate(() => { location.hash = "#opportunities"; });
