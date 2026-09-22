@@ -32,7 +32,9 @@
 
   var links = DATA.links;
   var N = links.length;
-  var HINT = "Point at a section of the arc to see where it leads.";
+  /* was the hub's own hover note (links.js); moved here to be the arc's
+     default resting text instead, at explicit instruction (2026-09-22) */
+  var HINT = "Here are the most useful links for university in one place!";
 
   function rad(deg) { return deg * Math.PI / 180; }
   var HALF = rad(SPAN / 2);
@@ -169,6 +171,8 @@
     var e1 = polar(Ro, first), e2 = polar(Ro, first + SPAN);
     edge.setAttribute("d", ["M", e1.x, e1.y, "A", Ro, Ro, 0, 0, 1, e2.x, e2.y].join(" "));
 
+    var labelEls = [];
+
     placed.forEach(function (link, i) {
       var a0 = first + i * step;
       var a1 = a0 + step;
@@ -249,7 +253,35 @@
             }).join("") + '</span>'
           : "");
       labels.appendChild(label);
+      labelEls.push({ el: label, link: link, mid: mid });
     });
+
+    /* Every label sits centred (both ways) on the same radius, Rlab — but
+       a segment with a `more` list, or just a longer name that wraps,
+       is a taller box than one without, so its badge (always the first
+       thing in it) lands further out from that shared centre than a
+       short segment's does. There is no `more` count that makes them
+       all match, so instead: measure where each badge actually ended up
+       after real layout (text wrap and the `more` list both affect this,
+       so it can't be worked out ahead of render — same reasoning as
+       runIntro()'s levelPx in modulemap.js), then nudge every label's
+       own anchor so its badge lands on Library's radius specifically, at
+       explicit instruction (2026-09-22). offsetTop/offsetHeight are used
+       rather than getBoundingClientRect() because they are pre-transform
+       — the rotation each label carries never has to be un-done. */
+    var targetD = null;
+    labelEls.forEach(function (item) {
+      var badge = item.el.querySelector(".seg-label__n");
+      item.d = item.el.offsetHeight / 2 - (badge.offsetTop + badge.offsetHeight / 2);
+      if (item.link.name === "Library") { targetD = item.d; }
+    });
+    if (targetD !== null) {
+      labelEls.forEach(function (item) {
+        var at2 = polar(Rlab + (targetD - item.d), item.mid);
+        item.el.style.left = at2.x + "px";
+        item.el.style.top = at2.y + "px";
+      });
+    }
 
     hub.style.left = cx + "px";
     hub.style.top = hubY + "px";

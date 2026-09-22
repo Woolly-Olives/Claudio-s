@@ -173,7 +173,9 @@ about where it leads above the curve's top edge.
 Content lives in **`assets/data/links.js`**, not in `index.html`:
 
 - `hub` is remote.le.ac.uk, drawn as a pill below the curve, which every other
-  link fans out of.
+  link fans out of. It takes no `note`: hovering it shows just its name. (It
+  used to carry one — "Here are the most useful links for university in one
+  place!" — that text is now `arc.js`'s own default line, below.)
 - each entry in `links` has an `n` (the number shown, following the order the
   committee listed them in) and a `rank`. **`rank` is what places a link on the
   arc**: rank 1 goes in the middle, which is the most prominent spot, and the
@@ -203,6 +205,22 @@ Content lives in **`assets/data/links.js`**, not in `index.html`:
   supplied file sidesteps both problems. The other five still have none. Add
   real ones the same way, from a normal network or the committee's own
   files.
+
+**The sentence above the curve when nothing is pointed at** ("Here are the most
+useful links for university in one place!") is `HINT` in `arc.js`, not in the
+data file — it is the arc's own default line, shown whenever nothing is
+hovered/focused and restored the moment focus leaves a section.
+
+**Every badge sits on the same radius, regardless of a `more` list.** A
+section is drawn centred on a single shared radius (`Rlab`), but Library,
+Research resources, Students' Union and University SharePoint are taller
+boxes than a plain section (their `more` pills add rows below the badge),
+so centring alone would put their badges further out than the others'.
+`draw()` fixes this with a second pass: once every label has actually laid
+out (font, text wrap and the `more` list all affect its height, so this
+can't be worked out ahead of render), it measures where each badge really
+ended up relative to its own label, then nudges every label so its badge
+lands on the same radius Library's does.
 
 **Below 821px wide or 621px tall, and with JavaScript off, the arc is hidden, the
 plain list in `index.html` takes over, and the page opens with the same bubble as

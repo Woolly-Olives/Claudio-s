@@ -251,6 +251,57 @@ check("the other five Essential Links segments still show a plain number, no log
       .every((l) => !l.querySelector(".seg-label__n--logo"));
   }), true);
 
+console.log("\nEssential Links badge alignment and default hint");
+/* the panel's own 940ms zoom-in transition (arc.css) is still short of
+   settled at the 700ms this section already waited above — real layout
+   geometry, unlike the DOM-structure checks just above, needs it done */
+await page.waitForTimeout(500);
+/* every badge sits at the same radius from the arc's own centre, not just
+   the same eyeballed "level" — segments with a `more` list (or just a
+   longer name) are taller boxes than a plain segment, and since each
+   label is centred on the arc at the same radius, the badge (always the
+   first thing in the box) would otherwise land at a different distance
+   from the arc edge for every different box height. Radius is recomputed
+   here with the exact same formula draw() uses, from live W/H, rather
+   than hard-coded, so this doesn't need updating if the viewport or the
+   arc's own constants change. */
+check("every segment's badge sits on the same radius as Library's, regardless of a `more` list",
+  await page.evaluate(() => {
+    const root = document.getElementById("links-arc");
+    const rootRect = root.getBoundingClientRect();
+    const W = root.clientWidth, H = root.clientHeight;
+    const SPAN = 360 / 7, FLOOR = 14, BAND_MIN = 168, BAND_MAX = 470;
+    const rad = (d) => d * Math.PI / 180;
+    const HALF = rad(SPAN / 2);
+    const Ro = W / (2 * Math.sin(HALF));
+    const sag = Ro * (1 - Math.cos(HALF));
+    const yEnd = Math.min(Math.max(H * 0.66, sag + 150), H - FLOOR - BAND_MIN * Math.cos(HALF));
+    const cx = W / 2, cy = yEnd + Ro * Math.cos(HALF);
+    const radii = [...document.querySelectorAll("#links-arc .seg-label")].map((l) => {
+      const b = l.querySelector(".seg-label__n").getBoundingClientRect();
+      const bx = b.left + b.width / 2 - rootRect.left, by = b.top + b.height / 2 - rootRect.top;
+      return Math.hypot(bx - cx, by - cy);
+    });
+    return Math.max(...radii) - Math.min(...radii);
+  }).then((spread) => spread < 2),
+  true);
+check("the arc's default line is now the hub's old hover note",
+  await page.evaluate(() => document.querySelector("#links-arc .arc__readout__note").textContent),
+  "Here are the most useful links for university in one place!");
+await page.hover("#links-arc .arc__hub");
+await page.waitForTimeout(150);
+check("hovering the hub shows just its name, no leftover note",
+  await page.evaluate(() => ({
+    name: document.querySelector("#links-arc .arc__readout__name").textContent,
+    note: document.querySelector("#links-arc .arc__readout__note").textContent,
+  })),
+  { name: "remote.le.ac.uk", note: "" });
+await page.mouse.move(20, 20);
+await page.waitForTimeout(150);
+check("moving off the hub restores the default line",
+  await page.evaluate(() => document.querySelector("#links-arc .arc__readout__note").textContent),
+  "Here are the most useful links for university in one place!");
+
 console.log("\nthe Opportunities veil");
 await page.evaluate(() => { location.hash = "#opportunities"; });
 await page.waitForTimeout(700);

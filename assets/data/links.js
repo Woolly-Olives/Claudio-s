@@ -47,8 +47,11 @@
 window.BIOSOC_LINKS = {
   hub: {
     href: "https://remote.le.ac.uk/",
-    name: "remote.le.ac.uk",
-    note: "Here are the most useful links for university in one place!"
+    name: "remote.le.ac.uk"
+    /* no note: its old text ("Here are the most useful links for
+       university in one place!") is now the arc's default HINT in
+       arc.js instead — moved, not copied, at explicit instruction
+       (2026-09-22). Hovering the hub itself now shows just its name. */
   },
 
   links: [

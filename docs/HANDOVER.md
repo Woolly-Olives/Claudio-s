@@ -287,6 +287,39 @@ back to them at the time: "Centre to Academic Achievement" → **for**, and
 duplicated word) — neither is a content decision, just a typo fix during
 transcription.
 
+**Badges levelled and the default hint swapped, 2026-09-22, at explicit
+instruction.** Every `.seg-label` sits centred (both axes) on the same
+radius, `Rlab`, in `draw()` — but the badge is only the *first* thing in
+that box, and Library, Research resources, Students' Union and University
+SharePoint are taller boxes than a plain segment (their `more` list adds
+rows below the badge+name), so centring put their badges further out
+toward the arc edge than a segment with no `more` list. There's no `more`
+count that makes all nine match by construction — text wrap affects box
+height too, unpredictably ahead of render — so `draw()` now runs a second
+pass after the labels are built: it measures each badge's real offset
+from its own label's centre via `offsetTop`/`offsetHeight` (pre-transform
+layout values, so the label's own rotation, `--tilt`, never has to be
+undone to read them — the same reasoning as `runIntro()`'s `levelPx` in
+`modulemap.js`), then nudges every label's anchor radius so its badge
+lands on the radius Library's badge measured at. Regression check: `tools/
+check.mjs` recomputes each badge's actual distance from the arc's own
+centre (replaying `draw()`'s own W/H-derived geometry) and asserts the
+spread across all nine is under 2px — needs an extra 500ms wait beyond
+this section's usual settle time, since it depends on real layout
+geometry rather than DOM structure, and the panel's 940ms zoom-in
+transition (`arc.css`) hadn't finished at the 700ms the section already
+waited.
+
+Separately: the hub's old hover-only note ("Here are the most useful
+links for university in one place!", `links.js`) is now `arc.js`'s
+default/resting `HINT` text, replacing "Point at a section of the arc to
+see where it leads." — moved, not copied, so `hub.note` was removed
+outright rather than left duplicated; hovering the hub itself now shows
+just its name, no second line. The identical sentence in the no-JS
+`.links-fallback` hero card (`index.html`) is untouched — it's a separate,
+statically-written element with no hover mechanic and no arc, so "move"
+doesn't apply to it.
+
 ### Study Resources
 A 30-row assessment table transcribed from the **2024/25** schedule the user
 screenshotted. It carries a visible caution to check every date against
