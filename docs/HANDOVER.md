@@ -312,6 +312,71 @@ move on purpose:
   which mostly is. `overview` is edited in `tools/build-curriculum.py`
   (the generator) and the site's own `assets/data/curriculum.js` is never
   hand-touched, same as every other generated field.
+- **Module Convenors / Aims / Learning Outcomes / Method of Assessment**
+  (added 2026-09-22), four more `.sheet__req`-styled sections below "About
+  the module:", in that order, for every Year 2 and Year 3 module —
+  transcribed **verbatim**, on explicit instruction, from the two module
+  description PDFs the user supplied (`Y2_module_descriptions_2026-27.pdf`,
+  `Y3_module_descriptions_2026-271.pdf`), not written or paraphrased by
+  anyone here. Year 1 and the two project halves (BS3PROJ/BS3PROJB) have no
+  such PDF and so carry none of these four fields — all show **N/A**, same
+  as any Year 2/3 module missing one specific section in its own source
+  (about a sixth of them are missing Aims and/or Learning Outcomes this
+  way — the PDFs are genuinely inconsistent about which sections every
+  module gets, not an extraction gap).
+  - `convenors` is a plain list of `"Name (email)"` strings, pairing each
+    name with the e-mail immediately below it in the source — the PDF's
+    two-column layout otherwise scatters convenor names after the
+    Semester/Credits values, not under "Module Convenors:" itself, which
+    took a specific reconstruction pass in the extraction script (not kept
+    in the repo — a scratch script, not a generator) to get right.
+  - `aims`/`learningOutcomes`/`assessment` are each a list of blocks —
+    `{type: "p", text}` for a paragraph, `{type: "ul"|"ol", items}` for a
+    bulleted or numbered list, matching whichever the source actually used
+    for that section. A list item can itself be `{text, items}` for one
+    level of sub-bullets (the same shape `overview` uses), needed for two
+    modules whose source nests a lowercase "o " sub-list under a "•"
+    bullet (BS2078's Learning Outcomes, BS3069's Method of Assessment).
+    `blockList()` in `modulemap.js` renders these; `listItemHtml()` is
+    shared with `overviewList()` for the actual `<li>` markup.
+  - Three modules needed a judgement call, not a mechanical transcription,
+    to satisfy "copy the text exactly, and do not add text outside of the
+    ones listed": BS3010 has no "Method of Assessment:" label at all —
+    its assessment is two separate, purely-assessment-content sections
+    ("Debates:" 30%, "Written Examination:" 70%) that are combined here
+    under one heading, each keeping its own source sub-header as a lead-in
+    paragraph, nothing paraphrased. BS3054, BS3055 and BS3068 have no such
+    label either — instead a single combined "(Module|Course) Structure
+    and Assessment:" section that mixes non-assessment teaching-delivery
+    prose with the genuine assessment-weighting sentences in the same
+    paragraph run; only the assessment-specific sentence(s) were kept
+    (word for word) and the structure-only sentences left out, rather than
+    including the whole section (which would have pulled in text outside
+    the four requested headings) or leaving assessment blank (which would
+    have dropped real content that does exist). If a stricter reading of
+    "exactly" is wanted here, these four are the ones to revisit first.
+  - One verified, deliberate non-fix: BS3069's Method of Assessment reads
+    "…reporting results?conclusions from a single…" — checked pixel for
+    pixel against a render of the source PDF page, and the "?" really is
+    what the document shows (not a PyMuPDF decoding artefact), so it was
+    kept as-is rather than "corrected" to what was presumably meant ("/").
+  - Two page-layout artefacts the transcription had to strip, beyond the
+    ones already known from `overview`'s handling: a page-footer "SCHOOL OF
+    BIOLOGICAL SCIENCES" line (the Y3 PDF's own variant of the "…AND
+    BIOMEDICAL…" line already stripped elsewhere) had leaked into BS3056's
+    Method of Assessment; and MB3057's source has "RECOMMENDED MODULES"
+    with no trailing colon (every other module's version of this label has
+    one), which meant it wasn't recognised as a section boundary and the
+    module list below it leaked into MB3057's Method of Assessment too.
+    Both are fixed at the source-text level, not patched into the data by
+    hand.
+  - `convenors`/`aims`/`learningOutcomes`/`assessment` are edited in
+    `tools/build-curriculum.py` the same way `overview` is — never by hand
+    in `assets/data/curriculum.js`. The one-off PDF-extraction script that
+    did the actual transcription (PyMuPDF-based; `pdftotext`/`pypdf` were
+    both unavailable in this environment) was a scratch tool, not
+    committed — re-extracting from the same two PDFs would need rebuilding
+    it, not editing an existing file in `tools/`.
 - **The move is animated with FLIP** (First-Last-Invert-Play), in
   `assets/js/modulemap.js`: `rerender()` measures every box's position before
   `render()` throws the DOM away and rebuilds it, then `playFlip()` starts each
@@ -852,6 +917,32 @@ genuinely open.
     See §7 for the current hue/sat/lightness/ink table and §4 for the
     `tools/check.mjs` cases that verify the WCAG contrast claims above
     against the rendered page, rather than trusting the arithmetic alone.
+11. **Module Convenors / Aims / Learning Outcomes / Method of Assessment,
+    added 2026-09-22 — four modules' worth of judgement calls the user may
+    want to check.** Full detail is in §6 Customise Your Degree; the short
+    version, since these are the four places a mechanical "copy exactly"
+    reading wasn't available:
+    - **BS3010** has no "Method of Assessment:" label in the source at
+      all — its two assessment-only subsections ("Debates:" 30%, "Written
+      Examination:" 70%) were combined under that heading, each keeping
+      its own source sub-header. Reasonable, but a combination the source
+      itself doesn't make explicitly.
+    - **BS3054, BS3055, BS3068** each have a single combined "Structure and
+      Assessment:" section mixing non-assessment teaching-delivery prose
+      with the real assessment-weighting sentences in the same paragraphs.
+      Only the assessment-specific sentence(s) were kept, verbatim; the
+      structure-only sentences were left out rather than included (which
+      would have pulled in text outside the four requested headings).
+    - Everything else transcribed cleanly, verified module-by-module
+      against the raw PDF text, including two genuine source quirks kept
+      as-is rather than corrected: BS3069's Method of Assessment has a
+      literal "?" where "/" was presumably meant (confirmed against a
+      render of the actual PDF page, not a PyMuPDF artefact), and BS2004's
+      convenor "Dr Swidbert ott" has a lowercase surname in the source
+      that is capitalised everywhere else he's listed.
+    - Every other Year 2/3 module missing Aims and/or Learning Outcomes
+      (about a sixth of them) was individually confirmed as a genuine
+      source omission, not a missed label — see §6 for the full list.
 
 ---
 

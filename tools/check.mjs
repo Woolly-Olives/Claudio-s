@@ -197,6 +197,42 @@ check("BS1060 (nested list) shows 1 bullet with 3 sub-bullets",
 check("a module with no overview (BS2009) shows N/A instead",
   await overviewOf("BS2009"), { hasNA: true, topLevel: 0, nested: 0 });
 
+console.log("\nModule Convenors / Aims / Learning Outcomes / Method of Assessment");
+async function detailSectionsOf(code) {
+  await page.evaluate(c => document.querySelector('[data-info="' + c + '"]').click(), code);
+  await page.waitForTimeout(200);
+  const result = await page.evaluate(() => {
+    const card = document.querySelector("#module-map .sheet__card");
+    const naFor = (label) => {
+      const p = [...card.querySelectorAll(".sheet__req")]
+        .find(el => el.querySelector("strong") && el.querySelector("strong").textContent.trim() === label);
+      return p ? p.textContent.includes("N/A") : null;
+    };
+    return {
+      convenorsNA: naFor("Module Convenors:"),
+      aimsNA: naFor("Aims:"),
+      loNA: naFor("Learning Outcomes:"),
+      moaNA: naFor("Method of Assessment:"),
+      proseLists: card.querySelectorAll(".sheet__prose-list").length,
+      orderedLists: card.querySelectorAll("ol.sheet__prose-list").length,
+      nestedSub: card.querySelectorAll(".sheet__prose-list li ul li").length,
+    };
+  });
+  await page.evaluate(() => document.querySelector("[data-close]").click());
+  await page.waitForTimeout(150);
+  return result;
+}
+check("BS1030 (Year 1 — no description PDF) shows N/A for all four",
+  await detailSectionsOf("BS1030"), { convenorsNA: true, aimsNA: true, loNA: true, moaNA: true, proseLists: 0, orderedLists: 0, nestedSub: 0 });
+check("BS2200 (Year 2, all four present) shows none of them as N/A",
+  await detailSectionsOf("BS2200"), { convenorsNA: false, aimsNA: false, loNA: false, moaNA: false, proseLists: 1, orderedLists: 0, nestedSub: 0 });
+check("BS2078 (source has no Aims label) shows Aims N/A but Learning Outcomes nested sub-bullets",
+  await detailSectionsOf("BS2078"), { convenorsNA: false, aimsNA: true, loNA: false, moaNA: false, proseLists: 1, orderedLists: 0, nestedSub: 4 });
+check("BS3003 (numbered assessment in the source) renders it as an ordered list",
+  (await detailSectionsOf("BS3003")).orderedLists, 1);
+check("BS3010 (no Method of Assessment label — combined from Debates/Written Examination) is not N/A",
+  (await detailSectionsOf("BS3010")).moaNA, false);
+
 /*
  * Boxes MOVE between degrees now, on purpose (core to the top, unavailable
  * hidden) — see docs/HANDOVER.md on why this reverses the project's

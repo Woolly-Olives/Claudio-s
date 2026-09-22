@@ -572,6 +572,32 @@ between board rebuilds; if it just appeared (newly available, or revealed by
 the switch above) it rises into place instead, since there is nowhere for it
 to slide from. Anyone with reduced motion set skips both.
 
+### Module Convenors, Aims, Learning Outcomes, Method of Assessment
+
+Below "About the module:", every Year 2 and Year 3 module's details panel
+carries four more sections, styled the same way: **Module Convenors**,
+**Aims**, **Learning Outcomes** and **Method of Assessment**, transcribed
+**verbatim** from the School's own module description PDFs (not the
+handbooks used for §Where the data comes from below) — nothing paraphrased,
+nothing added beyond what those four headings cover in the source. Year 1
+and the Research Project have no such PDF and show **N/A** for all four, the
+same as any Year 2/3 module missing one specific section in its own source.
+
+The data lives in the same fields as `overview` — `convenors`, `aims`,
+`learningOutcomes`, `assessment` in `assets/data/curriculum.js`
+(**generated** — edit `tools/build-curriculum.py` and re-run it, never the
+output directly). `convenors` is a plain list of `"Name (email)"` strings.
+The other three are each a list of blocks: `{type: "p", text}` for a
+paragraph, `{type: "ul"|"ol", items}` for a bulleted or numbered list — a
+list item can itself be `{text, items}` for one level of sub-bullets, the
+same shape `overview` uses. A module missing one of the four shows **N/A**
+for that section only.
+
+A handful of modules needed a judgement call rather than a mechanical
+copy-paste, where the source itself doesn't cleanly separate these four
+headings from surrounding text — see `docs/HANDOVER.md` §6 and §10 item 11
+for exactly which modules and what was decided before changing any of this.
+
 ### Opening the page
 
 The first time you open this section — from the wheel or a direct link — it

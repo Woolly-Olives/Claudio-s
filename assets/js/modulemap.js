@@ -519,19 +519,47 @@
         '<p class="sheet__req"><strong>About the module:</strong>' +
           (m.overview ? "" : " N/A") + '</p>' +
         (m.overview ? overviewList(m.overview) : "") +
+        '<p class="sheet__req"><strong>Module Convenors:</strong>' +
+          (m.convenors ? " " + m.convenors.map(esc).join(", ") : " N/A") + '</p>' +
+        '<p class="sheet__req"><strong>Aims:</strong>' +
+          (m.aims ? "" : " N/A") + '</p>' +
+        (m.aims ? blockList(m.aims) : "") +
+        '<p class="sheet__req"><strong>Learning Outcomes:</strong>' +
+          (m.learningOutcomes ? "" : " N/A") + '</p>' +
+        (m.learningOutcomes ? blockList(m.learningOutcomes) : "") +
+        '<p class="sheet__req"><strong>Method of Assessment:</strong>' +
+          (m.assessment ? "" : " N/A") + '</p>' +
+        (m.assessment ? blockList(m.assessment) : "") +
       '</div>' +
     '</div>';
   }
 
-  /** Renders `overview` — a plain string is one bullet, {text, items} is a
-      bullet with its own sub-bullets. See the SCHEMA note in curriculum.js. */
+  /** Renders one list item for `overview`/a block list's "ul"/"ol" — a
+      plain string is a bullet, {text, items} is a bullet with its own
+      sub-bullets (one level). See the SCHEMA note in curriculum.js. */
+  function listItemHtml(item) {
+    if (typeof item === "string") { return '<li>' + esc(item) + '</li>'; }
+    return '<li>' + esc(item.text) +
+      '<ul>' + item.items.map(function (sub) { return '<li>' + esc(sub) + '</li>'; }).join("") + '</ul>' +
+    '</li>';
+  }
+
+  /** Renders `overview` — see listItemHtml. */
   function overviewList(items) {
-    return '<ul class="sheet__overview">' + items.map(function (item) {
-      if (typeof item === "string") { return '<li>' + esc(item) + '</li>'; }
-      return '<li>' + esc(item.text) +
-        '<ul>' + item.items.map(function (sub) { return '<li>' + esc(sub) + '</li>'; }).join("") + '</ul>' +
-      '</li>';
-    }).join("") + '</ul>';
+    return '<ul class="sheet__overview">' + items.map(listItemHtml).join("") + '</ul>';
+  }
+
+  /** Renders `aims`/`learningOutcomes`/`assessment` — each a list of blocks
+      transcribed verbatim from the module description PDFs: {type: "p",
+      text} is a paragraph, {type: "ul"|"ol", items} is a bulleted or
+      numbered list (list items follow the same schema as listItemHtml).
+      See the SCHEMA note in curriculum.js. */
+  function blockList(blocks) {
+    return blocks.map(function (b) {
+      if (b.type === "p") { return '<p class="sheet__prose">' + esc(b.text) + '</p>'; }
+      var tag = b.type === "ol" ? "ol" : "ul";
+      return '<' + tag + ' class="sheet__prose-list">' + b.items.map(listItemHtml).join("") + '</' + tag + '>';
+    }).join("");
   }
 
   function render() {

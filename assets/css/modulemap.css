@@ -786,6 +786,43 @@
   list-style: circle;
 }
 
+/* Module Convenors / Aims / Learning Outcomes / Method of Assessment,
+   transcribed verbatim from the module description PDFs: prose paragraphs
+   and bulleted/numbered lists, styled like sheet__req/sheet__overview
+   above. The first block after a sheet__req label pulls up the same way
+   sheet__overview does, whether it's a paragraph or a list. */
+#module-map .sheet__prose {
+  margin: 0 0 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--fg-soft);
+}
+
+#module-map .sheet__req + .sheet__prose,
+#module-map .sheet__req + .sheet__prose-list {
+  margin-top: -0.35rem;
+}
+
+#module-map .sheet__prose:last-child { margin-bottom: 0; }
+
+#module-map .sheet__prose-list {
+  margin: 0 0 0.7rem;
+  padding-left: 1.15rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--fg-soft);
+}
+
+#module-map .sheet__prose-list li { margin: 0 0 0.3rem; }
+#module-map .sheet__prose-list li:last-child { margin-bottom: 0; }
+#module-map .sheet__prose-list:last-child { margin-bottom: 0; }
+
+#module-map .sheet__prose-list ul {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+  list-style: circle;
+}
+
 #module-map .mm__live {
   margin: 1rem 0 0;
   min-height: 1.2em;
