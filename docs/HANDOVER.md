@@ -618,6 +618,23 @@ move on purpose:
   (`mm-arrow-nudge`) was scaled the same way, `translateX(6px)` →
   `translateX(24px)`, so the animation still reads as the same gesture at
   the new size rather than becoming imperceptible against it.
+- **The "Year N" text is about 3x its old size, and the gap under it much
+  tighter, 2026-09-22.** `.mm__year-head`'s `font-size: 0.9rem` →
+  `2.7rem`; `margin-bottom`/`padding-bottom` trimmed `0.5rem`/`0.4rem` →
+  `0.2rem`/`0.2rem`. The real cause of the "awkward gap" this was fixing
+  wasn't either of those, though — it was `.mm__board`'s own `gap:
+  var(--col-gap)`. That single-value `gap` shorthand sets *both*
+  row-gap and column-gap to the same value, which was harmless while the
+  grid was six columns and one row (there was no row-gap to see), but
+  once the "Year N" row existed above the six columns (see the
+  `.mm__year-head` entry above) it meant a full `--col-gap` (2.75rem,
+  44px) of vertical space between the year row and the columns below —
+  far more than the `margin-bottom` alone suggested, and the actual
+  source of the complaint. Fixed by splitting `.mm__board`'s `gap` into
+  explicit `column-gap: var(--col-gap)` (unchanged — this is also the
+  width a linked module's bridge spans, see `column()`'s bridge-drawing
+  code, so it stays tied to `--col-gap` rather than getting its own
+  value) and a separate, much smaller `row-gap: 0.4rem`.
 
 **A real bug worth knowing if this is ever touched again:** the first version
 of the intro removed a column's `is-revealed` class as soon as that column's

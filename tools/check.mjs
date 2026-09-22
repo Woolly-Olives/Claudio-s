@@ -241,6 +241,16 @@ check("three \"Year N\" bars, each spanning two grid columns and decorative only
   [{ text: "Year 1", ariaHidden: "true", spansTwo: true },
    { text: "Year 2", ariaHidden: "true", spansTwo: true },
    { text: "Year 3", ariaHidden: "true", spansTwo: true }]);
+check("the \"Year N\" text is about 3x its old size (0.9rem -> 2.7rem)",
+  await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector("#module-map .mm__year-head")).fontSize) >= 40),
+  true);
+check("the gap under the \"Year N\" bar is tight, not the old oversized row-gap",
+  await page.evaluate(() => {
+    const yh = document.querySelector("#module-map .mm__year-head").getBoundingClientRect();
+    const col = document.querySelector("#module-map .col").getBoundingClientRect();
+    return col.top - yh.bottom;
+  }).then(gap => gap >= 0 && gap < 20),
+  true);
 check("each column's own heading shows just \"Semester N\", but still reads \"Year N Semester N\" to assistive tech",
   await page.evaluate(() => [...document.querySelectorAll("#module-map .col__name")].map(h => {
     const clone = h.cloneNode(true);
