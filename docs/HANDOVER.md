@@ -157,6 +157,7 @@ phone. Two habits that have repeatedly paid off:
 | `assets/css/styles.css` | Tokens, wheel, panels, shared content helpers, the bento and its veil. |
 | `assets/js/app.js` | Builds the wheel, both reveals, hash routing, the `biosoc:page` event. |
 | `assets/js/theme.js` | The light/dark toggle, top right. Styled in `styles.css`, not its own file — see below. |
+| `assets/js/menu.js` | The burger menu and its drawer, top left. Also styled in `styles.css` — see below. |
 | `assets/js/arc.js`, `assets/css/arc.css` | Essential Links' arc and its zoom. |
 | `assets/js/modulemap.js`, `assets/css/modulemap.css` | Customise Your Degree. |
 | `assets/js/events.js`, `assets/css/events.css` | The calendar: subscribe card, four-week grid, Coming up list. |
@@ -219,6 +220,52 @@ the token block it depends on.
   it did before this toggle existed.
 - **Hidden entirely under `.no-js`**, same as `.page__chrome`. A button that
   does nothing without `theme.js` is worse than no button.
+
+**The burger menu, top left** (added 2026-09-22, at explicit instruction) is
+also site-wide chrome, built the same way — a fixed circular button, this
+time paired with a slide-in drawer, in `assets/js/menu.js` (its own file:
+unlike the toggle, it owns a whole panel's worth of markup and state, not
+just an icon swap) and styled in `styles.css` right after the theme toggle's
+own rules, which it otherwise mirrors closely (fixed, `z-index: 30`, same
+button size).
+
+- **Four dummy options, on purpose.** There is nowhere real to send them yet
+  — `menu-drawer__link` is a plain `<button>`, not an `<a>`, specifically so
+  clicking one does nothing rather than writing a stray `#` into the URL
+  and tripping `app.js`'s hash router. Wire them up once there is something
+  real for them to open.
+- **Unlike the theme toggle, hidden whenever a section page is open**
+  (`body.is-page-open .menu-toggle { display: none; }`) rather than fixed
+  everywhere — an open page already has its own "Menu" back button in that
+  same corner (`.page__chrome`), and two controls stacked there is one too
+  many. It only ever opens from the wheel.
+- **The panel is `min(75vw, 320px)` wide**, per the "75% of a phone
+  screen's width" ask — the cap keeps it from becoming an absurd fixed
+  sidebar on a desktop-width viewport, where 75vw would be enormous; on an
+  actual phone width the cap essentially never binds.
+- **A minimal focus trap**, not a general-purpose one: the panel only ever
+  holds the close button and the four dummy links, so `menu.js` just wraps
+  Tab between the first and last of that fixed list rather than walking the
+  DOM for every focusable element. If the drawer ever grows real, varied
+  content, replace this with a proper walk.
+- **`#stage` (the wheel) gets `inert` while the drawer is open**, the same
+  device Opportunities' veil and every section page already use — without
+  it, the wheel's seven slices stay tabbable straight through the backdrop.
+- Escape closes it and returns focus to the toggle button; clicking the
+  backdrop or the drawer's own close button does the same.
+
+**The stage's bottom row** (also 2026-09-22, also at explicit instruction):
+the old `<p class="stage__hint">Choose a section</p>` is gone outright — not
+hidden, removed, CSS rule and all — and a row of three social links now sits
+where it was, in `index.html` inside `.stage`, styled right after `.stage__hint`
+used to be (now `.stage__social`). Instagram, the LinkedIn group and
+leicesterbiosoc.com, in that order. **The icons are generic pictograms
+(camera outline, two-figure "network" glyph, globe), not the platforms' own
+marks** — the same reasoning as the Essential Links logos in §3/§10: none of
+these three domains can be reached from this container to check a redrawn
+logo against, and a wrong reconstruction of a real mark is worse than an
+honest generic one. Swap in real assets the same way Blackboard's, Outlook's,
+the Library's and the Union's were, if the user supplies them directly.
 
 ---
 
@@ -398,6 +445,20 @@ followed by a row of two — a legitimately **shorter** last row (not a
 hole in the middle of the grid, which is what the "keep tiling exactly"
 warning on Opportunities' own bento is actually about), since 14 tile-units
 across 4 columns was never going to be a whole number of full rows.
+
+**The ten Guides pages no longer bubble open, 2026-09-22, at explicit
+instruction.** They're one level deeper than a section — a circular reveal
+growing from the tile just tapped, arriving right on top of the section's
+own bubble a moment before, read as one reveal too many. Each now carries a
+second class, `page--flat` (`index.html`), alongside its existing `page`
+class; `styles.css` gives that class `clip-path: none` unconditionally and
+a plain opacity fade instead — the same shape `.page--zoom` already used
+for Essential Links (in `arc.css`), for a different reason. Nothing in
+`app.js` needed to change: `openPage()`/`hidePage()` already just add and
+remove the `is-open` class and let CSS decide what that means, so a new
+CSS-only reveal variant is free. **The seven wheel sections, Essential
+Links' zoom included, keep their bubble — this only touches the ten pages
+one level under Study Resources.**
 
 ### Customise Your Degree
 The whole curriculum on one board: **57 modules, 11 degrees, 39 timetable clash

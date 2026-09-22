@@ -74,6 +74,46 @@ needs no block of its own — with nothing overriding the bare tokens, dark is
 just what happens. **A component that hardcodes a colour instead of
 `var(--token)` will be wrong in two of these three states.**
 
+## The burger menu
+
+A circular button, fixed top left, mirroring the theme toggle's own shape —
+built by `assets/js/menu.js`, styled right after the toggle in
+`assets/css/styles.css`. It opens a slide-in drawer, `min(75vw, 320px)` wide,
+with four dummy options (`.menu-drawer__link`, plain `<button>`s — not
+`<a>`s, so tapping one does nothing rather than writing a stray `#` into the
+URL) until there is somewhere real for them to go. Escape, the backdrop or
+its own close button all dismiss it and return focus to the toggle; `#stage`
+gets `inert` while it's open, the same device the Opportunities veil and
+every section page already use.
+
+**Only shows on the wheel.** An open section page already has its own
+"Menu" back button in that same top-left corner, so the burger hides itself
+whenever `body` carries `.is-page-open` — two controls in one corner would
+be one too many.
+
+## The wheel's bottom row
+
+Three social links — Instagram, the LinkedIn group, the Society's own
+website — sit where a "Choose a section" hint used to. **The icons are
+generic pictograms, not the platforms' own marks**, for the same reason
+some of the Essential Links logos aren't real logos yet either (see that
+section below): this environment can't reach any of the three domains to
+check a redrawn logo against, and a wrong reconstruction is worse than an
+honest generic one. Swap in real assets the same way Essential Links' were,
+if they're supplied directly.
+
+## Guides pages open without a bubble
+
+The ten Guides pages under Study Resources (below) are one level deeper
+than a wheel section, and no longer use the circular "bubble" reveal the
+seven sections still use — a bubble growing out of the tile just tapped,
+arriving right on top of the section's own bubble a moment earlier, read as
+one too many. Each one carries `page--flat` alongside its usual `page`
+class; that's a CSS-only variant (`clip-path: none` plus a plain opacity
+fade, in `assets/css/styles.css`) — `assets/js/app.js` needed no changes,
+since it only ever adds/removes an `is-open` class and lets CSS decide what
+that means.
+
 ## Adding your content
 
 Everything you add goes inside the `<div class="page__body">` of the relevant

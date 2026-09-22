@@ -97,6 +97,58 @@ await page.waitForTimeout(150);
 check("a second click switches back to dark",
   await page.evaluate(() => document.documentElement.getAttribute("data-theme")), "dark");
 
+console.log("\nthe wheel's stage furniture");
+check("the old \"Choose a section\" hint is gone",
+  await page.evaluate(() => !!document.querySelector(".stage__hint")), false);
+check("three social links at the bottom, in order, to the real accounts",
+  await page.evaluate(() => [...document.querySelectorAll(".stage__social__link")].map(a => a.href)),
+  ["https://www.instagram.com/biosoc.leics/", "https://www.linkedin.com/groups/21170010/",
+   "https://www.leicesterbiosoc.com/"]);
+
+console.log("\nthe burger menu");
+check("closed by default, 75%-of-phone-width panel (capped at 320px)",
+  await page.evaluate(() => ({
+    open: document.getElementById("menu-drawer").classList.contains("is-open"),
+    matchesFormula: document.querySelector(".menu-drawer__panel").getBoundingClientRect().width
+      === Math.min(window.innerWidth * 0.75, 320),
+  })),
+  { open: false, matchesFormula: true });
+await page.click("#menu-toggle");
+await page.waitForTimeout(350);
+check("opens with four dummy options and moves focus inside",
+  await page.evaluate(() => ({
+    open: document.getElementById("menu-drawer").classList.contains("is-open"),
+    options: [...document.querySelectorAll(".menu-drawer__link")].map(b => b.textContent),
+    focusInPanel: document.getElementById("menu-drawer-panel").contains(document.activeElement),
+  })),
+  { open: true, options: ["Option 1", "Option 2", "Option 3", "Option 4"], focusInPanel: true });
+await page.keyboard.press("Escape");
+await page.waitForTimeout(350);
+check("Escape closes it and returns focus to the toggle",
+  await page.evaluate(() => ({
+    open: document.getElementById("menu-drawer").classList.contains("is-open"),
+    focused: document.activeElement.id,
+  })),
+  { open: false, focused: "menu-toggle" });
+await page.evaluate(() => { location.hash = "#connect"; });
+await page.waitForTimeout(700);
+check("hidden while a section page is open — it already has its own back button there",
+  await page.evaluate(() => getComputedStyle(document.getElementById("menu-toggle")).display), "none");
+await page.evaluate(() => { location.hash = ""; });
+await page.waitForTimeout(700);
+
+console.log("\nsub-pages open without the section-level bubble");
+/* .page--flat sets clip-path: none unconditionally (not just once open),
+   so this is true at rest, before anything animates — no need to catch
+   a moment mid-transition */
+check("every Guides page carries page--flat and so starts with no clip-path",
+  await page.evaluate(() =>
+    [...document.querySelectorAll('[id^="page-guide-"]')].every(el =>
+      el.classList.contains("page--flat") && getComputedStyle(el).clipPath === "none")),
+  true);
+check("a real section keeps its clip-path circle, unaffected", await page.evaluate(() =>
+  getComputedStyle(document.getElementById("page-study-resources")).clipPath), "circle(0px at 50% 50%)");
+
 console.log("\nthe Join BioSoc newsletter frame");
 /* sway.js must not fetch sway.cloud.microsoft for a visitor who never
    opens this section — checked before the loop below opens every

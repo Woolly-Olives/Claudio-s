@@ -152,6 +152,124 @@ a { color: hsl(var(--hue, 160) 70% var(--label-l)); }
 :root[data-theme="light"] .theme-toggle__icon--sun { display: block; }
 :root[data-theme="light"] .theme-toggle__icon--moon { display: none; }
 
+/* ---------- the burger menu, top left ----------
+   Fixed at the document level, same as the theme toggle, but only on
+   the wheel — a section page already has its own "Menu" back button in
+   this corner (see assets/js/menu.js and .page__chrome above). */
+
+.menu-toggle {
+  position: fixed;
+  z-index: 30;
+  top: max(1rem, env(safe-area-inset-top));
+  left: max(1rem, env(safe-area-inset-left));
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  color: var(--fg-soft);
+  background: hsl(0 0% 50% / 0.1);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease), color 200ms var(--ease);
+}
+
+.menu-toggle:hover {
+  color: var(--fg);
+  background: hsl(0 0% 50% / 0.2);
+  border-color: var(--line-soft);
+}
+
+.menu-toggle__icon {
+  width: 1.3rem;
+  height: 1.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+body.is-page-open .menu-toggle { display: none; }
+.no-js .menu-toggle { display: none; }    /* does nothing without assets/js/menu.js */
+
+/* ---------- the burger's own drawer ---------- */
+
+.menu-drawer { pointer-events: none; }
+
+.menu-drawer__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: hsl(0 0% 0% / 0.4);
+  opacity: 0;
+  transition: opacity 260ms var(--ease);
+}
+
+.menu-drawer__panel {
+  position: fixed;
+  z-index: 36;
+  inset: 0 auto 0 0;
+  width: min(75vw, 320px);
+  padding: max(1.4rem, env(safe-area-inset-top)) 1.4rem 1.4rem
+           max(1.4rem, env(safe-area-inset-left));
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  box-shadow: 0 0 40px hsl(0 0% 0% / 0.25);
+  transform: translateX(-100%);
+  transition: transform 320ms var(--ease);
+}
+
+.menu-drawer.is-open { pointer-events: auto; }
+.menu-drawer.is-open .menu-drawer__backdrop { opacity: 1; }
+.menu-drawer.is-open .menu-drawer__panel { transform: none; }
+
+.menu-drawer__close {
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  margin-bottom: 1.4rem;
+  padding: 0;
+  color: var(--fg-soft);
+  background: hsl(0 0% 50% / 0.1);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.menu-drawer__close svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.menu-drawer__nav {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.menu-drawer__link {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 0.6rem;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--fg);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line-soft);
+  cursor: pointer;
+}
+
+.menu-drawer__link:hover,
+.menu-drawer__link:focus-visible { color: hsl(160 70% var(--label-l)); }
+
 /* ---------- 3. Stage + wheel ---------- */
 .stage {
   position: fixed;
@@ -178,15 +296,40 @@ body.is-page-open .stage {
   pointer-events: none;
 }
 
-.stage__hint {
+.stage__social {
   position: absolute;
   bottom: max(20px, env(safe-area-inset-bottom));
-  margin: 0;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  display: flex;
+  gap: 0.7rem;
+}
+
+.stage__social__link {
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
   color: var(--fg-soft);
-  opacity: 0.7;
+  background: hsl(0 0% 50% / 0.1);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  transition: background 200ms var(--ease), border-color 200ms var(--ease), color 200ms var(--ease);
+}
+
+.stage__social__link:hover,
+.stage__social__link:focus-visible {
+  color: var(--fg);
+  background: hsl(0 0% 50% / 0.2);
+  border-color: var(--line-soft);
+}
+
+.stage__social__link svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .wheel {
@@ -367,6 +510,26 @@ body.is-page-open .stage {
 }
 
 .page.is-open::before { opacity: 1; }
+
+/* Guides pages open one level deeper than a section — a circular
+   bubble growing from the tile just tapped, on top of the section's
+   own bubble a moment earlier, reads as one reveal too many. These
+   fade in place instead; the section-level bubble above is untouched.
+   At explicit instruction (2026-09-22). Same shape as .page--zoom in
+   arc.css, which solved the same problem for a different reason. */
+.page--flat,
+.page--flat.is-open,
+.page--flat.is-settled {
+  clip-path: none;
+}
+
+.page--flat {
+  opacity: 0;
+  transition: opacity 380ms var(--ease);
+}
+
+.page--flat.is-open { opacity: 1; }
+.page--flat::before { display: none; }
 
 .page__scroll {
   position: absolute;
