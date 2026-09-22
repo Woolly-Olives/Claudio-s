@@ -684,6 +684,16 @@ more than one stream the first match in `meta.streams` wins, and that array is
 held in the agreed precedence order: physiology, neuroscience, biochemistry,
 genetics, microbiology, zoology.
 
+**The on-page legend ("Degree Stream Colours", above the board) reads in a
+different order** — biochemistry, microbiology, genetics, physiology,
+neuroscience, zoology, then "Core for every degree" in the dark green —
+set by `LEGEND_ORDER` in `modulemap.js`, entirely separate from
+`meta.streams`'s own order. Reordering `meta.streams` itself to match
+would silently change which colour wins for a module core under more
+than one stream, so the legend's display order and the data's precedence
+order are two different things on purpose; change `LEGEND_ORDER` for the
+one, `meta.streams` for the other.
+
 `meta.uncoloured` lists modules that take no stream colour despite being core —
 BS2200, BS2000, both halves of the Research Project, plus BS2004 and BS2094.
 Colouring them by stream would say nothing about specialisation. Those of them

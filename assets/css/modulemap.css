@@ -963,15 +963,19 @@
   gap: 0.6rem;
 }
 
+/* at least 4x the size the arrow was before it was made "massive" — every
+   clamp() bound scaled up by the same factor, since clamp is linear in
+   its arguments, so this holds whatever the veil's own width happens to
+   be, not just at the sizes checked by hand. */
 #module-map .mm__veil__arrow {
-  width: clamp(2.4rem, 30%, 3.6rem);
+  width: clamp(9.6rem, 120%, 14.4rem);
   height: auto;
   animation: mm-arrow-nudge 1100ms ease-in-out infinite;
 }
 
 @keyframes mm-arrow-nudge {
   0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(6px); }
+  50% { transform: translateX(24px); }
 }
 
 #module-map .mm__veil__label {

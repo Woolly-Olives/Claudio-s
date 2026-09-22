@@ -193,6 +193,9 @@ check("every intro arrow lines up level with Year 1 Semester 1's",
 check("three veils, not six — one per year, labelled just \"Year N\"",
   await page.evaluate(() => [...document.querySelectorAll("#module-map .mm__veil__label")].map(el => el.textContent)),
   ["Year 1", "Year 2", "Year 3"]);
+check("the veil arrow is massive — at least 4x its old 2.4rem–3.6rem size",
+  await page.evaluate(() => document.querySelector("#module-map .mm__veil__arrow").getBoundingClientRect().width >= 150),
+  true);
 check("each veil spans both of that year's semester columns, not just one",
   await page.evaluate(() => {
     const cols = [...document.querySelectorAll("#module-map .col")];
@@ -212,6 +215,21 @@ await page.waitForTimeout(3600);   // let the opening reveal finish before touch
 
 const degrees = await page.locator("#module-map .dbtn").count();
 check("eleven degrees", degrees, 11);
+
+console.log("\nthe stream legend");
+check("heading reads \"Degree Stream Colours\", entries in the requested order, "
+  + "\"Core for every degree\" the BS2200/BS2000 dark green",
+  await page.evaluate(() => ({
+    heading: document.querySelector("#module-map .mm__streams b").textContent,
+    items: [...document.querySelectorAll("#module-map .mm__streams .skey")].map(el => el.textContent),
+    coreColour: getComputedStyle(document.querySelector("#module-map .mm__streams .skey:last-of-type"))
+      .getPropertyValue("--sc").trim(),
+  })),
+  {
+    heading: "Degree Stream Colours",
+    items: ["Biochemistry", "Microbiology", "Genetics", "Physiology", "Neuroscience", "Zoology", "Core for every degree"],
+    coreColour: "#1b6b3a",
+  });
 
 console.log("\nthe Year headers span both semesters");
 check("three \"Year N\" bars, each spanning two grid columns and decorative only",

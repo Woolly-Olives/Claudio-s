@@ -76,6 +76,19 @@
   var NEUTRAL = (DATA.meta && DATA.meta.neutral) || { core: "#bfbfbf", plain: "#f2f2f2" };
   var UNCOLOURED = (DATA.meta && DATA.meta.uncoloured) || [];
 
+  /* the legend reads in a different order from STREAMS itself — STREAMS
+     stays in the agreed precedence order (see streamOf()), which a
+     module core for more than one stream depends on; reordering that
+     array to match the legend would silently change which colour wins
+     for such a module. Any stream id this list leaves out still shows,
+     appended at the end, so a new stream added to curriculum.js without
+     updating this array is never silently dropped from the legend. */
+  var LEGEND_ORDER = ["biochemistry", "microbiology", "genetics", "physiology", "neuroscience", "zoology"];
+  var LEGEND_STREAMS = LEGEND_ORDER
+    .map(function (id) { return STREAMS.filter(function (st) { return st.id === id; })[0]; })
+    .filter(Boolean)
+    .concat(STREAMS.filter(function (st) { return LEGEND_ORDER.indexOf(st.id) === -1; }));
+
   function isCoreFor(d, code) {
     return Object.keys(d.core).some(function (s) { return d.core[s].indexOf(code) !== -1; }) ||
       Object.keys(d.coreOneOf || {}).some(function (s) {
@@ -573,11 +586,11 @@
       /* nothing here may vary in height between degrees, or the board
          shifts under the pointer when you switch */
       '<div class="mm__degrees" role="tablist" aria-label="Degree">' + degreeButtons() + '</div>' +
-      '<div class="mm__streams"><b>Stream colours</b>' +
-        STREAMS.map(function (st) {
+      '<div class="mm__streams"><b>Degree Stream Colours</b>' +
+        LEGEND_STREAMS.map(function (st) {
           return '<span class="skey" style="--sc:' + st.colour + '">' + esc(st.label) + '</span>';
         }).join("") +
-        '<span class="skey" style="--sc:' + NEUTRAL.core + '">Core for every degree</span>' +
+        '<span class="skey" style="--sc:' + NEUTRAL.school + '">Core for every degree</span>' +
         '<label class="mm__toggle">' +
           '<input type="checkbox" data-show-all' + (state.showAll ? " checked" : "") + '>' +
           '<span class="mm__toggle__track" aria-hidden="true"><span class="mm__toggle__thumb"></span></span>' +

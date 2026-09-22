@@ -588,6 +588,36 @@ move on purpose:
 - **The credit tracker bar is twice as thick, also 2026-09-22**: `.col__bar`
   `height: 5px` → `10px` in `modulemap.css`. Nothing else about it changed
   — `.col__bar__fill`'s `height: 100%` already tracks its parent.
+- **The stream legend was renamed, reordered and its neutral swatch
+  recoloured, also 2026-09-22.** "Stream colours" → "Degree Stream
+  Colours"; the legend now reads biochemistry, microbiology, genetics,
+  physiology, neuroscience, zoology, "Core for every degree" — a
+  **different order from `meta.streams` itself**, which stays physiology,
+  neuroscience, biochemistry, genetics, microbiology, zoology in
+  `curriculum.js`, because that array's own order is load-bearing:
+  `streamOf()` walks it in order and the first stream a module is core
+  for wins, for any module core under more than one. Reordering
+  `meta.streams` to match the legend would have silently changed which
+  colour some modules show. Fixed instead with a separate `LEGEND_ORDER`
+  array in `modulemap.js`, used only for the legend's own rendering — any
+  stream id it leaves out still appears, appended at the end, so a stream
+  added to `curriculum.js` later without updating `LEGEND_ORDER` is never
+  silently dropped from the legend. The "Core for every degree" swatch
+  changed from `NEUTRAL.core` (`#bfbfbf`, plain grey) to `NEUTRAL.school`
+  (`#1b6b3a`, dark green) — the colour `schoolCore` modules like BS2200
+  and BS2000 already render in on the board itself (see `paintOf()`), so
+  this is a legend fix, not a new colour: the grey swatch had never
+  actually matched what "core for every degree" modules look like.
+- **The veil's arrow is four times its old size, also 2026-09-22**:
+  `.mm__veil__arrow`'s `width: clamp(2.4rem, 30%, 3.6rem)` →
+  `clamp(9.6rem, 120%, 14.4rem)` in `modulemap.css` — every bound in the
+  `clamp()` scaled by the same factor 4, which keeps the result exactly
+  4x whatever it would have been at any veil width, not just the ones
+  checked by hand (`clamp` is linear in its arguments for a uniform
+  positive scale). The nudge animation's own travel distance
+  (`mm-arrow-nudge`) was scaled the same way, `translateX(6px)` →
+  `translateX(24px)`, so the animation still reads as the same gesture at
+  the new size rather than becoming imperceptible against it.
 
 **A real bug worth knowing if this is ever touched again:** the first version
 of the intro removed a column's `is-revealed` class as soon as that column's
