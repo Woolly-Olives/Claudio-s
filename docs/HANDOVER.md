@@ -162,7 +162,7 @@ phone. Two habits that have repeatedly paid off:
 | `assets/js/modulemap.js`, `assets/css/modulemap.css` | Customise Your Degree. |
 | `assets/js/events.js`, `assets/css/events.css` | The calendar: subscribe card, four-week grid, Coming up list. |
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Instagram block on Events. |
-| `assets/js/sway.js`, `assets/css/sway.css` | Join BioSoc — the Sway newsletter embed. |
+| `assets/js/sway.js`, `assets/css/sway.css` | BioSoc Newsletter — the Sway newsletter embed. |
 | `assets/js/advice.js`, `assets/css/advice.css` | Connect. |
 | `tools/check.mjs` | The regression run. |
 
@@ -926,7 +926,16 @@ Instagram first, then the calendar.
   Coming up. Up to four events share a day's height; past four, three show and
   the last slot reads *+N more*.
 
-### Join BioSoc
+### BioSoc Newsletter
+**Renamed from "Join BioSoc" to "BioSoc Newsletter," 2026-09-24, at explicit
+instruction** — `label` in `SECTIONS` (`assets/js/app.js`) and the page's own
+`<h1>` (`index.html`); the section's `id` (`join-biosoc`, so also `#join-biosoc`
+in the URL and `page-join-biosoc` in `index.html`) was deliberately left alone,
+since renaming it would break the deep link and touch routing code the user
+didn't ask to change. `§6 Join BioSoc` elsewhere in this file, and the section
+heading below, are updated to match; dated entries describing what happened
+*at the time* keep the name it had then.
+
 **Replaced 2026-09-21, at explicit instruction**: the Union membership
 hand-off (steps, facts strip, related links, and its own try-it-and-look
 frame — everything §6 used to describe here) was removed outright and the
@@ -1016,7 +1025,7 @@ solved-once-for-all any more the way the old palette was. Current values:
 | Opportunities | 175 | 39.1% | 41.0% | dark | `#40918b` |
 | Connect | 223 | 37.0% | 37.0% | light | `#3b4f81` |
 | Events | 275 | 33.0% | 30.0% | light | `#513366` |
-| Join BioSoc | 330 | 50.2% | 41.4% | light | `#9f356a` |
+| BioSoc Newsletter | 330 | 50.2% | 41.4% | light | `#9f356a` |
 
 Essential Links (amber) and Study Resources (olive) are the two hues lifted
 directly from the user's reference images, pixel-identical to the source.
@@ -1092,7 +1101,7 @@ Do not spend time re-attempting these without new information.
   items 4 and 5 before rebuilding either.
 - **The Union's pages are very likely unframeable too**, for the same reason —
   moot now, since the Union hand-off that tried it (`union.js`, `embed: true`)
-  was removed on 2026-09-21; see §6 Join BioSoc. Its replacement,
+  was removed on 2026-09-21; see §6 BioSoc Newsletter. Its replacement,
   `assets/js/sway.js`, is the same try-it-and-look shape, this time for
   Sway. Whether Sway allows framing has also never been tested, because
   `sway.cloud.microsoft` is blocked here too (§3) — the browser's own request
@@ -1162,12 +1171,12 @@ genuinely open.
 3. **Superseded, not just closed, on 2026-09-21**: Join BioSoc's two
    `check: true` steps and the facts strip's missing membership price were
    what remained of the Union hand-off, which has since been removed
-   outright (see §6 Join BioSoc) — there is no longer a hand-off for either
+   outright (see §6 BioSoc Newsletter) — there is no longer a hand-off for either
    to belong to. Restoring a join/membership pathway is a fresh task, not a
    matter of confirming these two old facts.
 4. **`embed: true` in `union.js` is moot: `union.js` was deleted on
    2026-09-21**, at explicit instruction, along with the rest of the Union
-   hand-off — see §6 Join BioSoc and item 3 above. It was never verified,
+   hand-off — see §6 BioSoc Newsletter and item 3 above. It was never verified,
    because leicesterunion.com is blocked at this container's egress proxy,
    so this is now unresolved rather than closed: if the Union hand-off is
    ever rebuilt, whether its pages can be framed is exactly as unknown as it
@@ -1329,5 +1338,5 @@ not re-litigate them either.
   `union.js` was live, asked for explicitly, and untouched by that day's
   earlier Instagram/Outlook decision. Later the same day the user gave a
   separate, explicit instruction to clear the section out and replace it
-  with the Sway newsletter — `union.js` is now deleted; see §6 Join BioSoc
+  with the Sway newsletter — `union.js` is now deleted; see §6 BioSoc Newsletter
   and §10 items 3–4.

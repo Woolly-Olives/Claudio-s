@@ -90,12 +90,13 @@ contact directory, not the £5 membership figure, not anything else in it —
 unless separately and explicitly asked for.
 
 **The Union hand-off (`union.js`) was removed on 2026-09-21, at explicit
-instruction, and replaced by the Join BioSoc section's current content: an
+instruction, and replaced by the BioSoc Newsletter section's current content
+(renamed from "Join BioSoc" 2026-09-24 — same section, same `id`): an
 embed of BioSoc's newsletter on Microsoft Sway** (`assets/js/sway.js`,
 `assets/data/sway.js`, `assets/css/sway.css`). This means the site no longer
 tells visitors how to actually join the Society — see `docs/HANDOVER.md` §6
-Join BioSoc before restoring a membership hand-off or removing the newsletter
-embed.
+BioSoc Newsletter before restoring a membership hand-off or removing the
+newsletter embed.
 
 This container's egress proxy blocks `instagram.com`, `leicesterunion.com`,
 `sway.cloud.microsoft` and every `outlook.*` host, so anything touching them

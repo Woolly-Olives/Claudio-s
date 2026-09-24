@@ -121,7 +121,7 @@ check("opens with four dummy options and moves focus inside",
     options: [...document.querySelectorAll(".menu-drawer__link")].map(b => b.textContent),
     focusInPanel: document.getElementById("menu-drawer-panel").contains(document.activeElement),
   })),
-  { open: true, options: ["Option 1", "Option 2", "Option 3", "Option 4"], focusInPanel: true });
+  { open: true, options: ["FAQs", "Campus map", "Contact list", "About BioSoc"], focusInPanel: true });
 await page.keyboard.press("Escape");
 await page.waitForTimeout(350);
 check("Escape closes it and returns focus to the toggle",
@@ -187,7 +187,7 @@ check("a later fresh open, all the way from the wheel, bubbles again — the fla
 await page.keyboard.press("Escape");
 await page.waitForTimeout(900);
 
-console.log("\nthe Join BioSoc newsletter frame");
+console.log("\nthe BioSoc Newsletter frame");
 /* sway.js must not fetch sway.cloud.microsoft for a visitor who never
    opens this section — checked before the loop below opens every
    section once, join-biosoc included, which arms it for good */
@@ -213,7 +213,7 @@ for (const id of SECTIONS) {
   await page.waitForTimeout(400);
 }
 
-check("newsletter frame is set once Join BioSoc has been opened",
+check("newsletter frame is set once BioSoc Newsletter has been opened",
   await page.evaluate(() => {
     const el = document.querySelector("#sway .sw-frame__win");
     return el && el.getAttribute("src");

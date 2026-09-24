@@ -54,7 +54,7 @@
     { id: "opportunities",          label: "Opportunities",         hue: 175, sat: 39.1, light: 41.0, ink: "dark" },
     { id: "connect",                label: "Connect",               hue: 223, sat: 37.0, light: 37.0, ink: "light" },
     { id: "events",                 label: "Events",                hue: 275, sat: 33.0, light: 30.0, ink: "light" },
-    { id: "join-biosoc",            label: "Join BioSoc",           hue: 330, sat: 50.2, light: 41.4, ink: "light" }
+    { id: "join-biosoc",            label: "BioSoc Newsletter",     hue: 330, sat: 50.2, light: 41.4, ink: "light" }
   ];
 
   /*

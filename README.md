@@ -8,7 +8,7 @@ into its slice instead (see below).
 
 The seven sections are **Essential Links**, **Study Resources**,
 **Customise Your Degree**, **Opportunities**, **Connect** and **Events**, plus
-**Join BioSoc**. All seven now have content.
+**BioSoc Newsletter**. All seven now have content.
 
 ## For whoever works on this next
 
@@ -50,7 +50,7 @@ pick the branch and the `/ (root)` folder.
 | `tools/ics-to-events.py` | Turns the published .ics into that file. |
 | `assets/data/advice.js` | Students' advice on Connect. **Generated** — see below. |
 | `tools/advice-to-js.py` | Turns the collected text file into it. |
-| `assets/data/sway.js` | The Sway newsletter embed on Join BioSoc. |
+| `assets/data/sway.js` | The Sway newsletter embed on BioSoc Newsletter. |
 | `assets/js/sway.js`, `assets/css/sway.css` | How that page is built. |
 
 ## The light/dark toggle
@@ -574,7 +574,7 @@ re-measures when the window changes. The `min-height` in the stylesheet is only
 a floor for before that runs: how tall the longest piece runs depends on how
 wide the card is, so it cannot be a fixed figure.
 
-## The newsletter (Join BioSoc)
+## The newsletter (BioSoc Newsletter)
 
 This page used to hand off to the Students' Union's own signup page instead of
 pretending to take a signup itself. That hand-off was removed on 2026-09-21,
@@ -601,7 +601,7 @@ and a line beneath the frame tells anyone staring at an empty panel what to
 do — most likely, an organisation's own network is what is stopping it, the
 same as here.
 
-The frame's address is not set until someone opens Join BioSoc, so Sway is
+The frame's address is not set until someone opens BioSoc Newsletter, so Sway is
 not fetched for visitors who never go there — the same `biosoc:page` event the
 Instagram embeds wait for.
 
