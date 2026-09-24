@@ -115,13 +115,13 @@ check("closed by default, 75%-of-phone-width panel (capped at 320px)",
   { open: false, matchesFormula: true });
 await page.click("#menu-toggle");
 await page.waitForTimeout(350);
-check("opens with four dummy options and moves focus inside",
+check("opens with five dummy options and moves focus inside",
   await page.evaluate(() => ({
     open: document.getElementById("menu-drawer").classList.contains("is-open"),
     options: [...document.querySelectorAll(".menu-drawer__link")].map(b => b.textContent),
     focusInPanel: document.getElementById("menu-drawer-panel").contains(document.activeElement),
   })),
-  { open: true, options: ["FAQs", "Campus map", "Contact list", "About BioSoc"], focusInPanel: true });
+  { open: true, options: ["FAQs", "Campus map", "Contact list", "About BioSoc", "Timetable"], focusInPanel: true });
 await page.keyboard.press("Escape");
 await page.waitForTimeout(350);
 check("Escape closes it and returns focus to the toggle",

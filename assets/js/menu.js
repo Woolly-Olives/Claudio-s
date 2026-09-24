@@ -1,6 +1,6 @@
 /* =============================================================
    The burger menu, top left — a slide-in drawer, independent of the
-   wheel and its sections. Four dummy options for now (index.html);
+   wheel and its sections. Five dummy options for now (index.html);
    wire them up to something real when there is something real to wire
    them up to.
 
@@ -45,7 +45,7 @@
   function onKeydown(event) {
     if (event.key === "Escape") { closeDrawer(); return; }
     /* a minimal focus trap: the panel only ever holds the close button
-       and the four dummy links, so wrapping between the first and last
+       and the five dummy links, so wrapping between the first and last
        is enough — no need for a general-purpose tabbable-element walk */
     if (event.key !== "Tab") { return; }
     var focusable = panel.querySelectorAll(".menu-drawer__close, .menu-drawer__link");

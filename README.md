@@ -79,7 +79,7 @@ just what happens. **A component that hardcodes a colour instead of
 A circular button, fixed top left, mirroring the theme toggle's own shape —
 built by `assets/js/menu.js`, styled right after the toggle in
 `assets/css/styles.css`. It opens a slide-in drawer, `min(75vw, 320px)` wide,
-with four dummy options (`.menu-drawer__link`, plain `<button>`s — not
+with five dummy options (`.menu-drawer__link`, plain `<button>`s — not
 `<a>`s, so tapping one does nothing rather than writing a stray `#` into the
 URL) until there is somewhere real for them to go. Escape, the backdrop or
 its own close button all dismiss it and return focus to the toggle; `#stage`

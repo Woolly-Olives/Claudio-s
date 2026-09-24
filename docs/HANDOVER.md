@@ -229,7 +229,7 @@ just an icon swap) and styled in `styles.css` right after the theme toggle's
 own rules, which it otherwise mirrors closely (fixed, `z-index: 30`, same
 button size).
 
-- **Four dummy options, on purpose.** There is nowhere real to send them yet
+- **Five dummy options, on purpose.** There is nowhere real to send them yet
   — `menu-drawer__link` is a plain `<button>`, not an `<a>`, specifically so
   clicking one does nothing rather than writing a stray `#` into the URL
   and tripping `app.js`'s hash router. Wire them up once there is something
@@ -244,7 +244,7 @@ button size).
   sidebar on a desktop-width viewport, where 75vw would be enormous; on an
   actual phone width the cap essentially never binds.
 - **A minimal focus trap**, not a general-purpose one: the panel only ever
-  holds the close button and the four dummy links, so `menu.js` just wraps
+  holds the close button and the five dummy links, so `menu.js` just wraps
   Tab between the first and last of that fixed list rather than walking the
   DOM for every focusable element. If the drawer ever grows real, varied
   content, replace this with a proper walk.
