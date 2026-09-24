@@ -803,6 +803,18 @@ degree, so there is no stream to derive from the degree tables — each Year 1
 module instead names its colour outright with a `stream` field. MB1080 has none
 yet, and shows in the neutral grey.
 
+**Five Year 3 modules use that same override, at explicit instruction
+(2026-09-24), for the opposite reason to Year 1's:** BS3015, BS3068 and
+BS3013 (microbiology) and BS3038, BS3064 (zoology) are not literally core
+for any degree — by the letter of the handbooks they're correctly grey —
+but each sits in a small grouped choice (Microbiology's/Medical
+Microbiology's "choose 3 or 4 from", Zoology's "choose 1 from") where
+most students realistically end up taking most or all of the group. A
+`stream` field set directly on the module, same mechanism as Year 1,
+wins outright over the derived colour. This changes colour only — the
+grouped-choice ring, clash checking and which degrees can take these
+modules are unaffected.
+
 ### Colour
 
 Colour means **subject stream**, and nothing else. The palette is sampled from

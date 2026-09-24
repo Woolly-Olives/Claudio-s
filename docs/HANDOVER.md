@@ -813,6 +813,25 @@ move on purpose:
   and BS2000 already render in on the board itself (see `paintOf()`), so
   this is a legend fix, not a new colour: the grey swatch had never
   actually matched what "core for every degree" modules look like.
+- **Five Year 3 modules were moved off grey onto a stream colour by hand,
+  2026-09-24, at explicit instruction, overriding what `streamOf()` would
+  otherwise derive.** None of BS3015, BS3068, BS3013 (Microbiology's and
+  Medical Microbiology's "choose 3 or 4 from" group), or BS3038, BS3064
+  (Zoology's "choose 1 from" group) is literally core for any degree, so
+  by the letter of the handbooks all five are correctly grey — but the
+  user's judgement is that realistically most Microbiology students clear
+  most or all of a 3-or-4-from-4 group, and Zoology's group only has two
+  members to begin with, so colouring them microbiology/zoology reads
+  truer than grey does. Done the same way Year 1 modules get a colour
+  they can't derive: an explicit `stream` field on the module
+  (`tools/build-curriculum.py`, right after the Year 3 module list),
+  which `streamOf()` in `modulemap.js` already checks *before* trying to
+  derive one from core lists — `if (m && m.stream) { ... }` wins outright,
+  no precedence walk, no change to `streamOf()`/`paintOf()` needed. **This
+  changes colour only.** The grouped-choice ring, the clash grid, which
+  degrees can take these modules at all, and `docs/handbook-issues.md`'s
+  §B dead-option findings are all untouched — those come from `core`/
+  `options`/`groups`/`CLASH`, none of which this touched.
 - **The veil's arrow is four times its old size, also 2026-09-22**:
   `.mm__veil__arrow`'s `width: clamp(2.4rem, 30%, 3.6rem)` →
   `clamp(9.6rem, 120%, 14.4rem)` in `modulemap.css` — every bound in the

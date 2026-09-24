@@ -678,6 +678,20 @@ for c,t,s,th in y3: mod(c,t,15,3,s,th)
 M["BS3080"]["field"] = True
 M["BS3013"]["about"] = "Listed as “Human and Environmental Microbiology” in the degree tables and “… Microbiomics” in the module lists."
 
+# None of these five are core for any degree by the letter of the
+# handbooks — streamOf() in modulemap.js would otherwise leave them
+# grey — but each sits in a small "choose N from" group where most
+# students realistically end up taking most or all of the group's
+# members: BS3015/BS3068/BS3013 in Microbiology's and Medical
+# Microbiology's "choose 3 or 4 from" (of 4 members — most students
+# clear 3, many take all 4), BS3038/BS3064 in Zoology's "choose 1
+# from" (of only 2 members, so roughly half take each, but only ever
+# these two — no third option to dilute it). Coloured outright, at
+# explicit instruction (2026-09-24), the same way Year 1's modules
+# carry a `stream` instead of having one derived.
+for c in ("BS3015", "BS3068", "BS3013"): M[c]["stream"] = "microbiology"
+for c in ("BS3038", "BS3064"): M[c]["stream"] = "zoology"
+
 # ---- Year 3 module detail sections, transcribed verbatim from
 # Y3_module_descriptions_2026-271.pdf. Same schema as Year 2 above.
 M["BS3000"]["convenors"] = [
