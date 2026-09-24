@@ -163,6 +163,7 @@ phone. Two habits that have repeatedly paid off:
 | `assets/js/events.js`, `assets/css/events.css` | The calendar: subscribe card, four-week grid, Coming up list. |
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Instagram block on Events. |
 | `assets/js/sway.js`, `assets/css/sway.css` | BioSoc Newsletter — the Sway newsletter embed. |
+| `assets/js/timetable.js`, `assets/css/timetable.css` | Timetable — the weekly grid, reached from the burger menu. |
 | `assets/js/advice.js`, `assets/css/advice.css` | Connect. |
 | `tools/check.mjs` | The regression run. |
 
@@ -175,7 +176,8 @@ phone. Two habits that have repeatedly paid off:
 | `assets/data/advice.js` | `tools/advice-to-js.py` | the collected advice text file |
 | `assets/data/instagram-posts.js` | `tools/fetch-instagram.py` | Instagram's API |
 
-Hand-edited data files: `links.js`, `calendar.js`, `instagram.js`, `sway.js`.
+Hand-edited data files: `links.js`, `calendar.js`, `instagram.js`, `sway.js`,
+`timetable.js`.
 
 **Parked workflows.** `tools/refresh-events.yml` and
 `tools/refresh-instagram.yml` are GitHub Actions that are deliberately **not**
@@ -963,6 +965,68 @@ empty on this network but nothing about any other one. The footnote says
 "most likely, your organisation's network will not allow it to appear
 here" for exactly that reason — it names the likely cause without claiming
 Sway itself refuses framing, which was never actually confirmed.
+
+### Timetable
+**Added 2026-09-24, at explicit instruction, as a fifth item in the burger
+drawer** (§5's "The burger menu" entry) — the first of that drawer's five
+options to actually go anywhere; the other four are still the dummy
+placeholders described there. `#page-timetable` is a `.page page--flat`
+like a Guides page: no parent section (it's reached from the drawer, not
+a wheel slice or a Guides tile), so its `id` (`timetable`) sits in
+`app.js`'s new `EXTRA_IDS` array rather than `SECTIONS` or `GUIDE_IDS`,
+and both Escape and its back button fall through to the wheel, same as
+the seven sections.
+
+**The container `app.js`/`timetable.js` build into is `#timetable-grid`,
+not `#timetable`, on purpose.** The page's own hash is `#timetable`; an
+element with that same id inside it is exactly the "a container id must
+never match a section id" trap this file already warns about elsewhere
+(§2) — hit it here first, by using the obvious name, before renaming it:
+the browser silently scrolled straight to the grid on open, which looked
+like `.page__inner`'s top padding had stopped applying (it hadn't;
+`.page__scroll` just wasn't at `scrollTop: 0` any more). Caught by
+actually inspecting `getBoundingClientRect().top` on the mounted
+`.page__inner`, not by eye — the screenshot alone read as a vague "the
+back button is overlapping the heading," which doesn't point at a hash
+collision nearly as directly as a negative `top` does.
+
+**Content is one real week, hand-transcribed from a screenshot of the
+University's own timetable** (2026-09-24), not generated and not live —
+the same reasoning as `calendar.js`: nothing here can reach a live
+University timetable feed any more than it can reach Outlook's calendar
+(§3). Several room numbers in the source screenshot were themselves cut
+off mid-word by its own layout (three lectures clashing at once, e.g.
+Wednesday noon); those are transcribed exactly as truncated (`"Bennett
+Lecture The…"`) rather than guessed at — a wrong specific room number
+would be worse than an honestly incomplete one. Session durations for
+the two longer sessions (a Thursday workshop, a Friday practical) were
+read off the screenshot's own block heights relative to its hourly
+gridlines, not printed as text anywhere in the source; every other
+session defaults to the standard one-hour slot the source consistently
+used everywhere it wasn't visually taller.
+
+**Colour is borrowed from `curriculum.js`'s `meta.streams`/`meta.neutral`
+outright, not a second palette** — `timetable.js` reads
+`window.BIOSOC_CURRICULUM` directly and maps each session's `stream`
+field (the same stream ids the module map uses: `genetics`,
+`biochemistry`, `physiology`, `neuroscience`, `microbiology`, `zoology`)
+to the identical colour Customise Your Degree gives that stream, plus two
+of its own: `"core"` (`meta.neutral.core`, the same grey a module with no
+single stream gets there) and `"cohort"` (`meta.neutral.school`, the same
+dark green a module every degree takes gets there) for the two sessions
+that aren't a subject module at all (Welcome Back, Careers Hour). Every
+`stream` value on every session in the data was derived from `curriculum.js`
+itself — which degree's `y3s1c`/`y3s2c` actually lists that module as
+core, in the module map's own precedence order — not guessed from the
+module's subject-sounding name.
+
+**Overlapping sessions are laid out with the standard calendar-column
+algorithm**, not a fixed two/three-way split: sort a day's sessions by
+start time, greedily pack each into the first column whose last-placed
+session has already ended, then give every session a share of however
+many columns are active during its own time span. Handles the data's
+worst case (three lectures at once, Wednesday noon) correctly without
+needing to special-case it.
 
 ---
 

@@ -115,7 +115,7 @@ check("closed by default, 75%-of-phone-width panel (capped at 320px)",
   { open: false, matchesFormula: true });
 await page.click("#menu-toggle");
 await page.waitForTimeout(350);
-check("opens with five dummy options and moves focus inside",
+check("opens with five options (four dummy, Timetable real) and moves focus inside",
   await page.evaluate(() => ({
     open: document.getElementById("menu-drawer").classList.contains("is-open"),
     options: [...document.querySelectorAll(".menu-drawer__link")].map(b => b.textContent),
@@ -136,6 +136,46 @@ check("hidden while a section page is open — it already has its own back butto
   await page.evaluate(() => getComputedStyle(document.getElementById("menu-toggle")).display), "none");
 await page.evaluate(() => { location.hash = ""; });
 await page.waitForTimeout(700);
+
+console.log("\nthe Timetable page");
+check("Timetable is real — a plain <a>, not a dummy <button> like its siblings",
+  await page.evaluate(() => {
+    const link = document.querySelector('.menu-drawer__link[href="#timetable"]');
+    return { tag: link.tagName, closesMenu: link.hasAttribute("data-menu-close") };
+  }),
+  { tag: "A", closesMenu: true });
+await page.click("#menu-toggle");
+await page.waitForTimeout(350);
+await page.click('.menu-drawer__link[href="#timetable"]');
+await page.waitForTimeout(700);
+check("clicking it closes the drawer and opens the page, no bubble (page--flat)",
+  await page.evaluate(() => ({
+    drawerOpen: document.getElementById("menu-drawer").classList.contains("is-open"),
+    pageOpen: document.getElementById("page-timetable").classList.contains("is-open"),
+    clipPath: getComputedStyle(document.getElementById("page-timetable")).clipPath,
+  })),
+  { drawerOpen: false, pageOpen: true, clipPath: "none" });
+check("every session in the data rendered, in the School's own stream colours",
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("#timetable-grid .tt__session")];
+    return {
+      matchesDataCount: cards.length === window.BIOSOC_TIMETABLE.sessions.length,
+      allColoured: cards.length > 0 && cards.every(c => /^#[0-9a-f]{6}$/i.test(getComputedStyle(c).getPropertyValue("--sc").trim())),
+    };
+  }),
+  { matchesDataCount: true, allColoured: true });
+check("a two-hour workshop is twice the height of a one-hour lecture on the same day",
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('#timetable-grid .tt__col')][3]
+      .querySelectorAll(".tt__session"); // Thursday: BS3000 (1h) then BS3068 workshop (2h)
+    const h = [...cards].map(c => c.getBoundingClientRect().height);
+    return Math.round(h[1] / h[0]);
+  }), 2);
+check("back button returns to the wheel", await (async () => {
+  await page.click("#page-timetable [data-back]");
+  await page.waitForTimeout(700);
+  return page.evaluate(() => ({ hash: location.hash, anyOpen: document.body.classList.contains("is-page-open") }));
+})(), { hash: "", anyOpen: false });
 
 console.log("\nsub-pages open without the section-level bubble");
 /* .page--flat sets clip-path: none unconditionally (not just once open),

@@ -75,6 +75,16 @@
     "guide-poster-and-infographic-design"
   ];
 
+  /*
+   * Pages reached from somewhere other than a Guides tile or a wheel
+   * slice — currently just Timetable, opened from the burger menu
+   * (index.html) — but still routed, opened and closed exactly like
+   * everything else. Not a GUIDE_ID: there is no parent section to
+   * send Escape or the back button to, so both fall through to
+   * goToMenu() (the wheel) for these, same as the seven SECTIONS.
+   */
+  var EXTRA_IDS = ["timetable"];
+
   /* --- wheel geometry, in the SVG's 100x100 user units --- */
   var CENTRE   = 50;
   var R_OUTER  = 48;
@@ -380,7 +390,7 @@
 
   function currentHashId() {
     var id = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
-    return (slices[id] || GUIDE_IDS.indexOf(id) !== -1) ? id : null;
+    return (slices[id] || GUIDE_IDS.indexOf(id) !== -1 || EXTRA_IDS.indexOf(id) !== -1) ? id : null;
   }
 
   function route(animate) {

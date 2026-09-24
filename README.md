@@ -52,6 +52,8 @@ pick the branch and the `/ (root)` folder.
 | `tools/advice-to-js.py` | Turns the collected text file into it. |
 | `assets/data/sway.js` | The Sway newsletter embed on BioSoc Newsletter. |
 | `assets/js/sway.js`, `assets/css/sway.css` | How that page is built. |
+| `assets/data/timetable.js` | One real week's sessions, hand-transcribed from a screenshot. |
+| `assets/js/timetable.js`, `assets/css/timetable.css` | The weekly grid on the Timetable page. |
 
 ## The light/dark toggle
 
@@ -125,6 +127,41 @@ same fade `.page--flat` gets. A later *fresh* open of that same section
 (from the wheel) clears the flag again on its own — `openPage()` always
 sets it with `classList.toggle(...)`, never just adds it, so there's
 nothing to separately clean up.
+
+## The timetable
+
+A fifth item in the burger drawer, **Timetable** — unlike its four
+placeholder siblings, a real `<a href="#timetable" data-menu-close>`, so
+clicking it both closes the drawer and opens the page. It's a `.page`
+like any other, but reached from the drawer rather than a wheel slice or
+a Guides tile, so it's `page--flat` (a fade, no bubble) and its `id`
+(`timetable`) is registered in `app.js`'s `EXTRA_IDS`, not `SECTIONS` or
+`GUIDE_IDS` — no parent to send Escape or the back button to, so both
+just go to the wheel, the same as the seven sections.
+
+**Content is `assets/data/timetable.js`, built by `assets/js/timetable.js`
+into `#timetable-grid`** (deliberately not `#timetable` — that's the
+section's own hash, and a container id matching a URL hash is the exact
+trap this project's own rules warn about: the browser scrolls straight to
+it, which silently broke the page's top padding until this was renamed).
+The data is one real week, hand-transcribed from a screenshot of the
+University's own online timetable — hand-edited like `calendar.js`, not
+generated, and not live (there is no reachable feed for it any more than
+there is for Outlook's calendar). It will go stale; treat it as a worked
+example of the shape a real week takes; re-transcribe by hand to update
+it.
+
+Each session is coloured by `stream`, one of the same ids
+`assets/data/curriculum.js`'s `meta.streams` uses — the colours are
+borrowed from there outright, not a second palette, so this page and the
+module map read as one system. `"core"` (grey) and `"cohort"` (the same
+dark green Customise Your Degree gives a module every degree takes) cover
+a session with no single subject stream and a whole-cohort event
+(Welcome Back, Careers Hour) respectively. Overlapping sessions on the
+same day are laid out with the standard calendar-column algorithm: sort
+by start time, pack each into the first column whose last session has
+already finished, then give every session a share of however many
+columns are active during its own span.
 
 ## Adding your content
 

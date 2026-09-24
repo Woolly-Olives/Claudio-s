@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="assets/css/sway.css">
 <link rel="stylesheet" href="assets/css/events.css">
 <link rel="stylesheet" href="assets/css/advice.css">
+<link rel="stylesheet" href="assets/css/timetable.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='none' stroke='%234ccf9a' stroke-width='10'/><circle cx='50' cy='50' r='12' fill='%234ccf9a'/></svg>">
 <script>
 document.documentElement.classList.remove('no-js');
@@ -64,7 +65,7 @@ try {
       <button class="menu-drawer__link" type="button">Campus map</button>
       <button class="menu-drawer__link" type="button">Contact list</button>
       <button class="menu-drawer__link" type="button">About BioSoc</button>
-      <button class="menu-drawer__link" type="button">Timetable</button>
+      <a class="menu-drawer__link" href="#timetable" data-menu-close>Timetable</a>
     </nav>
   </div>
 </div>
@@ -948,6 +949,35 @@ try {
   </div>
 </section>
 
+<!-- Reached from the burger menu, not the wheel — one level deeper,
+     same as a Guides page, so it opens with a fade (page--flat in
+     styles.css) rather than the wheel's own bubble. See app.js's
+     EXTRA_IDS. -->
+<section class="page page--flat" id="page-timetable" data-section="timetable" style="--hue: 150" aria-labelledby="h-timetable" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Menu</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner page__inner--wide">
+      <header class="page__head">
+        <p class="page__eyebrow">BioSoc</p>
+        <h1 class="page__title" id="h-timetable" tabindex="-1">Timetable</h1>
+      </header>
+      <div class="page__body">
+        <!-- Built by assets/js/timetable.js from assets/data/timetable.js. -->
+        <div id="timetable-grid">
+          <noscript>
+            <p class="page__empty">The weekly grid needs JavaScript. Check Blackboard for your timetable instead.</p>
+          </noscript>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <script src="assets/data/links.js"></script>
 <script src="assets/data/curriculum.js"></script>
 <script src="assets/data/instagram.js"></script>
@@ -956,12 +986,14 @@ try {
 <script src="assets/data/sway.js"></script>
 <script src="assets/data/calendar.js"></script>
 <script src="assets/data/events.js"></script>
+<script src="assets/data/timetable.js"></script>
 <script src="assets/js/arc.js"></script>
 <script src="assets/js/modulemap.js"></script>
 <script src="assets/js/instagram.js"></script>
 <script src="assets/js/sway.js"></script>
 <script src="assets/js/events.js"></script>
 <script src="assets/js/advice.js"></script>
+<script src="assets/js/timetable.js"></script>
 <script src="assets/js/theme.js"></script>
 <script src="assets/js/menu.js"></script>
 <script src="assets/js/app.js"></script>
