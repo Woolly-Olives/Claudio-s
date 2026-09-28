@@ -1,0 +1,194 @@
+/* =============================================================
+   Year 2 timetable preview — a variant of timetable.css for
+   assets/js/timetable-year2.js. NOT WIRED IN: nothing in index.html
+   links this file, on purpose, same as its data and renderer — see
+   assets/data/timetable-year2.js.
+
+   Two differences from the shipped Year 3 look, both at explicit
+   instruction rather than a shared design change, which is why this
+   is its own file instead of an edit to timetable.css (that file
+   already styles the live Year 3 page — changing it here would have
+   changed that page's look too, unasked):
+
+   1. `.tt__room` wraps instead of truncating with an ellipsis — a
+      long room (or the Wednesday tutorial's long stand-in text) runs
+      onto as many lines as it needs rather than being cut off.
+   2. `.tt__session` uses the same fill/border recipe Customise Your
+      Degree gives a chosen module (`.box--selected` in
+      modulemap.css: a 34% tint, 2px solid full-strength border) in
+      place of timetable.css's fainter 22% tint and 1px border — a
+      deliberately brighter, more solid look.
+   ============================================================= */
+
+#timetable-year2-grid { width: 100%; }
+
+#timetable-year2-grid .tt__head { margin-bottom: 1.4rem; }
+
+#timetable-year2-grid .tt__week {
+  margin: 0 0 0.3rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+#timetable-year2-grid .tt__note {
+  margin: 0 0 0.9rem;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--fg-soft);
+  max-width: 46rem;
+}
+
+#timetable-year2-grid .tt__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}
+
+#timetable-year2-grid .tt__key {
+  --sc: #bfbfbf;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--fg-soft);
+}
+
+#timetable-year2-grid .tt__key::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 3px;
+  background: var(--sc);
+  flex: none;
+}
+
+#timetable-year2-grid .tt__grid {
+  display: grid;
+  grid-template-columns: 3.6rem repeat(5, minmax(8.5rem, 1fr));
+  grid-template-rows: auto 1fr;
+  column-gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+}
+
+#timetable-year2-grid .tt__corner { grid-row: 1; grid-column: 1; }
+
+#timetable-year2-grid .tt__day {
+  grid-row: 1;
+  padding: 0 0 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--fg-soft);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.5rem;
+}
+
+/* five day headers, placed explicitly by position — the corner cell
+   ahead of them in source order rules out a plain nth-of-type count */
+#timetable-year2-grid .tt__grid > .tt__day:nth-child(2) { grid-column: 2; }
+#timetable-year2-grid .tt__grid > .tt__day:nth-child(3) { grid-column: 3; }
+#timetable-year2-grid .tt__grid > .tt__day:nth-child(4) { grid-column: 4; }
+#timetable-year2-grid .tt__grid > .tt__day:nth-child(5) { grid-column: 5; }
+#timetable-year2-grid .tt__grid > .tt__day:nth-child(6) { grid-column: 6; }
+
+#timetable-year2-grid .tt__gutter {
+  grid-row: 2;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  height: calc(var(--hours, 9) * 5.25rem);
+}
+
+#timetable-year2-grid .tt__hour {
+  flex: 1 0 0;
+  padding-top: 0.15rem;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-soft);
+  border-top: 1px solid var(--line-soft);
+}
+
+#timetable-year2-grid .tt__col {
+  grid-row: 2;
+  position: relative;
+  height: calc(var(--hours, 9) * 5.25rem);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--line-soft) 0, var(--line-soft) 1px,
+    transparent 1px, transparent calc(100% / var(--hours, 9))
+  );
+}
+
+/* children 1–7 are the corner, five day headers and the gutter, in
+   that source order (see timetable-year2.js) — the five .tt__col are 8–12 */
+#timetable-year2-grid .tt__grid > .tt__col:nth-child(8) { grid-column: 2; }
+#timetable-year2-grid .tt__grid > .tt__col:nth-child(9) { grid-column: 3; }
+#timetable-year2-grid .tt__grid > .tt__col:nth-child(10) { grid-column: 4; }
+#timetable-year2-grid .tt__grid > .tt__col:nth-child(11) { grid-column: 5; }
+#timetable-year2-grid .tt__grid > .tt__col:nth-child(12) { grid-column: 6; }
+
+/* brighter than timetable.css's 22%/1px — the same recipe
+   modulemap.css gives a chosen module (.box--selected) */
+#timetable-year2-grid .tt__session {
+  --sc: #bfbfbf;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.32rem 0.4rem;
+  overflow: hidden;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--sc) 34%, var(--surface));
+  border: 2px solid var(--sc);
+  font-size: 0.68rem;
+  line-height: 1.22;
+  color: var(--fg);
+  cursor: default;
+}
+
+#timetable-year2-grid .tt__session--dark {
+  background: var(--sc);
+  border-color: var(--sc);
+  color: #eaf5ee;
+}
+
+#timetable-year2-grid .tt__code {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-size: 0.64rem;
+  opacity: 0.85;
+}
+
+#timetable-year2-grid .tt__title {
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* wraps instead of the ellipsis timetable.css uses — a long room (or
+   the Wednesday tutorial's stand-in text) takes as many lines as it
+   needs rather than being cut off */
+#timetable-year2-grid .tt__room {
+  opacity: 0.8;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* the two MB2020 Practicals' on-card indicator */
+#timetable-year2-grid .tt__flag {
+  display: inline-block;
+  margin-top: 0.15rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--sc) 65%, transparent);
+  color: inherit;
+  width: fit-content;
+}

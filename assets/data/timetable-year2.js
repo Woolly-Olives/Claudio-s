@@ -17,15 +17,14 @@
 
    Titles are the modules' full names from curriculum.js, not the
    screenshot's own truncated card text ("Introduction to Pyt…").
-   Where the screenshot's own room text was cut off or blanked and
-   the user supplied a replacement by hand, that replacement is used
-   verbatim, abbreviation and all (e.g. "MSB 115", "SBB 1.03") rather
-   than the fuller room name the screenshot showed elsewhere for the
-   same building — that was an explicit instruction, not a guess.
-   One exception: three user-supplied Tuesday rooms read "Bennet"
-   (one t); every other instance of the same building, in this
-   screenshot and in timetable.js, spells it "Bennett" — corrected
-   here as a typo, not followed verbatim.
+   Room text is the user's own hand-supplied replacement wherever one
+   was given — verbatim, abbreviation and all ("MSB 115", "SBB 1.03",
+   "Henry Wellcome FKM LT", "Bennet Lecture Theatre 8") — rather than
+   the fuller name the screenshot itself showed for the same room in
+   some other session. "Bennet" (one t) was first corrected here to
+   "Bennett" as a likely typo; the user then respelled it "Bennet"
+   again by hand for the same sessions, so it now stands as given —
+   an instance is only ever "Bennett" where it was never touched.
 
    `stream` is derived by hand the same way the five overridden Year
    3 modules in curriculum.js are: which degree(s) this module is
@@ -50,7 +49,15 @@
    three module codes and rooms the user separately supplied for that
    slot. The tutorial block was added whole, at explicit instruction,
    with its own second line standing in for a room that varies by
-   group.
+   group and start time — the wording was later revised (2026-09-28)
+   to say plainly that some tutorial groups meet outside this block.
+
+   The renderer this data is meant for (assets/js/timetable-year2.js,
+   also not wired in yet) shows only code, title and room on the card
+   face — no type or staff line — with `labPractical` drawn as a
+   small badge instead, and wraps a long room onto a second line
+   rather than truncating it. See that file and
+   assets/css/timetable-year2.css for the rest.
 
    A worked example of the shape a real week takes, not a promise
    that this is *this* week's real timetable — see timetable.js's own
@@ -69,7 +76,7 @@ window.BIOSOC_TIMETABLE_YEAR2 = {
     { day: 0, start: "10:00", end: "11:00", code: "BS2094",
       title: "Introduction to Python Programming for Bioscientists", type: "Lecture", room: "Maurice Shock G62", stream: "core" },
     { day: 0, start: "10:00", end: "11:00", code: "MB2050",
-      title: "Biochemical Approaches to Therapeutic Development", type: "Lecture", room: "Sir Bob Burgess 2.02", stream: "biochemistry" },
+      title: "Biochemical Approaches to Therapeutic Development", type: "Lecture", room: "SBB 2.02", stream: "biochemistry" },
     { day: 0, start: "11:00", end: "12:00", code: "BS2200",
       title: "Research Skills 1", type: "Lecture", room: "Maurice Shock Lecture Theatre 1", stream: "cohort" },
     { day: 0, start: "12:00", end: "13:00", code: "BS2015",
@@ -79,17 +86,17 @@ window.BIOSOC_TIMETABLE_YEAR2 = {
     { day: 0, start: "15:00", end: "16:00", code: "BS2200",
       title: "Research Skills 1", type: "Lecture", room: "Maurice Shock Lecture Theatre 1", stream: "cohort" },
     { day: 0, start: "16:00", end: "17:00", code: "BS2093",
-      title: "Protein Structure and Function", type: "Lecture", room: "Henry Wellcome Frank & Katherine May Lecture Theatre", stream: "biochemistry" },
+      title: "Protein Structure and Function", type: "Lecture", room: "Henry Wellcome FKM LT", stream: "biochemistry" },
     { day: 0, start: "16:00", end: "17:00", code: "MB2020",
-      title: "Medical Microbiology", type: "Lecture", room: "Maurice Shock Lecture Theatre 1", stream: "microbiology" },
+      title: "Medical Microbiology", type: "Lecture", room: "MSB LT1", stream: "microbiology" },
 
     /* ---------- Tuesday 29 ---------- */
     { day: 1, start: "09:00", end: "10:00", code: "BS2093",
-      title: "Protein Structure and Function", type: "Lecture", room: "Henry Wellcome Frank & Katherine May Lecture Theatre", stream: "biochemistry" },
+      title: "Protein Structure and Function", type: "Lecture", room: "Henry Wellcome FKM LT", stream: "biochemistry" },
     { day: 1, start: "09:00", end: "11:00", code: "MB2020",
       title: "Medical Microbiology", type: "Practical", room: "MSB 115", staff: "Purves J Dr, Mukamol…", stream: "microbiology", labPractical: true },
     { day: 1, start: "10:00", end: "11:00", code: "BS2009",
-      title: "Genomes", type: "Lecture", room: "Bennett Lecture Theatre 8", stream: "genetics" },
+      title: "Genomes", type: "Lecture", room: "Bennet Lecture Theatre 8", stream: "genetics" },
     { day: 1, start: "12:00", end: "13:00", code: "BS2013",
       title: "Physiology and Pharmacology", type: "Lecture", room: "Engineering Lecture Theatre 2", stream: "physiology" },
     { day: 1, start: "13:00", end: "15:00", code: "MB2020",
@@ -97,31 +104,32 @@ window.BIOSOC_TIMETABLE_YEAR2 = {
     { day: 1, start: "14:00", end: "15:00", code: "BS2013",
       title: "Physiology and Pharmacology", type: "Lecture", room: "Engineering Lecture Theatre 2", stream: "physiology" },
     { day: 1, start: "17:00", end: "18:00", code: "BS2015",
-      title: "Physiology of Excitable Cells", type: "Lecture", room: "Bennett Lecture Theatre 1", stream: "physiology" },
+      title: "Physiology of Excitable Cells", type: "Lecture", room: "Bennet Lecture Theatre 1", stream: "physiology" },
     { day: 1, start: "17:00", end: "18:00", code: "BS2030",
-      title: "Principles of Microbiology", type: "Lecture", room: "Bennett Lecture Theatre 10", stream: "microbiology" },
+      title: "Principles of Microbiology", type: "Lecture", room: "Bennet Lecture Theatre 10", stream: "microbiology" },
 
     /* ---------- Wednesday 30 ---------- */
     { day: 2, start: "09:00", end: "12:00", code: "BS2200",
-      title: "Tutorials for BS2200: Research Skills 1", type: "Tutorial", room: "Check your calendar for your room.", stream: "cohort" },
+      title: "Tutorials for BS2200: Research Skills 1", type: "Tutorial",
+      room: "Check your calendar for your tutorial's room and start time. Some tutorial groups may be scheduled outside of this Wednesday block.", stream: "cohort" },
     { day: 2, start: "12:00", end: "13:00", code: "BS2059",
       title: "Global Change Biology and Conservation", type: "Workshop", room: "SBB 1.03", stream: "zoology" },
     { day: 2, start: "12:00", end: "13:00", code: "MB2050",
-      title: "Biochemical Approaches to Therapeutic Development", type: "Lecture", room: "Attenborough Lecture Theatre 3", stream: "biochemistry" },
+      title: "Biochemical Approaches to Therapeutic Development", type: "Lecture", room: "Attenborough LT3", stream: "biochemistry" },
     { day: 2, start: "12:00", end: "13:00", code: "MB2051",
-      title: "Current Issues in Medical Genetics", type: "Lecture", room: "Attenborough Lecture Theatre 3", stream: "genetics" },
+      title: "Current Issues in Medical Genetics", type: "Lecture", room: "Attenborough LT3", stream: "genetics" },
 
     /* ---------- Thursday 1 ---------- */
     { day: 3, start: "09:00", end: "10:00", code: "BS2015",
-      title: "Physiology of Excitable Cells", type: "Lecture", room: "Maurice Shock Lecture Theatre 1", stream: "physiology" },
+      title: "Physiology of Excitable Cells", type: "Lecture", room: "MSB LT1", stream: "physiology" },
     { day: 3, start: "09:00", end: "10:00", code: "BS2030",
-      title: "Principles of Microbiology", type: "Lecture", room: "Bennett Lecture Theatre 10", stream: "microbiology" },
+      title: "Principles of Microbiology", type: "Lecture", room: "Bennet LT10", stream: "microbiology" },
     { day: 3, start: "10:00", end: "11:00", code: "MB2051",
       title: "Current Issues in Medical Genetics", type: "Lecture", room: "Maurice Shock 207", stream: "genetics" },
     { day: 3, start: "12:00", end: "13:00", code: "BS2059",
       title: "Global Change Biology and Conservation", type: "Workshop", room: "SBB 1.03", stream: "zoology" },
     { day: 3, start: "12:00", end: "13:00", code: "BS2200",
-      title: "Research Skills 1", type: "Lecture", room: "Maurice Shock Lecture Theatre 1", stream: "cohort" },
+      title: "Research Skills 1", type: "Lecture", room: "MSB LT1", stream: "cohort" },
     { day: 3, start: "15:00", end: "16:00", code: "BS2009",
       title: "Genomes", type: "Lecture", room: "Attenborough Lecture Theatre 3", stream: "genetics" },
     { day: 3, start: "16:00", end: "17:00", code: "BS2200",
