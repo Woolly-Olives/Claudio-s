@@ -155,11 +155,11 @@ check("clicking it closes the drawer and opens the page, no bubble (page--flat)"
     clipPath: getComputedStyle(document.getElementById("page-timetable")).clipPath,
   })),
   { drawerOpen: false, pageOpen: true, clipPath: "none" });
-check("every session in the data rendered, in the School's own stream colours",
+check("defaults to Year 3, every session rendered in the School's own stream colours",
   await page.evaluate(() => {
     const cards = [...document.querySelectorAll("#timetable-grid .tt__session")];
     return {
-      matchesDataCount: cards.length === window.BIOSOC_TIMETABLE.sessions.length,
+      matchesDataCount: cards.length === window.BIOSOC_TIMETABLE_YEAR3.sessions.length,
       allColoured: cards.length > 0 && cards.every(c => /^#[0-9a-f]{6}$/i.test(getComputedStyle(c).getPropertyValue("--sc").trim())),
     };
   }),
@@ -171,6 +171,51 @@ check("a two-hour workshop is twice the height of a one-hour lecture on the same
     const h = [...cards].map(c => c.getBoundingClientRect().height);
     return Math.round(h[1] / h[0]);
   }), 2);
+
+console.log("\nthe Timetable year switcher");
+check("five years listed, Year 3 active by default",
+  await page.evaluate(() => [...document.querySelectorAll("#timetable-grid .tt__year")].map(b => ({
+    label: b.textContent, active: b.classList.contains("is-active"),
+  }))),
+  [
+    { label: "Foundation Year", active: false },
+    { label: "Year 1", active: false },
+    { label: "Year 2", active: false },
+    { label: "Year 3", active: true },
+    { label: "Year 4", active: false },
+  ]);
+await page.click('#timetable-grid .tt__year[data-year="year2"]');
+await page.waitForTimeout(120);
+check("switching to Year 2 swaps in its own sessions, colours and legend",
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("#timetable-grid .tt__session")];
+    return {
+      matchesYear2Count: cards.length === window.BIOSOC_TIMETABLE_YEAR2.sessions.length,
+      hasLabPractical: !!document.querySelector("#timetable-grid .tt__flag"),
+      hasMicrobiologyKey: [...document.querySelectorAll("#timetable-grid .tt__key")].some(k => k.textContent === "Microbiology"),
+    };
+  }),
+  { matchesYear2Count: true, hasLabPractical: true, hasMicrobiologyKey: true });
+await page.click('#timetable-grid .tt__year[data-year="foundation"]');
+await page.waitForTimeout(120);
+check("a year with no data shows a plain message and a real link, not an empty grid",
+  await page.evaluate(() => {
+    const p = document.querySelector("#timetable-grid .tt__empty");
+    const link = p && p.querySelector("a");
+    return {
+      hasGrid: !!document.querySelector("#timetable-grid .tt__grid"),
+      message: p && p.textContent.indexOf("Foundation Year") === 0,
+      linksToOpenTimetable: link && link.href === "https://opentimetable.le.ac.uk/",
+    };
+  }),
+  { hasGrid: false, message: true, linksToOpenTimetable: true });
+await page.click('#timetable-grid .tt__year[data-year="year3"]');
+await page.waitForTimeout(120);
+check("switching back to Year 3 restores its grid",
+  await page.evaluate(() =>
+    document.querySelectorAll("#timetable-grid .tt__session").length === window.BIOSOC_TIMETABLE_YEAR3.sessions.length),
+  true);
+
 check("back button returns to the wheel", await (async () => {
   await page.click("#page-timetable [data-back]");
   await page.waitForTimeout(700);

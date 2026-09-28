@@ -163,7 +163,7 @@ phone. Two habits that have repeatedly paid off:
 | `assets/js/events.js`, `assets/css/events.css` | The calendar: subscribe card, four-week grid, Coming up list. |
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Instagram block on Events. |
 | `assets/js/sway.js`, `assets/css/sway.css` | BioSoc Newsletter — the Sway newsletter embed. |
-| `assets/js/timetable.js`, `assets/css/timetable.css` | Timetable — the weekly grid, reached from the burger menu. |
+| `assets/js/timetable.js`, `assets/css/timetable.css` | Timetable — the year switcher and weekly grid, reached from the burger menu. |
 | `assets/js/advice.js`, `assets/css/advice.css` | Connect. |
 | `tools/check.mjs` | The regression run. |
 
@@ -177,7 +177,7 @@ phone. Two habits that have repeatedly paid off:
 | `assets/data/instagram-posts.js` | `tools/fetch-instagram.py` | Instagram's API |
 
 Hand-edited data files: `links.js`, `calendar.js`, `instagram.js`, `sway.js`,
-`timetable.js`.
+`timetable-year2.js`, `timetable-year3.js`.
 
 **Parked workflows.** `tools/refresh-events.yml` and
 `tools/refresh-instagram.yml` are GitHub Actions that are deliberately **not**
@@ -1046,6 +1046,39 @@ session has already ended, then give every session a share of however
 many columns are active during its own time span. Handles the data's
 worst case (three lectures at once, Wednesday noon) correctly without
 needing to special-case it.
+
+**A Foundation Year / Year 1 / Year 2 / Year 3 / Year 4 switcher was
+added 2026-09-28, at explicit instruction, and Year 2 (built as a
+standalone, unwired preview earlier the same day) went live as part of
+it.** The original data file was renamed `assets/data/timetable.js` →
+`timetable-year3.js` (`window.BIOSOC_TIMETABLE` → `BIOSOC_TIMETABLE_YEAR3`)
+to sit alongside `timetable-year2.js` as a named pair rather than "the"
+timetable plus an oddly-suffixed second one; `tools/check.mjs` and
+`index.html`'s `<script>` tags were updated to match. `assets/js/
+timetable.js` now holds a `YEARS` array — `{id, label, data}` per year —
+and renders a `.tt__years` button row above the grid; clicking one sets
+`state.year` and re-renders in place, no page reload, no second
+`biosoc:page` wait (that gate gets the *first* render only). Foundation
+Year, Year 1 and Year 4 carry `data: null` — there is no real timetable
+for them to show, and inventing plausible-looking sessions would be
+exactly the kind of confident-but-wrong content this project avoids
+elsewhere (the campus-map and building-ID work, the Instagram/Outlook
+embeds). A `null` year renders `.tt__empty`, one sentence plus a link to
+the University's own Open Timetable (`https://opentimetable.le.ac.uk/`,
+already used in Essential Links — not a new URL invented for this).
+Adding a real year later means a new `timetable-yearN.js` and a `data:`
+entry in `YEARS`, not filling in the placeholder.
+
+**`assets/js/timetable-year2.js` and `assets/css/timetable-year2.css`
+(the standalone preview pair from earlier 2026-09-28) were deleted, not
+kept alongside the shared files.** They were a near-identical copy of
+`timetable.js`/`timetable.css`, scoped to a different container id
+(`#timetable-year2-grid`) only because Year 2 wasn't wired into the real
+page yet. Once it was, keeping both would have meant every future card-
+face or colour change (there were several that day) needing to land
+twice — the exact duplication `timetable-year2.js`'s own header flagged
+as a temporary state, not a design to keep. The one shared `timetable.js`
+now mounts every year into the one real `#timetable-grid`.
 
 ---
 

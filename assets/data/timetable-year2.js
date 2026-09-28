@@ -1,18 +1,17 @@
 /* =============================================================
    Year 2 timetable — one real week, transcribed by hand from a
    screenshot of the University's own online timetable (week
-   commencing Monday 28 September), the same way assets/data/
-   timetable.js was built for Year 3.
+   commencing Monday 28 September), the same way
+   assets/data/timetable-year3.js was built for Year 3.
 
-   NOT WIRED IN YET. This file sits alongside timetable.js but
-   nothing on the site loads it — index.html has no <script> tag
-   for it, and there is no second "Timetable" entry point pointing
-   at it. It exists so the data and a preview render can be
-   reviewed before any of that is built. See docs/HANDOVER.md.
+   Wired into the Timetable page's year switcher (2026-09-28,
+   assets/js/timetable.js) — before that it sat here unused while the
+   data and a one-off preview render were reviewed. See
+   docs/HANDOVER.md.
 
-   Hand-edited, like timetable.js — not generated, and not a live
-   feed (see CLAUDE.md: the University's timetable system cannot be
-   reached from a browser here). It will drift from the real thing
+   Hand-edited, like timetable-year3.js — not generated, and not a
+   live feed (see CLAUDE.md: the University's timetable system cannot
+   be reached from a browser here). It will drift from the real thing
    every week it isn't updated by hand.
 
    Titles are the modules' full names from curriculum.js, not the
@@ -51,12 +50,11 @@
    group and start time — the wording was later revised (2026-09-28)
    to say plainly that some tutorial groups meet outside this block.
 
-   The renderer this data is meant for (assets/js/timetable-year2.js,
-   also not wired in yet) shows only code, title and room on the card
-   face — no type or staff line — with `labPractical` drawn as a
-   small badge instead, and wraps a long room onto a second line
-   rather than truncating it. See that file and
-   assets/css/timetable-year2.css for the rest.
+   The shared renderer (assets/js/timetable.js, assets/css/
+   timetable.css — the same ones Year 3 uses, not a separate copy any
+   more) shows only code, title and room on the card face — no type or
+   staff line — with `labPractical` drawn as a small badge instead,
+   and wraps a long room onto a second line rather than truncating it.
 
    Friday's 09:00 BS2093 room was given a second time as "Henry
    Wellcome Frank & Kathrine May Lecture Theatre" (missing the 'e' in
@@ -64,14 +62,16 @@
    of the same room in this file, as a typo rather than a respelling —
    unlike "Bennett" above, this one was never given twice running.
 
-   Friday's Careers Hour (11:00, code ADBS2S1) mirrors timetable.js's
-   own Year 3 Careers session in kind — `type: "Careers"`, `stream:
-   "cohort"` for the same whole-cohort dark green — but keeps the
-   exact code the user gave rather than Year 3's own "ADBS3S1_Y".
+   Friday's Careers Hour (11:00, code ADBS2S1) mirrors
+   timetable-year3.js's own Careers session in kind — `type:
+   "Careers"`, `stream: "cohort"` for the same whole-cohort dark green
+   — but keeps the exact code the user gave rather than Year 3's own
+   "ADBS3S1_Y".
 
    A worked example of the shape a real week takes, not a promise
-   that this is *this* week's real timetable — see timetable.js's own
-   header for the fuller version of that caveat. */
+   that this is *this* week's real timetable — see
+   timetable-year3.js's own header for the fuller version of that
+   caveat. */
 window.BIOSOC_TIMETABLE_YEAR2 = {
   week: "Mon 28 Sep – Fri 2 Oct",
   note: "Year 2, Semester 1 — modules from across every degree stream shown together (this is not one student's real calendar: no single degree takes all eleven of these), kept as a worked example. Check Blackboard for the current one.",

@@ -5,20 +5,73 @@
    the same color-mix()-over-the-fill treatment #module-map .box
    uses, so the two pages read as one system rather than two.
 
-   Brought in line with the Year 2 preview's own look (2026-09-28,
-   see assets/css/timetable-year2.css, assets/data/timetable-year2.js):
-   the card face is code/title/room only (no visible type or staff
+   The card face is code/title/room only (no visible type or staff
    line — both still ride the tooltip), the fill/border is the same
    34%-tint-plus-2px-solid-border recipe Customise Your Degree gives a
    chosen module (.box--selected in modulemap.css), a long room wraps
    onto a second line instead of truncating, and a `labPractical`
-   session gets a small badge. timetable-year2.css is a near-identical
-   copy of this file scoped to a different container id, kept
-   separate only because that page isn't wired into the site yet —
-   see that file's own header.
+   session gets a small badge.
+
+   .tt__years is the Foundation Year / Year 1 / Year 2 / Year 3 /
+   Year 4 switcher (2026-09-28) — one shared stylesheet and renderer
+   for every year now, not a separate copy per year (timetable-year2.css
+   existed briefly as exactly that copy, scoped to a different
+   container id, and was folded back in here once Year 2 got wired
+   into the real page rather than staying a standalone preview). Its
+   active state borrows --hue, the same custom property
+   #page-timetable sets inline for .page__back's own tint, so the
+   switcher reads as part of this one page rather than a second
+   colour scheme.
    ============================================================= */
 
 #timetable-grid { width: 100%; }
+
+#timetable-grid .tt__years {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.4rem;
+}
+
+#timetable-grid .tt__year {
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--fg-soft);
+  background: hsl(0 0% 50% / 0.08);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 180ms var(--ease), color 180ms var(--ease), border-color 180ms var(--ease);
+}
+
+#timetable-grid .tt__year:hover {
+  color: var(--fg);
+  background: hsl(var(--hue) 50% 50% / 0.16);
+  border-color: hsl(var(--hue) 50% 50% / 0.45);
+}
+
+#timetable-grid .tt__year.is-active {
+  color: #eaf5ee;
+  font-weight: 700;
+  background: hsl(var(--hue) 45% 32%);
+  border-color: hsl(var(--hue) 45% 32%);
+}
+
+/* a year with no data yet still switches to it (so the "not
+   available" message is reachable), just dimmed until then */
+#timetable-grid .tt__year--empty:not(.is-active) { opacity: 0.65; }
+
+#timetable-grid .tt__empty {
+  max-width: 34rem;
+  padding: 1.5rem 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--fg-soft);
+}
+
+#timetable-grid .tt__empty a { color: inherit; }
 
 #timetable-grid .tt__head { margin-bottom: 1.4rem; }
 

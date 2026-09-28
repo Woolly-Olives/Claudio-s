@@ -52,8 +52,8 @@ pick the branch and the `/ (root)` folder.
 | `tools/advice-to-js.py` | Turns the collected text file into it. |
 | `assets/data/sway.js` | The Sway newsletter embed on BioSoc Newsletter. |
 | `assets/js/sway.js`, `assets/css/sway.css` | How that page is built. |
-| `assets/data/timetable.js` | One real week's sessions, hand-transcribed from a screenshot. |
-| `assets/js/timetable.js`, `assets/css/timetable.css` | The weekly grid on the Timetable page. |
+| `assets/data/timetable-year2.js`, `timetable-year3.js` | One real week's sessions per year, hand-transcribed from a screenshot. |
+| `assets/js/timetable.js`, `assets/css/timetable.css` | The Timetable page's year switcher and weekly grid, shared across every year. |
 
 ## The light/dark toggle
 
@@ -139,17 +139,29 @@ a Guides tile, so it's `page--flat` (a fade, no bubble) and its `id`
 `GUIDE_IDS` — no parent to send Escape or the back button to, so both
 just go to the wheel, the same as the seven sections.
 
-**Content is `assets/data/timetable.js`, built by `assets/js/timetable.js`
-into `#timetable-grid`** (deliberately not `#timetable` — that's the
-section's own hash, and a container id matching a URL hash is the exact
-trap this project's own rules warn about: the browser scrolls straight to
-it, which silently broke the page's top padding until this was renamed).
-The data is one real week, hand-transcribed from a screenshot of the
-University's own online timetable — hand-edited like `calendar.js`, not
-generated, and not live (there is no reachable feed for it any more than
-there is for Outlook's calendar). It will go stale; treat it as a worked
-example of the shape a real week takes; re-transcribe by hand to update
-it.
+**Content is built by `assets/js/timetable.js` into `#timetable-grid`**
+(deliberately not `#timetable` — that's the section's own hash, and a
+container id matching a URL hash is the exact trap this project's own
+rules warn about: the browser scrolls straight to it, which silently
+broke the page's top padding until this was renamed).
+
+**A row of buttons at the top — Foundation Year, Year 1, Year 2, Year 3,
+Year 4 — switches which week is shown**, entirely client-side (`state.year`
+in `timetable.js`, no page reload). Only Year 2 (`assets/data/
+timetable-year2.js`) and Year 3 (`timetable-year3.js`) have a real
+transcribed week; the other three carry `data: null` in `timetable.js`'s
+`YEARS` list and render a plain "hasn't been transcribed yet" message
+linking to the University's own Open Timetable instead of a fabricated
+grid. Add a year the same way Year 2 was built — a new
+`assets/data/timetable-yearN.js`, `window.BIOSOC_TIMETABLE_YEARN`, and a
+`data:` entry in `YEARS` — not by inventing sessions.
+
+Each year's data is one real week, hand-transcribed from a screenshot of
+the University's own online timetable — hand-edited like `calendar.js`,
+not generated, and not live (there is no reachable feed for it any more
+than there is for Outlook's calendar). It will go stale; treat it as a
+worked example of the shape a real week takes; re-transcribe by hand to
+update it.
 
 Each session is coloured by `stream`, one of the same ids
 `assets/data/curriculum.js`'s `meta.streams` uses — the colours are
@@ -161,7 +173,9 @@ a session with no single subject stream and a whole-cohort event
 same day are laid out with the standard calendar-column algorithm: sort
 by start time, pack each into the first column whose last session has
 already finished, then give every session a share of however many
-columns are active during its own span.
+columns are active during its own span. A session's card face shows just
+its code, title and room — type and staff sit in the tooltip instead —
+and `labPractical: true` draws a small badge on top of the room.
 
 ## Adding your content
 

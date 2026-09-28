@@ -1,13 +1,26 @@
 /* =============================================================
-   Timetable — a weekly grid built from assets/data/timetable.js,
+   Timetable — a weekly grid built from a family of per-year data
+   files (assets/data/timetable-year2.js, timetable-year3.js, ...),
    in the same visual language as the module map (Customise Your
    Degree): flat colour blocks in the School's own subject-stream
    colours, borrowed outright from assets/data/curriculum.js's
    meta.streams/meta.neutral rather than a second hardcoded palette.
 
    Built once, on the first biosoc:page event naming this section —
-   same contract every other section-scoped script here waits for,
-   so nothing runs before someone has actually opened Timetable.
+   same contract every other section-scoped script here waits for, so
+   nothing runs before someone has actually opened Timetable. A click
+   on one of the year buttons re-renders in place after that; the
+   biosoc:page gate only guards the first build.
+
+   Five years are listed (2026-09-28, at explicit instruction) —
+   Foundation Year, Year 1, Year 2, Year 3, Year 4 — but only Year 2
+   and Year 3 have a real transcribed week (`data` below); the other
+   three carry `data: null` and render a plain "not yet available"
+   message with a link to the University's own Open Timetable instead
+   of a fabricated grid. Don't invent placeholder sessions for them —
+   add a real data file the same way timetable-year2.js was built,
+   and give it a slot in YEARS, when one of those years is next asked
+   for.
 
    Overlapping sessions on the same day (two lectures at once) are
    laid out with the classic calendar-column algorithm: sort by
@@ -17,23 +30,30 @@
    on purpose — this data never has more than three things clashing
    at once.
 
-   Card face brought in line with the Year 2 preview (2026-09-28):
-   only the code, title and room show — no visible type or staff line
-   (both still ride the tooltip) — and a `labPractical` session gets a
-   small badge instead. The old "+N" also-listing pill is gone
-   outright, not just hidden, because timetable.js's own data no
-   longer carries any `also` field (see that file's header for why).
+   Card face: only the code, title and room show — no visible type or
+   staff line (both still ride the tooltip) — and a `labPractical`
+   session gets a small badge instead.
    ============================================================= */
 (function () {
   "use strict";
 
   var root = document.getElementById("timetable-grid");
-  var DATA = window.BIOSOC_TIMETABLE;
-  if (!root || !DATA) { return; }
+  if (!root) { return; }
 
   var CURRICULUM = window.BIOSOC_CURRICULUM;
   var STREAMS = (CURRICULUM && CURRICULUM.meta && CURRICULUM.meta.streams) || [];
   var NEUTRAL = (CURRICULUM && CURRICULUM.meta && CURRICULUM.meta.neutral) || { core: "#bfbfbf", school: "#1b6b3a", schoolInk: "#eaf5ee" };
+
+  var YEARS = [
+    { id: "foundation", label: "Foundation Year", data: null },
+    { id: "year1", label: "Year 1", data: null },
+    { id: "year2", label: "Year 2", data: window.BIOSOC_TIMETABLE_YEAR2 || null },
+    { id: "year3", label: "Year 3", data: window.BIOSOC_TIMETABLE_YEAR3 || null },
+    { id: "year4", label: "Year 4", data: null }
+  ];
+  if (!YEARS.some(function (y) { return y.data; })) { return; }
+
+  var state = { year: YEARS.some(function (y) { return y.id === "year3" && y.data; }) ? "year3" : YEARS.filter(function (y) { return y.data; })[0].id };
 
   function esc(s) {
     return String(s).replace(/[&<>"]/g, function (c) {
@@ -74,7 +94,24 @@
     return sorted;
   }
 
-  function build() {
+  function yearButtons() {
+    return '<div class="tt__years" role="tablist" aria-label="Year">' +
+      YEARS.map(function (y) {
+        return '<button type="button" class="tt__year' + (y.id === state.year ? " is-active" : "") +
+          (y.data ? "" : " tt__year--empty") +
+          '" data-year="' + y.id + '" role="tab" aria-selected="' + (y.id === state.year) + '">' +
+          esc(y.label) + '</button>';
+      }).join("") +
+      '</div>';
+  }
+
+  function emptyState(label) {
+    return '<p class="tt__empty">' + esc(label) +
+      ' hasn’t been transcribed yet. Check the University’s own ' +
+      '<a href="https://opentimetable.le.ac.uk/">Open Timetable</a> instead.</p>';
+  }
+
+  function grid(DATA) {
     var baseMin = DATA.startHour * 60;
     var totalMin = (DATA.endHour - DATA.startHour) * 60;
     var hours = [];
@@ -139,14 +176,27 @@
       html += '</div>';
     });
     html += '</div>';
+    return html;
+  }
 
+  function render() {
+    var year = YEARS.filter(function (y) { return y.id === state.year; })[0];
+    var html = yearButtons();
+    html += year.data ? grid(year.data) : emptyState(year.label);
     root.innerHTML = html;
   }
+
+  root.addEventListener("click", function (event) {
+    var btn = event.target.closest("button[data-year]");
+    if (!btn) { return; }
+    state.year = btn.dataset.year;
+    render();
+  });
 
   var built = false;
   document.addEventListener("biosoc:page", function (event) {
     if (event.detail.id !== "timetable" || built) { return; }
     built = true;
-    build();
+    render();
   });
 })();

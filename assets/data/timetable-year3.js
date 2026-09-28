@@ -1,7 +1,15 @@
 /* =============================================================
-   Timetable — one real week, transcribed by hand from a screenshot
-   of the University's own online timetable (Year 3, Biological
+   Year 3 timetable — one real week, transcribed by hand from a
+   screenshot of the University's own online timetable (Biological
    Sciences, week commencing Monday 28 September).
+
+   Renamed from assets/data/timetable.js (2026-09-28), when the
+   Timetable page grew a Foundation Year / Year 1 / Year 2 / Year 3 /
+   Year 4 switcher (assets/js/timetable.js) and this stopped being
+   "the" timetable — see that file's header, and
+   assets/data/timetable-year2.js for the sibling this now matches in
+   name and shape. `window.BIOSOC_TIMETABLE` is `BIOSOC_TIMETABLE_YEAR3`
+   below for the same reason.
 
    Hand-edited, like calendar.js and sway.js — not generated, and not
    a live feed (the University's timetable system is not reachable
@@ -60,7 +68,7 @@
    typo, not a deliberate different module. It carries no single
    subject stream in curriculum.js either — the same "core" grey
    Customise Your Degree already gives it there, not a guess made here. */
-window.BIOSOC_TIMETABLE = {
+window.BIOSOC_TIMETABLE_YEAR3 = {
   week: "Mon 28 Sep – Fri 2 Oct",
   note: "Year 3, Biological Sciences — one real week, kept as a worked example. Check Blackboard for the current one.",
   days: ["Mon\n28", "Tue\n29", "Wed\n30", "Thu\n1", "Fri\n2"],
