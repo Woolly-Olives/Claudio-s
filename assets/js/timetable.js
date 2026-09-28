@@ -16,6 +16,13 @@
    however many columns are active during its own time span. Simple
    on purpose — this data never has more than three things clashing
    at once.
+
+   Card face brought in line with the Year 2 preview (2026-09-28):
+   only the code, title and room show — no visible type or staff line
+   (both still ride the tooltip) — and a `labPractical` session gets a
+   small badge instead. The old "+N" also-listing pill is gone
+   outright, not just hidden, because timetable.js's own data no
+   longer carries any `also` field (see that file's header for why).
    ============================================================= */
 (function () {
   "use strict";
@@ -117,19 +124,16 @@
         var height = ((ev._end - ev._start) / totalMin) * 100;
         var left = (ev._col / ev._cols) * 100;
         var width = (1 / ev._cols) * 100;
-        /* the full "also" cross-listing and the session type sit in the
-           tooltip only — on the card face itself they cost more room
-           than a 1-hour-tall block has to give, and were overflowing
-           and clipping mid-word before this */
-        var codeLine = esc(ev.code) + (ev.also ? ", " + esc(ev.also) : "");
+        /* card face is code / title / room only — type and staff ride
+           along in the tooltip instead */
         return '<article class="tt__session' + (paint.dark ? " tt__session--dark" : "") + '" ' +
           'style="--sc:' + paint.colour + '; top:' + top.toFixed(2) + '%; height:' + height.toFixed(2) + '%; ' +
           'left:calc(' + left.toFixed(2) + '% + 2px); width:calc(' + width.toFixed(2) + '% - 4px);" ' +
-          'title="' + esc(codeLine + " — " + ev.title + " (" + ev.type + "), " + ev.room + (ev.staff ? ", " + ev.staff : "")) + '">' +
-          '<span class="tt__code">' + esc(ev.code) + (ev.also ? '<span class="tt__also">+' + (ev.also.split(",").length) + '</span>' : '') + '</span>' +
+          'title="' + esc(ev.code + " — " + ev.title + " (" + ev.type + "), " + ev.room + (ev.staff ? ", " + ev.staff : "")) + '">' +
+          '<span class="tt__code">' + esc(ev.code) + '</span>' +
           '<span class="tt__title">' + esc(ev.title) + '</span>' +
-          '<span class="tt__room">' + esc(ev.type) + ' · ' + esc(ev.room) + '</span>' +
-          (ev.staff ? '<span class="tt__staff">' + esc(ev.staff) + '</span>' : '') +
+          '<span class="tt__room">' + esc(ev.room) + '</span>' +
+          (ev.labPractical ? '<span class="tt__flag">Lab Practical</span>' : '') +
           '</article>';
       }).join("");
       html += '</div>';

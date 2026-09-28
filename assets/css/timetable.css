@@ -4,6 +4,18 @@
    colours (--sc, set inline per session by assets/js/timetable.js),
    the same color-mix()-over-the-fill treatment #module-map .box
    uses, so the two pages read as one system rather than two.
+
+   Brought in line with the Year 2 preview's own look (2026-09-28,
+   see assets/css/timetable-year2.css, assets/data/timetable-year2.js):
+   the card face is code/title/room only (no visible type or staff
+   line — both still ride the tooltip), the fill/border is the same
+   34%-tint-plus-2px-solid-border recipe Customise Your Degree gives a
+   chosen module (.box--selected in modulemap.css), a long room wraps
+   onto a second line instead of truncating, and a `labPractical`
+   session gets a small badge. timetable-year2.css is a near-identical
+   copy of this file scoped to a different container id, kept
+   separate only because that page isn't wired into the site yet —
+   see that file's own header.
    ============================================================= */
 
 #timetable-grid { width: 100%; }
@@ -115,6 +127,9 @@
 #timetable-grid .tt__grid > .tt__col:nth-child(11) { grid-column: 5; }
 #timetable-grid .tt__grid > .tt__col:nth-child(12) { grid-column: 6; }
 
+/* the same fill/border recipe modulemap.css gives a chosen module
+   (.box--selected: 34% tint, 2px solid full-strength border) —
+   brighter and more solid than this file's old 22%/1px */
 #timetable-grid .tt__session {
   --sc: #bfbfbf;
   position: absolute;
@@ -124,8 +139,8 @@
   padding: 0.32rem 0.4rem;
   overflow: hidden;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--sc) 22%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--sc) 55%, transparent);
+  background: color-mix(in srgb, var(--sc) 34%, var(--surface));
+  border: 2px solid var(--sc);
   font-size: 0.68rem;
   line-height: 1.22;
   color: var(--fg);
@@ -145,16 +160,6 @@
   opacity: 0.85;
 }
 
-/* how many other codes (NT4003_SEM1 etc.) this session is also listed
-   under — the full list is in the tooltip, not worth the room here */
-#timetable-grid .tt__also {
-  margin-left: 0.25rem;
-  padding: 0 0.3rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--sc) 45%, transparent);
-  font-weight: 700;
-}
-
 #timetable-grid .tt__title {
   font-weight: 600;
   display: -webkit-box;
@@ -163,16 +168,25 @@
   overflow: hidden;
 }
 
-#timetable-grid .tt__room,
-#timetable-grid .tt__staff {
+/* wraps onto a second line instead of the old ellipsis — a long room
+   takes as many lines as it needs rather than being cut off */
+#timetable-grid .tt__room {
   opacity: 0.8;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
-#timetable-grid .tt__staff { display: none; }
-
-@media (min-width: 900px) {
-  #timetable-grid .tt__staff { display: block; }
+/* a labPractical session's on-card indicator */
+#timetable-grid .tt__flag {
+  display: inline-block;
+  margin-top: 0.15rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--sc) 65%, transparent);
+  color: inherit;
+  width: fit-content;
 }

@@ -13,15 +13,43 @@
    A few fields in the source screenshot were cut off mid-word by its
    own layout, not by this transcription — `room` ends "…" exactly
    where the screenshot's own text did, rather than guessing the rest.
+   Those are left alone even now that room text otherwise gets
+   abbreviated (below): abbreviating requires knowing the full name,
+   and a screenshot's own mid-word cut doesn't give me that.
 
    `stream` is one of the same ids Customise Your Degree uses
    (assets/data/curriculum.js's `meta.streams`) so timetable.js can
    borrow its colours outright instead of inventing a second palette;
    "core" is the neutral grey Customise Your Degree gives a module
    with no single stream, and "cohort" (dark green, the same ink as
-   Customise Your Degree's "core for every degree") is for the two
-   sessions here that are not a subject module at all.
-   ============================================================= */
+   Customise Your Degree's "core for every degree") is for sessions
+   here that are not a subject module at all.
+
+   Brought in line with the Year 2 preview's format (2026-09-28, see
+   assets/data/timetable-year2.js): every `also` cross-listing
+   (NT4003_SEM1, NT4016_SEM1) has been dropped outright, at explicit
+   instruction, because neither is an actual assets/data/curriculum.js
+   module — they're the University's own Year 4 MSci Neuroscience
+   course codes, in a different numbering scheme this School's own
+   curriculum data doesn't track at all, not codes this data ever had
+   a real match for. Every session now carries exactly one code.
+   "Henry Wellcome Frank & Katherine May Lecture Theatre" is
+   abbreviated to "Henry Wellcome FKM LT" throughout, matching the
+   same room in timetable-year2.js — the only room here long enough,
+   with its full name actually known (not one of the screenshot's own
+   truncations above), to need it; every other room here was short
+   enough to leave alone. BS3038's Friday Practical carries
+   `labPractical: true` like the two Year 2 MB2020 Practicals, for the
+   same on-card badge.
+
+   NT3100 ("Sustainability Enterprise Partnership Project") was added
+   whole, at explicit instruction, for Monday 09:00 (SBB 1.01) and
+   Thursday 17:00 (SBB 0.02) — corrected here from the "NT2100" first
+   given: no such code exists, but NT3100 is a real Year 3 Semester 1
+   module in curriculum.js under this exact title, so this reads as a
+   typo, not a deliberate different module. It carries no single
+   subject stream in curriculum.js either — the same "core" grey
+   Customise Your Degree already gives it there, not a guess made here. */
 window.BIOSOC_TIMETABLE = {
   week: "Mon 28 Sep – Fri 2 Oct",
   note: "Year 3, Biological Sciences — one real week, kept as a worked example. Check Blackboard for the current one.",
@@ -31,20 +59,22 @@ window.BIOSOC_TIMETABLE = {
 
   sessions: [
     /* ---------- Monday 28 ---------- */
-    { day: 0, start: "10:00", end: "11:00", code: "BS3000", also: "NT4003_SEM1, NT4016_SEM1",
+    { day: 0, start: "09:00", end: "10:00", code: "NT3100",
+      title: "Sustainability Enterprise Partnership Project", type: "Lecture", room: "SBB 1.01", stream: "core" },
+    { day: 0, start: "10:00", end: "11:00", code: "BS3000",
       title: "Evolutionary Genetics", type: "Lecture", room: "Attenborough 002", stream: "genetics" },
     { day: 0, start: "12:00", end: "13:00", code: "BS3031",
-      title: "Human Genetics", type: "Lecture", room: "Henry Wellcome Frank & Katherine May Lecture Theatre", stream: "genetics" },
+      title: "Human Genetics", type: "Lecture", room: "Henry Wellcome FKM LT", stream: "genetics" },
     { day: 0, start: "12:00", end: "13:00", code: "BS3064",
       title: "Comparative Neurobiology", type: "Lecture", room: "Attenborough 208", stream: "core" },
-    { day: 0, start: "13:00", end: "14:00", code: "BS3010", also: "NT4003_SEM1",
+    { day: 0, start: "13:00", end: "14:00", code: "BS3010",
       title: "Gene Expression: Molecular Basis and Medical Relevance", type: "Lecture", room: "Attenborough Lecture The…", stream: "biochemistry" },
     { day: 0, start: "13:00", end: "14:00", code: "BS3015",
-      title: "Molecular and Cellular Immunology", type: "Lecture", room: "Henry Wellcome Frank & Katherine May Lecture Theatre", stream: "core" },
+      title: "Molecular and Cellular Immunology", type: "Lecture", room: "Henry Wellcome FKM LT", stream: "core" },
     { day: 0, start: "14:00", end: "16:00", code: "BS3038",
       title: "Biodiversity in Practice", type: "Lecture", room: "Maurice Shock 206", staff: "Desjardins S D Dr", stream: "core" },
     { day: 0, start: "15:00", end: "16:00", code: "BS3054",
-      title: "Molecular and Cellular Pharmacology", type: "Lecture", room: "Henry Wellcome Frank & Katherine May Lecture Theatre", stream: "physiology" },
+      title: "Molecular and Cellular Pharmacology", type: "Lecture", room: "Henry Wellcome FKM LT", stream: "physiology" },
     { day: 0, start: "16:00", end: "17:00", code: "BS3070",
       title: "Structural Biology", type: "Lecture", room: "George Davies 1.20", stream: "biochemistry" },
     { day: 0, start: "17:00", end: "18:00", code: "BS3055",
@@ -56,8 +86,8 @@ window.BIOSOC_TIMETABLE = {
 
     /* ---------- Wednesday 30 ---------- */
     { day: 2, start: "09:00", end: "10:00", code: "BS3054",
-      title: "Molecular and Cellular Pharmacology", type: "Lecture", room: "Henry Wellcome Frank & Katherine May Lecture Theatre", stream: "physiology" },
-    { day: 2, start: "11:00", end: "12:00", code: "BS3010", also: "NT4003_SEM1",
+      title: "Molecular and Cellular Pharmacology", type: "Lecture", room: "Henry Wellcome FKM LT", stream: "physiology" },
+    { day: 2, start: "11:00", end: "12:00", code: "BS3010",
       title: "Gene Expression: Molecular Basis and Medical Relevance", type: "Lecture", room: "Bennett Lecture Theatre 3", stream: "biochemistry" },
     { day: 2, start: "12:00", end: "13:00", code: "BS3031",
       title: "Human Genetics", type: "Lecture", room: "Bennett Lecture The…", stream: "genetics" },
@@ -67,29 +97,31 @@ window.BIOSOC_TIMETABLE = {
       title: "Structural Biology", type: "Lecture", room: "Bennett Lecture The…", stream: "biochemistry" },
 
     /* ---------- Thursday 1 ---------- */
-    { day: 3, start: "09:00", end: "10:00", code: "BS3000", also: "NT4003_SEM1, NT4016_SEM1",
+    { day: 3, start: "09:00", end: "10:00", code: "BS3000",
       title: "Evolutionary Genetics", type: "Lecture", room: "George Davies 0.37", stream: "genetics" },
-    { day: 3, start: "10:00", end: "12:00", code: "BS3068", also: "NT4016_SEM1",
+    { day: 3, start: "10:00", end: "12:00", code: "BS3068",
       title: "Microbial Biotechnology", type: "Workshop", room: "Maurice Shock 257",
       staff: "Millard A D Dr, Jenul C W Dr, Freestone P P E Dr", stream: "core" },
     { day: 3, start: "13:00", end: "14:00", code: "BS3031",
       title: "Human Genetics", type: "Lecture", room: "Bennett Lecture Theatre 4", stream: "genetics" },
     { day: 3, start: "15:00", end: "16:00", code: "BS3055",
       title: "Molecular and Cellular Neuroscience", type: "Lecture", room: "Bennett Lecture Theatre 1", stream: "neuroscience" },
+    { day: 3, start: "17:00", end: "18:00", code: "NT3100",
+      title: "Sustainability Enterprise Partnership Project", type: "Lecture", room: "SBB 0.02", stream: "core" },
 
     /* ---------- Friday 2 ---------- */
     { day: 4, start: "09:00", end: "10:00", code: "ADBS3S1_Y",
       title: "Student Support and Development – Careers Hour", type: "Careers", room: "Bennett Lecture Theatre 1", stream: "cohort" },
-    { day: 4, start: "10:00", end: "11:00", code: "BS3000", also: "NT4003_SEM1, NT4016_SEM1",
+    { day: 4, start: "10:00", end: "11:00", code: "BS3000",
       title: "Evolutionary Genetics", type: "Lecture", room: "Sir Bob Burgess 1.04", stream: "genetics" },
     { day: 4, start: "11:00", end: "12:00", code: "BS3064",
       title: "Comparative Neurobiology", type: "Lecture", room: "Attenborough 111", stream: "core" },
     { day: 4, start: "12:00", end: "13:00", code: "BS3054",
       title: "Molecular and Cellular Pharmacology", type: "Lecture", room: "Maurice Shock Lecture The…", stream: "physiology" },
-    { day: 4, start: "12:00", end: "13:00", code: "BS3068", also: "NT4016_SEM1",
+    { day: 4, start: "12:00", end: "13:00", code: "BS3068",
       title: "Microbial Biotechnology", type: "Lecture", room: "Sir Bob Burgess 0.03", stream: "core" },
     { day: 4, start: "13:00", end: "16:00", code: "BS3038",
-      title: "Biodiversity in Practice", type: "Practical", room: "Maurice Shock 225", staff: "Desjardins S D Dr", stream: "core" },
+      title: "Biodiversity in Practice", type: "Practical", room: "Maurice Shock 225", staff: "Desjardins S D Dr", stream: "core", labPractical: true },
     { day: 4, start: "16:00", end: "17:00", code: "BS3055",
       title: "Molecular and Cellular Neuroscience", type: "Lecture", room: "Maurice Shock Lecture Theatre 1", stream: "neuroscience" }
   ]
