@@ -1,0 +1,14 @@
+# Cloudflare Workers static-asset upload: excludes these from what
+# `wrangler deploy` uploads and serves, the same way .gitignore excludes
+# from git. `directory = "."` in wrangler.toml otherwise means everything
+# at repo root, this file included, would be treated as a servable asset.
+.git
+.github
+.wrangler
+wrangler.toml
+.assetsignore
+.gitignore
+CLAUDE.md
+README.md
+docs/
+tools/

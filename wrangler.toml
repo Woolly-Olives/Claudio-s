@@ -1,0 +1,19 @@
+# Cloudflare Workers static-asset deploy config. Added 2026-09-28 because
+# the Cloudflare dashboard's connected build runs `npx wrangler deploy`
+# (Workers-style deploy, not the classic Pages build pipeline) and with no
+# wrangler config at all, Wrangler had nothing telling it where the site's
+# files were: "Could not detect a directory containing static files".
+#
+# No `main` field — there is no server-side Worker script, this is a plain
+# static site (index.html, assets/), so [assets] alone is enough.
+#
+# IMPORTANT: change `name` below to match your Cloudflare Workers project's
+# actual name (the one shown in the dashboard for this deployment) before
+# deploying. `wrangler deploy` deploys to whatever Worker `name` names —
+# a mismatch creates or targets a different Worker than the one you set up,
+# not the one you're looking at in the dashboard.
+name = "biosoc-student-hub"
+compatibility_date = "2026-09-28"
+
+[assets]
+directory = "."

@@ -1456,3 +1456,58 @@ not re-litigate them either.
   separate, explicit instruction to clear the section out and replace it
   with the Sway newsletter — `union.js` is now deleted; see §6 BioSoc Newsletter
   and §10 items 3–4.
+
+---
+
+## 12. Deploying
+
+**GitHub Pages remains the primary target** (§1) — nothing below replaces
+that, or is host-specific in a way that would stop GitHub Pages working.
+This is only relevant if the site is *also* (or instead) hosted on
+Cloudflare, which the user tried 2026-09-28.
+
+**The Cloudflare deploy failed with `✘ [ERROR] Could not detect a directory
+containing static files (e.g. html, css and js) for the project`, from a
+build log that read `Executing user deploy command: npx wrangler deploy`.**
+That command is Workers-style deployment (the current Cloudflare dashboard's
+"Workers & Pages" product runs it even for what looks like a classic Pages
+connection), and Wrangler has no way to know where the site's files are
+without a Wrangler config file — this repository had none. `wrangler.toml`
+was added to fix exactly this: a `[assets]` block with `directory = "."`
+(the site's own root, since `index.html` sits there directly, not in a
+`dist`/`build` folder), and no `main` field, because there is no
+server-side Worker script here — this is a plain static site, assets only.
+
+**`wrangler.toml`'s `name` is a placeholder (`"biosoc-student-hub"`) and
+must be changed to match whatever the user actually named their Cloudflare
+Workers project in the dashboard**, which this session has no way to see —
+`wrangler deploy` deploys to the Worker its `name` field names, so a
+mismatch creates or targets a *different* Worker than the one already set
+up, not an error exactly, but not the fix either. Flagged to the user
+plainly rather than guessed at.
+
+**`.assetsignore` excludes everything at the repo root that isn't the
+actual site** (`.git`, `.github`, `docs/`, `tools/`, `CLAUDE.md`,
+`README.md`, `wrangler.toml` and `.assetsignore` themselves, `.wrangler/`)
+— without it, `directory = "."` would upload and serve all of those too,
+which at best is clutter and at worst (`.git`) is a large, pointless
+upload every deploy. Modelled on `.gitignore` syntax; a plain new
+`.gitignore` was added alongside it for `.wrangler/` and `node_modules/`,
+Wrangler's and npm's own local state, which this repository had no reason
+to ignore before there was a Wrangler config to run locally.
+
+**A second, separate problem was flagged but not fixed here, because it
+isn't a code change**: the repository's default branch, `main`, holds only
+a single commit with a bare `README.md` — none of the actual site. Every
+real commit lives on `claude/biosoc-student-hub-2k2f32`, per this project's
+own working rule (§2) of developing there and not opening a pull request
+unless asked. If Cloudflare's **production branch** setting is left at its
+default, it will build `main` and find nothing to serve, regardless of
+`wrangler.toml`. Fixing that means either changing Cloudflare's production
+branch to `claude/biosoc-student-hub-2k2f32` (a dashboard setting, not a
+repository change) or merging the branch into `main` (a repository change,
+but one this session should not make unasked, per §2 and the general rule
+against unauthorized destructive-or-hard-to-reverse actions — merging into
+`main` is a one-way visibility change for anyone else watching the repo).
+The user was told both options and given the choice; neither has been
+done as of this writing.

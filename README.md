@@ -31,11 +31,26 @@ too, though a local server matches how it will behave when deployed.
 To publish on GitHub Pages: **Settings → Pages → Source: Deploy from a branch**,
 pick the branch and the `/ (root)` folder.
 
+**To publish on Cloudflare instead** (added 2026-09-28, alongside GitHub Pages,
+not replacing it — nothing here is host-specific): connect the repo in the
+Cloudflare dashboard under Workers & Pages. If it deploys with `npx wrangler
+deploy` rather than a classic Pages build, it needs `wrangler.toml` at the
+repo root — already here, pointing `[assets] directory` at `.` (this is a
+plain static site, no `main` Worker script needed) — **change its `name` to
+match your Cloudflare project's actual name first**, or it deploys to a
+different Worker than the one in your dashboard. `.assetsignore` excludes
+everything that isn't the actual site (`docs/`, `tools/`, this README, etc.)
+from being uploaded and served. Whichever branch you deploy needs the real
+site on it — check the dashboard's **production branch** setting if the
+build can't find `index.html` at all; see `docs/HANDOVER.md` for the
+specific error this project hit and why.
+
 ## Files
 
 | File | What it holds |
 | --- | --- |
 | `index.html` | The wheel container and the seven section panels. **Your content goes here.** |
+| `wrangler.toml`, `.assetsignore` | Cloudflare Workers static-asset deploy config — see "Running it" above. |
 | `assets/css/styles.css` | All styling, including the reveal animation and the content helper classes below. |
 | `assets/js/app.js` | Builds the wheel, handles the reveals, and routes `#section-id` URLs. |
 | `assets/js/theme.js` | The light/dark toggle, top right. Styling is in `styles.css`. |

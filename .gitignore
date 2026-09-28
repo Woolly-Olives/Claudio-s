@@ -1,0 +1,3 @@
+# Local state from running Wrangler (Cloudflare deploy) on this machine.
+.wrangler/
+node_modules/
