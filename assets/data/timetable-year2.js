@@ -19,12 +19,11 @@
    screenshot's own truncated card text ("Introduction to Pyt…").
    Room text is the user's own hand-supplied replacement wherever one
    was given — verbatim, abbreviation and all ("MSB 115", "SBB 1.03",
-   "Henry Wellcome FKM LT", "Bennet Lecture Theatre 8") — rather than
-   the fuller name the screenshot itself showed for the same room in
-   some other session. "Bennet" (one t) was first corrected here to
-   "Bennett" as a likely typo; the user then respelled it "Bennet"
-   again by hand for the same sessions, so it now stands as given —
-   an instance is only ever "Bennett" where it was never touched.
+   "Henry Wellcome FKM LT") — rather than the fuller name the
+   screenshot itself showed for the same room in some other session.
+   "Bennett" briefly went through a "Bennet" (one t) spelling and back
+   — corrected here to "Bennett" throughout, the real spelling, the
+   one every untouched instance already carried.
 
    `stream` is derived by hand the same way the five overridden Year
    3 modules in curriculum.js are: which degree(s) this module is
@@ -58,6 +57,17 @@
    small badge instead, and wraps a long room onto a second line
    rather than truncating it. See that file and
    assets/css/timetable-year2.css for the rest.
+
+   Friday's 09:00 BS2093 room was given a second time as "Henry
+   Wellcome Frank & Kathrine May Lecture Theatre" (missing the 'e' in
+   Katherine); spelled "Katherine" here, matching every other instance
+   of the same room in this file, as a typo rather than a respelling —
+   unlike "Bennett" above, this one was never given twice running.
+
+   Friday's Careers Hour (11:00, code ADBS2S1) mirrors timetable.js's
+   own Year 3 Careers session in kind — `type: "Careers"`, `stream:
+   "cohort"` for the same whole-cohort dark green — but keeps the
+   exact code the user gave rather than Year 3's own "ADBS3S1_Y".
 
    A worked example of the shape a real week takes, not a promise
    that this is *this* week's real timetable — see timetable.js's own
@@ -96,7 +106,7 @@ window.BIOSOC_TIMETABLE_YEAR2 = {
     { day: 1, start: "09:00", end: "11:00", code: "MB2020",
       title: "Medical Microbiology", type: "Practical", room: "MSB 115", staff: "Purves J Dr, Mukamol…", stream: "microbiology", labPractical: true },
     { day: 1, start: "10:00", end: "11:00", code: "BS2009",
-      title: "Genomes", type: "Lecture", room: "Bennet Lecture Theatre 8", stream: "genetics" },
+      title: "Genomes", type: "Lecture", room: "Bennett Lecture Theatre 8", stream: "genetics" },
     { day: 1, start: "12:00", end: "13:00", code: "BS2013",
       title: "Physiology and Pharmacology", type: "Lecture", room: "Engineering Lecture Theatre 2", stream: "physiology" },
     { day: 1, start: "13:00", end: "15:00", code: "MB2020",
@@ -104,9 +114,9 @@ window.BIOSOC_TIMETABLE_YEAR2 = {
     { day: 1, start: "14:00", end: "15:00", code: "BS2013",
       title: "Physiology and Pharmacology", type: "Lecture", room: "Engineering Lecture Theatre 2", stream: "physiology" },
     { day: 1, start: "17:00", end: "18:00", code: "BS2015",
-      title: "Physiology of Excitable Cells", type: "Lecture", room: "Bennet Lecture Theatre 1", stream: "physiology" },
+      title: "Physiology of Excitable Cells", type: "Lecture", room: "Bennett Lecture Theatre 1", stream: "physiology" },
     { day: 1, start: "17:00", end: "18:00", code: "BS2030",
-      title: "Principles of Microbiology", type: "Lecture", room: "Bennet Lecture Theatre 10", stream: "microbiology" },
+      title: "Principles of Microbiology", type: "Lecture", room: "Bennett Lecture Theatre 10", stream: "microbiology" },
 
     /* ---------- Wednesday 30 ---------- */
     { day: 2, start: "09:00", end: "12:00", code: "BS2200",
@@ -123,7 +133,7 @@ window.BIOSOC_TIMETABLE_YEAR2 = {
     { day: 3, start: "09:00", end: "10:00", code: "BS2015",
       title: "Physiology of Excitable Cells", type: "Lecture", room: "MSB LT1", stream: "physiology" },
     { day: 3, start: "09:00", end: "10:00", code: "BS2030",
-      title: "Principles of Microbiology", type: "Lecture", room: "Bennet LT10", stream: "microbiology" },
+      title: "Principles of Microbiology", type: "Lecture", room: "Bennett LT10", stream: "microbiology" },
     { day: 3, start: "10:00", end: "11:00", code: "MB2051",
       title: "Current Issues in Medical Genetics", type: "Lecture", room: "Maurice Shock 207", stream: "genetics" },
     { day: 3, start: "12:00", end: "13:00", code: "BS2059",
@@ -139,9 +149,11 @@ window.BIOSOC_TIMETABLE_YEAR2 = {
 
     /* ---------- Friday 2 ---------- */
     { day: 4, start: "09:00", end: "10:00", code: "BS2093",
-      title: "Protein Structure and Function", type: "Lecture", room: "Henry Wellcome Frank & Katherine May Lecture …", stream: "biochemistry" },
+      title: "Protein Structure and Function", type: "Lecture", room: "Henry Wellcome Frank & Katherine May Lecture Theatre", stream: "biochemistry" },
     { day: 4, start: "10:00", end: "11:00", code: "BS2013",
       title: "Physiology and Pharmacology", type: "Lecture", room: "George Davies Chetwode Lecture Theatre 1", stream: "physiology" },
+    { day: 4, start: "11:00", end: "12:00", code: "ADBS2S1",
+      title: "Careers Hour", type: "Careers", room: "George Davies Ground Floor Chetwode Lecture Theatre 1", stream: "cohort" },
     { day: 4, start: "13:00", end: "14:00", code: "BS2013",
       title: "Physiology and Pharmacology", type: "Lecture", room: "George Davies Chetwode Lecture Theatre 1", stream: "physiology" }
   ]
