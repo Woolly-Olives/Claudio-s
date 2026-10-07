@@ -799,6 +799,28 @@ await calPage.mouse.move(5, 5);
 await calPage.waitForTimeout(150);
 check("moving away closes the box",
   await calPage.evaluate(() => document.getElementById("mc-tip").hidden), true);
+await calPage.setViewportSize({ width: 1600, height: 950 });
+await calPage.clock.setFixedTime(new Date("2026-10-07T09:00:00+01:00"));
+await calPage.reload();
+await calPage.waitForTimeout(800);
+check("the three placeholders are drawn dark grey: STEM Fair 1 day, Reading week 7, Exam week 6",
+  await calPage.evaluate(() => {
+    const days = [...document.querySelectorAll("#minical .mc__day--placeholder")];
+    const grey = days.every(d => { const [r, g, b] = getComputedStyle(d).backgroundColor.match(/\d+/g).map(Number); return r === g && g === b && r < 110; });
+    return { count: days.length, grey };
+  }), { count: 14, grey: true });
+check("weekends are no lighter than weekdays",
+  await calPage.evaluate(() => {
+    const plain = [...document.querySelectorAll("#minical .mc__month:first-child .mc__day:not(.is-today):not(.is-past):not(.mc__day--ev)")];
+    return new Set(plain.map(d => getComputedStyle(d).backgroundColor)).size;
+  }), 1);
+check("hovering a placeholder week names it and gives its whole range",
+  await (async () => {
+    await calPage.locator("#minical button.mc__day--placeholder").nth(1).hover();
+    await calPage.waitForTimeout(150);
+    return calPage.evaluate(() => document.getElementById("mc-tip").textContent);
+  })(), "PlaceholderReading weekMon 9 Nov – Sun 15 Nov · All day");
+await calPage.mouse.move(5, 5);
 await calPage.setViewportSize({ width: 900, height: 700 });
 await calPage.waitForTimeout(200);
 check("on a narrow screen, where the wheel leaves no room, it is not shown",

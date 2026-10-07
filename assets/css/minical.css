@@ -20,7 +20,7 @@
    ============================================================= */
 
 .minical {
-  --s: calc(var(--wheel-size) / 36);       /* one day's square */
+  --s: calc(var(--wheel-size) / 32.5);       /* one day's square */
   --g: calc(var(--s) * 0.18);              /* the gap between squares */
   position: absolute;
   top: calc(50% - var(--wheel-size) / 2);
@@ -33,11 +33,12 @@
 .mc {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--s) * 0.7);
+  gap: calc(var(--s) * 0.3);
 }
 
 .mc__name {
-  margin: 0 0 calc(var(--s) * 0.25);
+  margin: 0 0 calc(var(--s) * 0.15);
+  line-height: 1;
   font-size: max(0.6rem, calc(var(--s) * 0.72));
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -62,8 +63,6 @@
   background: hsl(0 0% 50% / 0.2);
 }
 
-.mc__day--weekend { background: hsl(0 0% 50% / 0.11); }
-
 .mc__day.is-past { opacity: 0.45; }
 
 .mc__day.is-today {
@@ -80,6 +79,7 @@
 .mc__day--biosoc { background: hsl(275 60% 60%); }
 .mc__day--school { background: hsl(168 62% 42%); }
 .mc__day--su     { background: hsl(28 85% 55%); }
+.mc__day--placeholder { background: hsl(0 0% 38%); }
 
 .mc__day--ev:hover,
 .mc__day--ev:focus-visible {
@@ -138,6 +138,7 @@
 .mc-tip__tag--biosoc::before { background: hsl(275 60% 60%); }
 .mc-tip__tag--school::before { background: hsl(168 62% 42%); }
 .mc-tip__tag--su::before     { background: hsl(28 85% 55%); }
+.mc-tip__tag--placeholder::before { background: hsl(0 0% 38%); }
 
 .mc-tip__title { font-size: 0.92rem; }
 .mc-tip__when { color: var(--fg-soft); font-variant-numeric: tabular-nums; }

@@ -46,15 +46,35 @@
 
   /* ---------- events, indexed by the day they fall on ---------- */
 
+  /*
+   * PLACEHOLDERS — hand-written stand-ins for dates the committee has
+   * not put in the Outlook calendar yet, drawn dark grey (tag
+   * "placeholder"). Not generated, unlike events.js: edit them here, and
+   * delete one once the real event is in events.js. Same shape as an
+   * event there; an all-day event's end is the day AFTER its last day.
+   */
+  var PLACEHOLDERS = [
+    { title: "STEM Fair", start: "2026-10-15T00:00:00+01:00", end: "2026-10-16T00:00:00+01:00" },
+    { title: "Reading week", start: "2026-11-09T00:00:00+00:00", end: "2026-11-16T00:00:00+00:00" },
+    { title: "Exam week", start: "2027-01-04T00:00:00+00:00", end: "2027-01-10T00:00:00+00:00" }
+  ].map(function (e) {
+    e.tag = "placeholder";
+    e.tagLabel = "Placeholder";
+    e.allDay = true;
+    return e;
+  });
+
   var byDay = {};
 
-  ((DATA && DATA.events) || []).forEach(function (e) {
+  (((DATA && DATA.events) || []).concat(PLACEHOLDERS)).forEach(function (e) {
     var first = dayNumber(e.start);
     var last = dayNumber(e.end);
     /* an event that ends exactly at midnight (every all-day event does,
        the end being exclusive) does not touch the day it ends on */
     if (last > first && e.end.slice(11, 16) === "00:00") { last -= 1; }
     if (last < first) { last = first; }
+    e.firstDay = first;
+    e.lastDay = last;
     for (var n = first; n <= last; n++) {
       var k = keyOfDayNumber(n);
       (byDay[k] = byDay[k] || []).push(e);
@@ -63,9 +83,13 @@
 
   /* ---------- what the box says ---------- */
 
+  function shortDate(n) {
+    var d = new Date(n * 86400000);
+    return DAYS[d.getUTCDay()] + " " + d.getUTCDate() + " " + MONTHS[d.getUTCMonth()].slice(0, 3);
+  }
+
   function dateLine(e) {
-    var d = new Date(dayNumber(e.start) * 86400000);
-    var line = DAYS[d.getUTCDay()] + " " + d.getUTCDate() + " " + MONTHS[d.getUTCMonth()].slice(0, 3);
+    var line = shortDate(e.firstDay) + (e.lastDay > e.firstDay ? " – " + shortDate(e.lastDay) : "");
     if (e.allDay) { return line + " · All day"; }
     return line + " · " + e.start.slice(11, 16) + " – " + e.end.slice(11, 16);
   }
@@ -104,9 +128,7 @@
     for (var d = 1; d <= length; d++) {
       var k = key(y, m, d);
       var on = byDay[k];
-      var weekday = new Date(y, m, d).getDay();
       var cls = "mc__day" +
-        (weekday === 0 || weekday === 6 ? " mc__day--weekend" : "") +
         (k === todayKey ? " is-today" : "") +
         (k < todayKey ? " is-past" : "");
 

@@ -996,7 +996,7 @@ all of it no taller than the circle. `assets/js/minical.js` +
 - **`--wheel-size` is the shared number.** The wheel's diameter used to be an
   inline `min(94vw, 78vh, 640px)` on `.wheel`; it is now a custom property on
   `.stage` that `.wheel` and the calendar both read. The calendar's square is
-  `--wheel-size / 36`, chosen so four months of six weeks each (the worst
+  `--wheel-size / 32.5`, chosen so four months of six weeks each (the worst
   case) fit inside the wheel's height — that is what keeps it from rising
   above the circle at any size, and `tools/check.mjs` asserts it.
 - **Hidden at 1080px and under.** The wheel tops out at 640px; at that width
@@ -1016,6 +1016,15 @@ all of it no taller than the circle. `assets/js/minical.js` +
   exactly 00:00 (all-day events do; the end is exclusive) does not mark the
   day it ends on. "Today" is the visitor's own, read once at load; there is
   no timer, so it does not roll over at midnight on a page left open.
+- **Placeholders (2026-10-07, at explicit instruction)**: STEM Fair (15 Oct
+  2026), Reading week (9–15 Nov 2026), Exam week (4–9 Jan 2027), tag
+  `placeholder`, dark grey (`hsl(0 0% 38%)`), in a hand-written `PLACEHOLDERS`
+  array in `minical.js` — deliberately *not* in `events.js`, which is
+  generated and never hand-edited. They are fixed dates in fixed years, so
+  they go stale like any other; remove each when the real event arrives.
+- **Weekends are not lighter** (they were, briefly; removed at the user's
+  request). The gap between months was cut to 0.3 squares, which is what let
+  the square grow from `/ 36` to `/ 32.5`.
 - **No `biosoc:page` gate**: nothing here fetches or runs on a timer.
 - Tag colours are fixed mid-lightness hues (plum/teal/orange, as the Events
   section's tags), not foreground colours, so they read in all three theme

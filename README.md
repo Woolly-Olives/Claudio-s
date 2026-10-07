@@ -151,7 +151,10 @@ square per day with **no dates written on it**, so only today (a ring) and
 days with an event (coloured by tag, using the same three hues as the Events
 section's tags) catch the eye. The fourth month is faded. Hovering, focusing
 or tapping an event's day opens a small box: tag, title, date and time,
-place, note; a day with two events lists both. Built by `assets/js/minical.js`
+place, note; a day with two events lists both. Three **placeholder** dates
+(STEM Fair 15 Oct, Reading week 9–15 Nov, Exam week 4–9 Jan) are drawn dark
+grey from a hand-written `PLACEHOLDERS` list at the top of `minical.js` — not
+in `events.js`; delete each once the real event is in the Outlook calendar. Built by `assets/js/minical.js`
 from `assets/data/events.js` — the same generated file the Events section
 reads, so **regenerate that and this updates too**; nothing here is edited by
 hand. It is sized and placed off `--wheel-size` (set on `.stage`, used by
