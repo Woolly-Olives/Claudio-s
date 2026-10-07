@@ -327,10 +327,10 @@ check("it sits in Study Resources, after the Guides bento and before the assessm
       belowGuides: after(bento, adv),
       aboveSchedule: after(adv, sched),
       inConnect: document.getElementById("page-connect").contains(adv),
-      connectSaysComingSoon: document.querySelector("#page-connect .guide-soon").textContent,
+      connectHasStaffInstead: !!document.querySelector("#page-connect #staff"),
     };
   }),
-  { inStudyResources: true, belowGuides: true, aboveSchedule: true, inConnect: false, connectSaysComingSoon: "Coming soon!" });
+  { inStudyResources: true, belowGuides: true, aboveSchedule: true, inConnect: false, connectHasStaffInstead: true });
 await page.evaluate(() => { location.hash = "#study-resources"; });
 await page.waitForTimeout(700);
 check("there, a piece of advice shows with its byline, and the arrow moves to another",
@@ -342,6 +342,42 @@ check("there, a piece of advice shows with its byline, and the arrow moves to an
     const second = await read();
     return { hasByline: /— .+, Year \d/.test(first.split("|")[1]), moved: first !== second };
   })(), { hasByline: true, moved: true });
+
+console.log("\nthe staff cards in Connect");
+await page.evaluate(() => { location.hash = "#connect"; });
+await page.waitForTimeout(700);
+check("every card has a name, a photo box, module codes, both questions and an email link",
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("#page-connect #staff .st")];
+    const labels = c => [...c.querySelectorAll(".st__label")].map(l => l.textContent);
+    return {
+      many: cards.length > 20,
+      allComplete: cards.every(c => c.querySelector("h2.st__name").textContent.length > 3 &&
+        c.querySelector(".st__photo") && c.querySelectorAll(".st__codes li").length >= 1 &&
+        labels(c).indexOf("My research area:") !== -1 && labels(c).indexOf("I am passionate about:") !== -1 &&
+        c.querySelector('.st__mail a[href^="mailto:"]')),
+    };
+  }), { many: true, allComplete: true });
+check("the same person is never on two cards (Swidbert Ott was entered under three spellings, one email)",
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("#staff .st")];
+    const emails = cards.flatMap(c => [...c.querySelectorAll(".st__mail a")].map(a => a.textContent));
+    return { uniqueEmails: new Set(emails).size === emails.length,
+             ott: cards.filter(c => /Ott$/.test(c.querySelector(".st__name").textContent)).length };
+  }), { uniqueEmails: true, ott: 1 });
+check("photo is top-left, modules top-right, the questions and email below — photo square, half the card's width, bottom half at least as tall",
+  await page.evaluate(() => {
+    const c = document.querySelector("#staff .st"), r = s => c.querySelector(s).getBoundingClientRect();
+    const ph = r(".st__photo"), m = r(".st__mods"), n = r(".st__name"), b = r(".st__bottom"), cr = c.getBoundingClientRect();
+    return {
+      nameAbovePhoto: n.bottom <= ph.top,
+      photoLeftOfMods: ph.right <= m.left + 1 && Math.abs(ph.top - m.top) < 2,
+      bottomBelowTop: b.top >= ph.bottom - 1,
+      photoSquareAndHalfWidth: Math.abs(ph.height - ph.width) < 3 && Math.abs(ph.width - m.width) < 3 && b.height >= ph.height - 3,
+    };
+  }), { nameAbovePhoto: true, photoLeftOfMods: true, bottomBelowTop: true, photoSquareAndHalfWidth: true });
+await page.evaluate(() => { location.hash = "#study-resources"; });
+await page.waitForTimeout(700);
 
 console.log("\nthe Guides bento");
 check("ten tiles, in order, sized 4/2/1×8 as asked",

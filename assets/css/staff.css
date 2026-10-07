@@ -1,0 +1,109 @@
+/* =============================================================
+   Connect — staff cards (assets/js/staff.js). Scoped to #staff.
+
+   A card is four quarters' worth of content under a name: the top
+   half is split down the middle — photo on the left, module codes on
+   the right — and the bottom half holds the research area, the
+   passion line and the email. Each half is as tall as one half of the
+   card's width (the photo is square), so the card keeps its
+   proportions whatever the column width. The page's --hue tints it.
+   ============================================================= */
+
+#staff { display: block; }
+
+#staff .st__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 1.1rem;
+}
+
+#staff .st {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem;
+  background: hsl(var(--hue) 30% 50% / 0.08);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+#staff .st__name {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+#staff .st__top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  height: calc(50cqw - 0.4rem);   /* the photo's own width, so it is square */
+}
+
+#staff .st__photo {
+  overflow: hidden;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  background: hsl(0 0% 50% / 0.08);
+}
+
+#staff .st__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+#staff .st__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+
+#staff .st__mods { display: flex; flex-direction: column; gap: 0.45rem; min-width: 0; }
+
+#staff .st__codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  align-content: flex-start;
+}
+
+#staff .st__codes li {
+  padding: 0.18rem 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: hsl(var(--hue) 40% 55% / 0.2);
+  border-radius: 6px;
+}
+
+#staff .st__bottom {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.8rem;
+  min-height: calc(50cqw - 0.4rem);
+}
+
+#staff .st__fields { display: flex; flex-direction: column; gap: 0.8rem; margin: 0; }
+#staff .st__field { display: flex; flex-direction: column; gap: 0.15rem; }
+
+#staff .st__label { display: block; }
+
+#staff .st__value { margin: 0; min-height: 1.6rem; font-size: 0.9rem; line-height: 1.35; border-bottom: 1px solid var(--line-soft); }
+#staff .st__value--blank { color: transparent; }
+
+#staff .st__mail { margin: 0; font-size: 0.82rem; overflow-wrap: anywhere; }
+#staff .st__mail a { color: var(--fg-soft); text-decoration-color: var(--line); }
+#staff .st__mail a:hover,
+#staff .st__mail a:focus-visible { color: var(--fg); }
+
+#page-connect .page__lede {
+  max-width: 40rem;
+  margin: 0 0 1.6rem;
+  color: var(--fg-soft);
+  line-height: 1.5;
+}

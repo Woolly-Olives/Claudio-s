@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="assets/css/advice.css">
 <link rel="stylesheet" href="assets/css/timetable.css">
 <link rel="stylesheet" href="assets/css/minical.css">
+<link rel="stylesheet" href="assets/css/staff.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='none' stroke='%234ccf9a' stroke-width='10'/><circle cx='50' cy='50' r='12' fill='%234ccf9a'/></svg>">
 <script>
 document.documentElement.classList.remove('no-js');
@@ -886,11 +887,12 @@ try {
         <h1 class="page__title" id="h-connect" tabindex="-1">Connect</h1>
       </header>
       <div class="page__body">
-        <!-- The students' advice that used to be here moved to Study
-             Resources, below the Guides (2026-10-07). This page is a
-             placeholder until its new content (ways to put faces to
-             staff names) is built. -->
-        <p class="guide-soon">Coming soon!</p>
+        <!-- Staff cards, built by assets/js/staff.js from the module
+             convenor lists in assets/data/curriculum.js, plus whatever
+             assets/data/staff.js adds. (The students' advice that used
+             to be on this page moved to Study Resources, 2026-10-07.) -->
+        <p class="page__lede">Everyone who convenes a module, with the modules they run. Photos, research areas and interests are still to come.</p>
+        <div id="staff"></div>
       </div>
     </div>
   </div>
@@ -1001,6 +1003,7 @@ try {
 <script src="assets/data/sway.js"></script>
 <script src="assets/data/calendar.js"></script>
 <script src="assets/data/events.js"></script>
+<script src="assets/data/staff.js"></script>
 <script src="assets/data/timetable-year2.js"></script>
 <script src="assets/data/timetable-year3.js"></script>
 <script src="assets/js/arc.js"></script>
@@ -1009,6 +1012,7 @@ try {
 <script src="assets/js/sway.js"></script>
 <script src="assets/js/events.js"></script>
 <script src="assets/js/minical.js"></script>
+<script src="assets/js/staff.js"></script>
 <script src="assets/js/advice.js"></script>
 <script src="assets/js/timetable.js"></script>
 <script src="assets/js/theme.js"></script>

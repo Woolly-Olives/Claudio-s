@@ -58,6 +58,7 @@ specific error this project hit and why.
 | `assets/js/arc.js`, `assets/css/arc.css` | The Essential Links arc and its zoom. |
 | `assets/data/instagram.js` | The Instagram account and the posts pinned to Events. |
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Events profile card and post grid. |
+| `assets/js/staff.js`, `assets/css/staff.css`, `assets/data/staff.js` | The staff cards on Connect (see "Staff cards"). |
 | `assets/js/minical.js`, `assets/css/minical.css` | The small calendar beside the wheel on the main page. Reads `events.js`. |
 | `assets/data/calendar.js` | The Outlook calendar's links, edited by hand. |
 | `assets/data/instagram-posts.js` | The most recent posts. **Generated** — see below. |
@@ -143,6 +144,28 @@ same fade `.page--flat` gets. A later *fresh* open of that same section
 (from the wheel) clears the flag again on its own — `openPage()` always
 sets it with `classList.toggle(...)`, never just adds it, so there's
 nothing to separately clean up.
+
+## Staff cards (Connect)
+
+One card per person who convenes a module: name on top; a blank, square photo
+box top-left and the codes of the modules they convene top-right; then "My
+research area:", "I am passionate about:" and their email. Built by
+`assets/js/staff.js` from the module convenor lists in
+`assets/data/curriculum.js` — the same people and addresses the module
+details already show — so there is nothing to type for the name, email or
+modules. **The three blanks are filled from `assets/data/staff.js`**, a
+hand-edited file keyed by the person's name lower-cased with no title
+(`"celia may"`), with optional `research`, `passion` and `photo` fields (put
+photos in `assets/img/staff/`). Get each person's agreement first; nothing has
+been asked of anyone yet.
+
+The convenor lists are transcribed as written and contain duplicates, so
+`staff.js` joins entries up before drawing — see its header for the rules
+(same name ignoring title/capitals, or same email ignoring capitals; most
+common spelling wins; "Professor" beats "Dr"; implausible emails are dropped).
+That turns 63 raw people into 57. Where one person genuinely has two
+different addresses in the source (Ed Hollox, Jo Purves, Chris Talbot), both
+are shown — the fix is in the source data, not here.
 
 ## The mini calendar (main page)
 
@@ -602,8 +625,8 @@ part known to work and is unaffected.
 ## Advice from students (Study Resources)
 
 *Moved from Connect to Study Resources, below the Guides and above the
-assessment schedule, on 2026-10-07. Connect now just says "Coming soon!" until
-its new content is built.*
+assessment schedule, on 2026-10-07. Connect now holds the staff cards
+(below).*
 
 One piece of advice at a time, in a random order, moving on by itself every 40
 seconds. Back and forward step through it by hand.

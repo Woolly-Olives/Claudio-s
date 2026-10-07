@@ -909,9 +909,8 @@ starts and stops its 40-second rotation on `biosoc:page` with
 `id === "study-resources"` (it was `"connect"`) — forget that and it either
 never rotates or rotates while hidden. Opening a Guide on top of Study
 Resources fires `biosoc:page` with the guide's own id, so the rotation pauses
-while a guide is open, as intended. `#page-connect` is now a bare
-`<p class="guide-soon">Coming soon!</p>` placeholder, because the user is
-planning new Connect content (ways to put faces to staff names). The comment
+while a guide is open, as intended. `#page-connect` was briefly a bare
+"Coming soon!" placeholder and now holds the staff cards (below). The comment
 headers of the generated `assets/data/advice.js` and `tools/advice-to-js.py`
 still say "Connect"; left alone, since the first is generated and changing
 only a comment there is not worth a regeneration.
@@ -999,6 +998,38 @@ empty on this network but nothing about any other one. The footnote says
 "most likely, your organisation's network will not allow it to appear
 here" for exactly that reason — it names the likely cause without claiming
 Sway itself refuses framing, which was never actually confirmed.
+
+### Staff cards (Connect)
+**Added 2026-10-07, at explicit instruction**, after a brainstorm of ways to
+put faces to staff names. `assets/js/staff.js` + `assets/css/staff.css` draw one
+card per person who convenes a module, from the `convenors` strings in
+`curriculum.js` (`"Dr Celia May (cam5@le.ac.uk)"`) — "the names you currently
+have" was read as those, the only staff names and emails in the project (the
+timetable's `staff` strings are surnames-and-initials, tooltip-only). Card:
+name; blank photo box top-left; convened module codes top-right; "My research
+area:"; "I am passionate about:"; email. Those two lines and the photo are
+blank for now and come from `assets/data/staff.js` (hand-edited, keyed by name
+lower-cased, no title).
+
+- **"Taught modules" is really "convened modules"**: the data has convenors
+  only, not who lectures. A person who teaches a module without convening it
+  will not list it.
+- **The source has duplicates, deliberately not fixed in `curriculum.js`**
+  (generated, and quoting the handbooks): the same person under different
+  spellings/emails/titles. `staff.js` unions entries by name key or email key
+  (case-insensitive), picks the most common spelling, "Professor" over "Dr",
+  drops an implausible email (`amc72@.le.ac.uk`), and shows every distinct valid
+  address. 63 raw people become 57. **Still visibly wrong, needs the source
+  fixed or confirmed by someone who knows**: Ed Hollox (`ejh33` as Dr,
+  `eh33` as Professor), Jo Purves (`jp437@leicester.ac.uk` and `@le.ac.uk`),
+  Chris Talbot (`cjt14`, `cjt15`) — one card each, two emails. Also possibly
+  the same person and not merged because nothing links them: none found, but
+  nothing proves there are none.
+- Emails are shown lower-cased (the source mixes case); they are links
+  (`mailto:`). They are already published in the module details, but a card
+  per person makes them far easier to harvest — worth asking the School.
+- The blank "My research area:" / "I am passionate about:" values are empty
+  rules with no text, so a screen reader hears only the labels.
 
 ### Mini calendar (main page)
 **Added 2026-10-07, at explicit instruction**: a calendar to the left of the
