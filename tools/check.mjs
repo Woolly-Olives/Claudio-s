@@ -757,6 +757,54 @@ if (y2filled.y2s1 === "60" && y2filled.y2s2 === "60") {
               "(got " + y2filled.y2s1 + "/60, " + y2filled.y2s2 + "/60 — check the sample data)");
 }
 
+console.log("\nthe mini calendar beside the wheel");
+/* the real events are all in the past by now, so a visitor's page shows
+   none; pin "today" to the day before the first one and read the
+   expected title from the data itself, so regenerating events.js does
+   not break this */
+const firstEvent = await page.evaluate(() => window.BIOSOC_EVENTS.events[0]);
+const calPage = await browser.newPage({ viewport: { width: 1600, height: 950 }, colorScheme: "dark" });
+const dayBefore = new Date(Date.UTC(+firstEvent.start.slice(0, 4), +firstEvent.start.slice(5, 7) - 1, +firstEvent.start.slice(8, 10) - 1, 12));
+await calPage.clock.setFixedTime(dayBefore);
+await calPage.goto(SITE);
+await calPage.waitForTimeout(800);
+check("four months, the first being today's",
+  await calPage.evaluate(() => ({
+    months: document.querySelectorAll("#minical .mc__month").length,
+    todayInFirst: !!document.querySelector("#minical .mc__month:first-child .is-today"),
+  })), { months: 4, todayInFirst: true });
+check("days are bare squares — no dates or text written on them",
+  await calPage.evaluate(() => [...document.querySelectorAll("#minical .mc__day")].every(d => d.textContent === "")), true);
+check("the fourth month is faded, the others are not",
+  await calPage.evaluate(() => [...document.querySelectorAll("#minical .mc__month")].map(m => +getComputedStyle(m).opacity < 0.6)),
+  [false, false, false, true]);
+check("it sits level with the wheel — never higher than the circle — and clear of it",
+  await calPage.evaluate(() => {
+    const c = document.querySelector("#minical .mc").getBoundingClientRect();
+    const w = document.querySelector(".wheel").getBoundingClientRect();
+    return { notAbove: c.top >= w.top - 1, notBelow: c.bottom <= w.bottom + 1, clearOfWheel: c.right < w.left };
+  }), { notAbove: true, notBelow: true, clearOfWheel: true });
+check("a day with an event is coloured; hovering it opens a box with the event's title",
+  await (async () => {
+    const btn = calPage.locator("#minical button.mc__day--ev").first();
+    const nothingYet = await calPage.evaluate(() => document.getElementById("mc-tip").hidden);
+    await btn.hover();
+    await calPage.waitForTimeout(150);
+    return calPage.evaluate(title => {
+      const tip = document.getElementById("mc-tip");
+      return { hiddenBefore: true, shown: !tip.hidden, hasTitle: tip.textContent.indexOf(title) !== -1 };
+    }, firstEvent.title).then(r => ({ ...r, hiddenBefore: nothingYet }));
+  })(), { hiddenBefore: true, shown: true, hasTitle: true });
+await calPage.mouse.move(5, 5);
+await calPage.waitForTimeout(150);
+check("moving away closes the box",
+  await calPage.evaluate(() => document.getElementById("mc-tip").hidden), true);
+await calPage.setViewportSize({ width: 900, height: 700 });
+await calPage.waitForTimeout(200);
+check("on a narrow screen, where the wheel leaves no room, it is not shown",
+  await calPage.evaluate(() => getComputedStyle(document.getElementById("minical")).display), "none");
+await calPage.close();
+
 console.log("\nnothing broken in the console");
 check("no errors or bad responses", noise, []);
 

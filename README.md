@@ -58,6 +58,7 @@ specific error this project hit and why.
 | `assets/js/arc.js`, `assets/css/arc.css` | The Essential Links arc and its zoom. |
 | `assets/data/instagram.js` | The Instagram account and the posts pinned to Events. |
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Events profile card and post grid. |
+| `assets/js/minical.js`, `assets/css/minical.css` | The small calendar beside the wheel on the main page. Reads `events.js`. |
 | `assets/data/calendar.js` | The Outlook calendar's links, edited by hand. |
 | `assets/data/instagram-posts.js` | The most recent posts. **Generated** — see below. |
 | `tools/fetch-instagram.py` | Fetches them from Instagram's API. |
@@ -142,6 +143,23 @@ same fade `.page--flat` gets. A later *fresh* open of that same section
 (from the wheel) clears the flag again on its own — `openPage()` always
 sets it with `classList.toggle(...)`, never just adds it, so there's
 nothing to separately clean up.
+
+## The mini calendar (main page)
+
+To the left of the wheel: this month and the next three, one small rounded
+square per day with **no dates written on it**, so only today (a ring) and
+days with an event (coloured by tag, using the same three hues as the Events
+section's tags) catch the eye. The fourth month is faded. Hovering, focusing
+or tapping an event's day opens a small box: tag, title, date and time,
+place, note; a day with two events lists both. Built by `assets/js/minical.js`
+from `assets/data/events.js` — the same generated file the Events section
+reads, so **regenerate that and this updates too**; nothing here is edited by
+hand. It is sized and placed off `--wheel-size` (set on `.stage`, used by
+`.wheel`), so it is exactly as tall as the circle and never rises above it.
+Below 1080px wide the wheel leaves no room beside it and the calendar is
+simply not shown. Event dates and clock times are read off the ISO strings,
+not through `Date`, so every visitor sees Leicester's day and time; "today"
+is the visitor's own.
 
 ## The timetable
 

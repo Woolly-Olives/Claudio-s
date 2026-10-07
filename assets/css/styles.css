@@ -272,6 +272,10 @@ body.is-page-open .menu-toggle { display: none; }
 
 /* ---------- 3. Stage + wheel ---------- */
 .stage {
+  /* the wheel's own diameter, shared so the mini calendar beside it
+     (assets/css/minical.css) can size and place itself off the same
+     number instead of guessing */
+  --wheel-size: min(94vw, 78vh, 640px);
   position: fixed;
   inset: 0;
   display: grid;
@@ -334,7 +338,7 @@ body.is-page-open .stage {
 
 .wheel {
   position: relative;
-  width: min(94vw, 78vh, 640px);
+  width: var(--wheel-size);
   aspect-ratio: 1;
   animation: wheel-in 900ms var(--ease) both;
 }

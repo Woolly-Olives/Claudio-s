@@ -1,0 +1,152 @@
+/* =============================================================
+   Mini calendar — beside the wheel (assets/js/minical.js).
+
+   Everything is sized off --wheel-size, which .stage in styles.css
+   sets and .wheel uses for its own diameter. The calendar's box is
+   exactly as tall as the wheel and sits level with it, so nothing in
+   it can rise above the circle; its four months are laid out to fit
+   in that height with six weeks apiece (the worst case) to spare.
+
+   A day is a small rounded square with nothing written on it. Colour
+   is the only signal: today gets a ring, a day with an event gets its
+   tag's colour (the same three hues the Events section uses for its
+   tags), and everything else is a quiet neutral — so a stray eye finds
+   the dates that matter. The fourth month is faded on purpose.
+
+   Colours that must work in all three theme states (system dark,
+   system light, forced by [data-theme]) are either mid-lightness hues
+   that read on both, or var(--token)s — nothing here hardcodes a
+   foreground colour that is only right in one of them.
+   ============================================================= */
+
+.minical {
+  --s: calc(var(--wheel-size) / 36);       /* one day's square */
+  --g: calc(var(--s) * 0.18);              /* the gap between squares */
+  position: absolute;
+  top: calc(50% - var(--wheel-size) / 2);
+  right: calc(50% + var(--wheel-size) / 2 + 2rem);
+  height: var(--wheel-size);
+  display: flex;
+  align-items: center;
+}
+
+.mc {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--s) * 0.7);
+}
+
+.mc__name {
+  margin: 0 0 calc(var(--s) * 0.25);
+  font-size: max(0.6rem, calc(var(--s) * 0.72));
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+
+.mc__name span { font-weight: 500; opacity: 0.8; }
+
+.mc__grid {
+  display: grid;
+  grid-template-columns: repeat(7, var(--s));
+  grid-auto-rows: var(--s);
+  gap: var(--g);
+}
+
+.mc__day {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--s) * 0.28);
+  background: hsl(0 0% 50% / 0.2);
+}
+
+.mc__day--weekend { background: hsl(0 0% 50% / 0.11); }
+
+.mc__day.is-past { opacity: 0.45; }
+
+.mc__day.is-today {
+  box-shadow: 0 0 0 max(1.5px, calc(var(--s) * 0.1)) var(--fg);
+  background: hsl(0 0% 50% / 0.3);
+}
+
+/* a day with something on */
+.mc__day--ev {
+  cursor: pointer;
+  background: hsl(160 65% 46%);
+  transition: transform 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+.mc__day--biosoc { background: hsl(275 60% 60%); }
+.mc__day--school { background: hsl(168 62% 42%); }
+.mc__day--su     { background: hsl(28 85% 55%); }
+
+.mc__day--ev:hover,
+.mc__day--ev:focus-visible {
+  transform: scale(1.35);
+  box-shadow: 0 0 0 max(1.5px, calc(var(--s) * 0.1)) var(--fg);
+  outline: none;
+}
+
+/* the fourth month, almost gone — still hoverable, only fainter */
+.mc__month:nth-child(4) { opacity: 0.38; }
+
+/* ---------- the box ---------- */
+
+.mc-tip {
+  position: fixed;
+  z-index: 40;
+  width: max-content;
+  max-width: 16rem;
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  box-shadow: 0 10px 30px hsl(0 0% 0% / 0.35);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.mc-tip[hidden] { display: none; }
+
+.mc-tip__ev { display: flex; flex-direction: column; gap: 0.15rem; }
+.mc-tip__ev + .mc-tip__ev { padding-top: 0.7rem; border-top: 1px solid var(--line-soft); }
+
+.mc-tip__tag {
+  align-self: flex-start;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+.mc-tip__tag::before {
+  content: "";
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-right: 0.4rem;
+  border-radius: 3px;
+  background: hsl(160 65% 46%);
+  vertical-align: -0.02rem;
+}
+.mc-tip__tag--biosoc::before { background: hsl(275 60% 60%); }
+.mc-tip__tag--school::before { background: hsl(168 62% 42%); }
+.mc-tip__tag--su::before     { background: hsl(28 85% 55%); }
+
+.mc-tip__title { font-size: 0.92rem; }
+.mc-tip__when { color: var(--fg-soft); font-variant-numeric: tabular-nums; }
+.mc-tip__where { color: var(--fg-soft); }
+.mc-tip__note { margin-top: 0.15rem; color: var(--fg-soft); font-size: 0.78rem; }
+
+/* Below this width the wheel (capped at 640px) leaves less than the
+   calendar's own width plus its gap to either side, so rather than
+   overlap the wheel it simply isn't shown. */
+@media (max-width: 1080px) {
+  .minical { display: none; }
+}

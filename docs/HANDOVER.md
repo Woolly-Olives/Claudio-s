@@ -985,6 +985,42 @@ empty on this network but nothing about any other one. The footnote says
 here" for exactly that reason — it names the likely cause without claiming
 Sway itself refuses framing, which was never actually confirmed.
 
+### Mini calendar (main page)
+**Added 2026-10-07, at explicit instruction**: a calendar to the left of the
+wheel — current month plus the next three stacked below, the last faded,
+days as bare rounded squares with no dates, hover for an event's details,
+all of it no taller than the circle. `assets/js/minical.js` +
+`assets/css/minical.css`; the `<aside id="minical">` sits in `.stage` in
+`index.html`.
+
+- **`--wheel-size` is the shared number.** The wheel's diameter used to be an
+  inline `min(94vw, 78vh, 640px)` on `.wheel`; it is now a custom property on
+  `.stage` that `.wheel` and the calendar both read. The calendar's square is
+  `--wheel-size / 36`, chosen so four months of six weeks each (the worst
+  case) fit inside the wheel's height — that is what keeps it from rising
+  above the circle at any size, and `tools/check.mjs` asserts it.
+- **Hidden at 1080px and under.** The wheel tops out at 640px; at that width
+  the space to its left is just enough for the calendar plus a 2rem gap.
+  Narrower, it would overlap the wheel, so it is `display: none` rather than
+  squeezed. Not a design preference: there is no room, and the user asked for
+  it *left of the circle*. If it is ever wanted on phones it needs another
+  home, not a smaller size.
+- **Event data is `events.js`, which is generated** — see §6 Events and
+  `tools/ics-to-events.py`. At the time of writing its four events are all in
+  September 2026, so the calendar shows **no events** once today passes them;
+  that is the data being stale, not a bug. `check.mjs` therefore pins "today"
+  to the day before the first event (`page.clock.setFixedTime`) and reads the
+  expected title from the data, so regenerating the file does not break it.
+- **Dates come off the ISO strings, not through `Date`**, so a visitor in
+  another timezone sees Leicester's day and clock time. An event ending at
+  exactly 00:00 (all-day events do; the end is exclusive) does not mark the
+  day it ends on. "Today" is the visitor's own, read once at load; there is
+  no timer, so it does not roll over at midnight on a page left open.
+- **No `biosoc:page` gate**: nothing here fetches or runs on a timer.
+- Tag colours are fixed mid-lightness hues (plum/teal/orange, as the Events
+  section's tags), not foreground colours, so they read in all three theme
+  states; everything else is a `var(--token)` or a neutral alpha grey.
+
 ### Timetable
 **Added 2026-09-24, at explicit instruction, as a fifth item in the burger
 drawer** (§5's "The burger menu" entry) — the first of that drawer's five
