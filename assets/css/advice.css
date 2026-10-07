@@ -1,9 +1,9 @@
 /* =============================================================
-   Connect — advice from students.
+   Advice from students (Study Resources, below the Guides).
    Built by assets/js/advice.js. Scoped to #advice.
    ============================================================= */
 
-#advice { display: block; }
+#advice { display: block; margin: 2.5rem 0 2rem; }
 
 #advice .ad__h {
   margin: 0 0 1.25rem;

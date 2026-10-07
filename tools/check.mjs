@@ -314,6 +314,35 @@ check("Opportunities bento tiles", await page.locator("#page-opportunities .bent
 check("Guides bento tiles", await page.locator("#page-study-resources .bento__tile").count(), 10);
 check("advice pieces", await page.evaluate(() => window.BIOSOC_ADVICE.items.length), 27);
 
+console.log("\nthe students' advice (moved from Connect to Study Resources, below the Guides)");
+check("it sits in Study Resources, after the Guides bento and before the assessment schedule — and no longer in Connect",
+  await page.evaluate(() => {
+    const adv = document.getElementById("advice");
+    const sr = document.getElementById("page-study-resources");
+    const bento = sr.querySelector(".bento");
+    const sched = [...sr.querySelectorAll("h2")].find(h => h.textContent === "Assessment schedule");
+    const after = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    return {
+      inStudyResources: sr.contains(adv),
+      belowGuides: after(bento, adv),
+      aboveSchedule: after(adv, sched),
+      inConnect: document.getElementById("page-connect").contains(adv),
+      connectSaysComingSoon: document.querySelector("#page-connect .guide-soon").textContent,
+    };
+  }),
+  { inStudyResources: true, belowGuides: true, aboveSchedule: true, inConnect: false, connectSaysComingSoon: "Coming soon!" });
+await page.evaluate(() => { location.hash = "#study-resources"; });
+await page.waitForTimeout(700);
+check("there, a piece of advice shows with its byline, and the arrow moves to another",
+  await (async () => {
+    const read = () => page.evaluate(() => document.querySelector("#advice .ad__text").textContent + "|" + document.querySelector("#advice .ad__by").textContent);
+    const first = await read();
+    await page.click('#page-study-resources #advice [data-go="1"]');
+    await page.waitForTimeout(150);
+    const second = await read();
+    return { hasByline: /— .+, Year \d/.test(first.split("|")[1]), moved: first !== second };
+  })(), { hasByline: true, moved: true });
+
 console.log("\nthe Guides bento");
 check("ten tiles, in order, sized 4/2/1×8 as asked",
   await page.evaluate(() => [...document.querySelectorAll("#page-study-resources .bento__tile")].map(a => ({

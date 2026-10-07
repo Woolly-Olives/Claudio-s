@@ -1,11 +1,12 @@
 /* =============================================================
-   Connect — advice from students, one at a time.
+   Study Resources — advice from students, one at a time, below the
+   Guides. (It lived in Connect until 2026-10-07.)
 
    Shows one piece of advice from assets/data/advice.js, in a random
    order, moving on by itself every DWELL seconds. Back and forward
    step through it by hand.
 
-   Nothing runs until the Connect section is open, and it stops again
+   Nothing runs until the Study Resources section is open, and it stops again
    when it closes; assets/js/app.js says when, through biosoc:page.
    ============================================================= */
 (function () {
@@ -139,7 +140,7 @@
 
   /* run only while anyone can actually see it */
   document.addEventListener("biosoc:page", function (event) {
-    var now = event.detail.id === "connect";
+    var now = event.detail.id === "study-resources";
     if (now === open) { return; }
     open = now;
     rewind();

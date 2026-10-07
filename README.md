@@ -64,7 +64,7 @@ specific error this project hit and why.
 | `tools/fetch-instagram.py` | Fetches them from Instagram's API. |
 | `assets/data/events.js` | The events themselves. **Generated** — see below. |
 | `tools/ics-to-events.py` | Turns the published .ics into that file. |
-| `assets/data/advice.js` | Students' advice on Connect. **Generated** — see below. |
+| `assets/data/advice.js` | Students' advice, in Study Resources. **Generated** — see below. |
 | `tools/advice-to-js.py` | Turns the collected text file into it. |
 | `assets/data/sway.js` | The Sway newsletter embed on BioSoc Newsletter. |
 | `assets/js/sway.js`, `assets/css/sway.css` | How that page is built. |
@@ -599,7 +599,11 @@ Embedding either Instagram or Outlook is off the table for now; see
 `docs/HANDOVER.md` before reopening it. The card-and-posts design above is the
 part known to work and is unaffected.
 
-## Advice from students (Connect)
+## Advice from students (Study Resources)
+
+*Moved from Connect to Study Resources, below the Guides and above the
+assessment schedule, on 2026-10-07. Connect now just says "Coming soon!" until
+its new content is built.*
 
 One piece of advice at a time, in a random order, moving on by itself every 40
 seconds. Back and forward step through it by hand.
@@ -642,7 +646,7 @@ including the "give yourself ago" wording.
 
 `DWELL` at the top of `assets/js/advice.js` is the only number: 40 seconds. The
 wait is a plain timer, started fresh whenever the advice changes for any reason,
-and it only runs while Connect is open — `assets/js/app.js` says when, through
+and it only runs while Study Resources is open — `assets/js/app.js` says when, through
 the `biosoc:page` event.
 
 Nothing pauses it: not hovering, and there is no pause control. That is what was

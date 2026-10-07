@@ -164,7 +164,7 @@ phone. Two habits that have repeatedly paid off:
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Instagram block on Events. |
 | `assets/js/sway.js`, `assets/css/sway.css` | BioSoc Newsletter — the Sway newsletter embed. |
 | `assets/js/timetable.js`, `assets/css/timetable.css` | Timetable — the year switcher and weekly grid, reached from the burger menu. |
-| `assets/js/advice.js`, `assets/css/advice.css` | Connect. |
+| `assets/js/advice.js`, `assets/css/advice.css` | The students' advice, in Study Resources below the Guides. |
 | `tools/check.mjs` | The regression run. |
 
 **Generated data files — never hand-edit.** Change the source and re-run:
@@ -901,6 +901,21 @@ the tiles become real, remove the veil and that `inert` together.** Keep the
 tile spans tiling the four-column grid exactly or the layout leaves holes.
 
 ### Connect
+**Moved 2026-10-07, at explicit instruction: the students' advice now lives in
+Study Resources, directly below the Guides bento and above "Assessment
+schedule" (`<div id="advice">` in `#page-study-resources`).** Everything in the
+notes below still holds, with one change that is easy to miss: `advice.js`
+starts and stops its 40-second rotation on `biosoc:page` with
+`id === "study-resources"` (it was `"connect"`) — forget that and it either
+never rotates or rotates while hidden. Opening a Guide on top of Study
+Resources fires `biosoc:page` with the guide's own id, so the rotation pauses
+while a guide is open, as intended. `#page-connect` is now a bare
+`<p class="guide-soon">Coming soon!</p>` placeholder, because the user is
+planning new Connect content (ways to put faces to staff names). The comment
+headers of the generated `assets/data/advice.js` and `tools/advice-to-js.py`
+still say "Connect"; left alone, since the first is generated and changing
+only a comment there is not worth a regeneration.
+
 27 pieces of advice from students, one at a time, shuffled so all are seen
 before any repeats, moving on every **40 seconds** (`DWELL` in
 `assets/js/advice.js` — the only number).
