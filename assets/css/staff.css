@@ -122,17 +122,17 @@
 #staff .st__filters {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0.25rem;
+  gap: 0.14rem;
   margin: 0 0 1rem;
   overflow-x: auto;
   padding-bottom: 0.3rem;
 }
 #staff .st__f {
   font: inherit;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   flex: none;
   white-space: nowrap;
-  padding: 0.2rem 0.42rem;
+  padding: 0.18rem 0.26rem;
   color: var(--fg);
   background: transparent;
   border: 1px solid var(--line);

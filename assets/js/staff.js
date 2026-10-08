@@ -159,7 +159,7 @@
     return /tutor/i.test(r) ? "Tutor" : /careers/i.test(r) ? "Careers" : /biosedi/i.test(r) ? "BIOsEDI" : r;
   }
   var ROLE_FILTERS = ["Tutor", "Careers", "BIOsEDI"];
-  var YEAR_FILTERS = [["1", "Year 1"], ["2", "Year 2"], ["3", "Year 3"], ["FY", "Foundation Year"]];
+  var YEAR_FILTERS = [["1", "Year 1"], ["2", "Year 2"], ["3", "Year 3"], ["FY", "Foundation Year"], ["MSc", "MSc"], ["PhD", "PhD"], ["4", "MBiolSci/Year 4"]];
 
   function card(person) {
     var extra = EXTRA[person.key] || {};

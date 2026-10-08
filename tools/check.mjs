@@ -411,6 +411,7 @@ check("Connect filter: one line, one All, one choice at a time (never narrowing)
     click("stream:genetics"); const gen = vis();
     const pressed = btns.filter(b => b.getAttribute("aria-pressed") === "true").length;
     click("year:2"); const y2 = vis();
+    const extra = ["year:MSc", "year:PhD", "year:4"].map(v => { click(v); return vis().length; });
     click(""); 
     const dup = [...document.querySelectorAll("#staff .st")].some(c => {
       const t = [...c.querySelectorAll(".st__code")].map(l => l.textContent).join(" ");
@@ -418,9 +419,9 @@ check("Connect filter: one line, one All, one choice at a time (never narrowing)
     });
     return { oneLine: tops.size === 1, allCount: btns.filter(b => b.textContent === "All").length,
              fy, tutor: tutor.length, edi, genReplacesNotNarrows: gen.length > 0 && !gen.every(n => edi.includes(n)),
-             onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: vis().length === total, dup };
+             extraEmpty: extra.join() === "0,0,0", onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: vis().length === total, dup };
   }), { oneLine: true, allCount: 1, fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genReplacesNotNarrows: true,
-        onePressed: true, y2Ok: true, resetAll: true, dup: false });
+        extraEmpty: true, onePressed: true, y2Ok: true, resetAll: true, dup: false });
 check("photo is top-left, modules top-right, the questions and email below — photo square, half the card's width, bottom half at least as tall",
   await page.evaluate(() => {
     const c = document.querySelector("#staff .st"), r = s => c.querySelector(s).getBoundingClientRect();
