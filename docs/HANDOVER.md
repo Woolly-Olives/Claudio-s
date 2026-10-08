@@ -1011,9 +1011,25 @@ area:"; "I am passionate about:"; email. Those two lines and the photo are
 blank for now and come from `assets/data/staff.js` (hand-edited, keyed by name
 lower-cased, no title).
 
-- **"Taught modules" is really "convened modules"**: the data has convenors
-  only, not who lectures. A person who teaches a module without convening it
-  will not list it.
+- **Changes 2026-10-07 (second round, at explicit instruction)**: the "Modules"
+  heading was removed; codes are coloured by stream exactly as in Customise Your
+  Degree (`staff.js` carries a private copy of `modulemap.js`'s
+  `streamOf()`/`paintOf()` — change one, change the other); every convened
+  code is followed by "Convenor"; roles go above the codes (`roles` in
+  `staff.js`: Alix Blockley "Careers Lead", Nina Storey and Emily Allen "Head
+  Tutor"); the lines under each prompt are gone (blank answers keep their
+  height). The photo is now `aspect-ratio: 1` and the top row grows with the
+  module list, instead of the fixed 50cqw height, so a person with four modules
+  plus a role is not clipped.
+- **The request to list *all* modules a lecturer teaches on could only be half
+  done**: the project has convenor lists and nothing else (checked: no
+  lecturer/teacher field anywhere in `curriculum.js`; the timetable's `staff`
+  strings name only a few, all convenors anyway). `staff.js` therefore shows
+  convened modules (labelled "Convenor") plus any in a hand-written
+  `teaches: [...]` in `assets/data/staff.js`, which is empty for everyone.
+  Someone has to supply who teaches what; do not infer it.
+- **"Taught modules" was really "convened modules"** before that: the data has
+  convenors only, not who lectures.
 - **The source has duplicates, deliberately not fixed in `curriculum.js`**
   (generated, and quoting the handbooks): the same person under different
   spellings/emails/titles. `staff.js` unions entries by name key or email key

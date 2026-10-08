@@ -1,6 +1,13 @@
 /* =============================================================
    Connect — staff cards.
 
+   Each card lists the modules a person teaches on, coloured as they
+   are in Customise Your Degree, with "Convenor" after the code of any
+   they convene; a role (Head Tutor, Careers Lead…) goes above the
+   codes. The convenor lists are the only teaching data the project has,
+   so only convened modules appear until others are added by hand in
+   assets/data/staff.js (`teaches`).
+
    One card per person who convenes a module, built from the convenor
    lists in assets/data/curriculum.js (the module handbooks' own
    transcription), plus anything assets/data/staff.js adds. Each card:
@@ -78,8 +85,42 @@
     });
   });
 
-  var titleOf = {};
-  CUR.modules.forEach(function (m) { titleOf[m.code] = m.title; });
+  var titleOf = {}, byCode = {};
+  CUR.modules.forEach(function (m) { titleOf[m.code] = m.title; byCode[m.code] = m; });
+
+  /* ---------- module colours, the same as Customise Your Degree ----------
+     A copy of streamOf()/paintOf() in assets/js/modulemap.js, which keeps
+     them private: a module's own `stream` if it has one, else the first
+     stream (in precedence order) whose degrees list it as core; the dark
+     green for a module every degree takes; neutral grey otherwise. If
+     one changes, change the other. */
+  var STREAMS = (CUR.meta && CUR.meta.streams) || [];
+  var NEUTRAL = (CUR.meta && CUR.meta.neutral) || { core: "#bfbfbf", school: "#1b6b3a" };
+  var UNCOLOURED = (CUR.meta && CUR.meta.uncoloured) || [];
+
+  function isCoreFor(d, code) {
+    return Object.keys(d.core).some(function (s) { return d.core[s].indexOf(code) !== -1; }) ||
+      Object.keys(d.coreOneOf || {}).some(function (s) {
+        return (d.coreOneOf[s] || []).some(function (g) { return g.indexOf(code) !== -1; });
+      });
+  }
+
+  function paintOf(code) {
+    var m = byCode[code], found = null;
+    if (m && m.stream) {
+      found = STREAMS.filter(function (st) { return st.id === m.stream; })[0] || null;
+    } else if (m && m.year !== 1 && UNCOLOURED.indexOf(code) === -1) {
+      for (var i = 0; i < STREAMS.length && !found; i++) {
+        if (STREAMS[i].degrees.some(function (id) {
+          var d = CUR.degrees.filter(function (x) { return x.id === id; })[0];
+          return d && isCoreFor(d, code);
+        })) { found = STREAMS[i]; }
+      }
+    }
+    if (found) { return { colour: found.colour, dark: false }; }
+    if (m && m.schoolCore) { return { colour: NEUTRAL.school, dark: true }; }
+    return { colour: NEUTRAL.core, dark: false };
+  }
 
   people.forEach(function (person) {
     var forms = Object.keys(person.forms).sort(function (a, b) {
@@ -107,6 +148,14 @@
 
   function card(person) {
     var extra = EXTRA[person.key] || {};
+
+    /* every module they teach on: the ones they convene (from the
+       handbooks' lists, so always known) plus any listed by hand in
+       staff.js — the handbooks name convenors, not the other lecturers */
+    var codes = person.modules.slice();
+    (extra.teaches || []).forEach(function (c) { if (codes.indexOf(c) === -1) { codes.push(c); } });
+    codes.sort();
+
     return '' +
       '<article class="st">' +
         '<h2 class="st__name">' + esc((person.title ? person.title + " " : "") + person.name) + '</h2>' +
@@ -115,9 +164,12 @@
             (extra.photo ? '<img src="' + esc(extra.photo) + '" alt="' + esc(person.name) + '">' : '') +
           '</div>' +
           '<div class="st__mods">' +
-            '<span class="st__label">Modules</span>' +
-            '<ul class="st__codes">' + person.modules.map(function (code) {
-              return '<li title="' + esc(titleOf[code] || "") + '">' + esc(code) + '</li>';
+            (extra.roles || []).map(function (r) { return '<p class="st__role">' + esc(r) + '</p>'; }).join("") +
+            '<ul class="st__codes">' + codes.map(function (code) {
+              var paint = paintOf(code);
+              return '<li class="st__code' + (paint.dark ? ' st__code--dark' : '') + '" style="--mc:' + paint.colour +
+                '" title="' + esc(titleOf[code] || "") + '">' + esc(code) +
+                (person.modules.indexOf(code) !== -1 ? ' <span class="st__conv">Convenor</span>' : '') + '</li>';
             }).join("") + '</ul>' +
           '</div>' +
         '</div>' +

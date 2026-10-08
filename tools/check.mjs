@@ -365,6 +365,31 @@ check("the same person is never on two cards (Swidbert Ott was entered under thr
     return { uniqueEmails: new Set(emails).size === emails.length,
              ott: cards.filter(c => /Ott$/.test(c.querySelector(".st__name").textContent)).length };
   }), { uniqueEmails: true, ott: 1 });
+check("no 'Modules' heading; codes are coloured like the module map's; 'Convenor' follows each convened code; no rules between the prompts",
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("#staff .st")];
+    const named = n => cards.find(c => c.querySelector(".st__name").textContent.endsWith(n));
+    const chip = (c, code) => [...c.querySelectorAll(".st__code")].find(l => l.firstChild.textContent.trim() === code);
+    const bg = el => getComputedStyle(el).backgroundColor;
+    const millard = named("Andrew Millard");
+    const blockley = named("Alix Blockley");
+    return {
+      noModulesLabel: !cards.some(c => [...c.querySelectorAll(".st__label")].some(l => l.textContent === "Modules")),
+      microbiologyGreen: bg(chip(millard, "BS3068")) === "rgb(204, 255, 102)",
+      schoolCoreDarkGreen: bg(chip(blockley, "BS2200")) === "rgb(27, 107, 58)",
+      convenorAfterCode: chip(millard, "BS3068").textContent.trim() === "BS3068 Convenor",
+      noRules: cards.every(c => [...c.querySelectorAll(".st__value")].every(v => getComputedStyle(v).borderBottomWidth === "0px")),
+    };
+  }), { noModulesLabel: true, microbiologyGreen: true, schoolCoreDarkGreen: true, convenorAfterCode: true, noRules: true });
+check("roles sit above the module codes: Alix Blockley Careers Lead, Nina Storey and Emily Allen Head Tutor, nobody else has one",
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("#staff .st")];
+    const role = n => { const c = cards.find(x => x.querySelector(".st__name").textContent.endsWith(n)); const r = c.querySelector(".st__role");
+      return r ? { text: r.textContent, aboveCodes: r.getBoundingClientRect().bottom <= c.querySelector(".st__codes").getBoundingClientRect().top + 1 } : null; };
+    return { blockley: role("Alix Blockley"), storey: role("Nina Storey"), allen: role("Emily Allen"),
+             roleCount: document.querySelectorAll("#staff .st__role").length };
+  }), { blockley: { text: "Careers Lead", aboveCodes: true }, storey: { text: "Head Tutor", aboveCodes: true },
+        allen: { text: "Head Tutor", aboveCodes: true }, roleCount: 3 });
 check("photo is top-left, modules top-right, the questions and email below — photo square, half the card's width, bottom half at least as tall",
   await page.evaluate(() => {
     const c = document.querySelector("#staff .st"), r = s => c.querySelector(s).getBoundingClientRect();

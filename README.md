@@ -148,16 +148,20 @@ nothing to separately clean up.
 ## Staff cards (Connect)
 
 One card per person who convenes a module: name on top; a blank, square photo
-box top-left and the codes of the modules they convene top-right; then "My
-research area:", "I am passionate about:" and their email. Built by
+box top-left; top-right, any role (Head Tutor, Careers Lead) then the module
+codes, each coloured as in Customise Your Degree, with "Convenor" after the code
+of any they convene; then "My research area:", "I am passionate about:" and
+their email, with no rules between them. Built by
 `assets/js/staff.js` from the module convenor lists in
 `assets/data/curriculum.js` — the same people and addresses the module
 details already show — so there is nothing to type for the name, email or
-modules. **The three blanks are filled from `assets/data/staff.js`**, a
+convened modules. **Everything else is filled from `assets/data/staff.js`**, a
 hand-edited file keyed by the person's name lower-cased with no title
-(`"celia may"`), with optional `research`, `passion` and `photo` fields (put
-photos in `assets/img/staff/`). Get each person's agreement first; nothing has
-been asked of anyone yet.
+(`"celia may"`), with optional `roles`, `teaches`, `research`, `passion` and
+`photo` fields (put photos in `assets/img/staff/`). `teaches` is for modules a
+person lectures on without convening: **the handbooks name convenors only, so
+until someone supplies the others the cards list convened modules alone.** Get
+each person's agreement first; nothing has been asked of anyone yet.
 
 The convenor lists are transcribed as written and contain duplicates, so
 `staff.js` joins entries up before drawing — see its header for the rules
