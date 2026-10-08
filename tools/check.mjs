@@ -433,15 +433,17 @@ check("Connect: cards are ONE scrolling row above the filter buttons; no intro t
              carouselAboveButtons: q("#staff .st__carousel").getBoundingClientRect().bottom <= q("#staff .st__filters").getBoundingClientRect().top,
              noLede: !q("#page-connect .page__lede"), nextScrolls: track.scrollLeft > before };
   }), { oneRow: true, scrollable: true, carouselAboveButtons: true, noLede: true, nextScrolls: true });
-check("Connect carousel: four cards fit across; they drift right to left on their own; the order is shuffled (not alphabetical)",
+await page.mouse.move(2, 2);   // the drift pauses under the pointer, so keep it off the cards
+check("Connect carousel: every card the same width, as many as fit shown whole; they drift right to left on their own; the order is shuffled (not alphabetical)",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid");
     track.scrollLeft = 0;
     await new Promise(r => setTimeout(r, 200));
     const vis = [...track.querySelectorAll(":scope > .st")].filter(c => !c.hidden);
     const tr = track.getBoundingClientRect();
-    const four = vis.slice(0, 4).map(c => c.getBoundingClientRect());
-    const fit = four.length === 4 && four[3].right <= tr.right + 1 && vis[4].getBoundingClientRect().left >= four[3].right;
+    const widths = new Set(vis.map(c => Math.round(c.getBoundingClientRect().width)));
+    const whole = vis.filter(c => c.getBoundingClientRect().right <= tr.right + 1).length;
+    const fit = widths.size === 1 && whole >= 3;
     const x0 = track.scrollLeft;
     await new Promise(r => setTimeout(r, 1800));
     const names = vis.map(c => c.querySelector(".st__name").textContent.split(" ").pop());

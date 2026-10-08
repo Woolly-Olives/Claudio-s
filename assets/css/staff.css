@@ -25,12 +25,11 @@
   padding: 2px;
 }
 #staff .st__grid::-webkit-scrollbar { display: none; }
-/* four cards fill the track (three gaps of 1.1rem between them); fewer on narrower screens */
+/* every card is the same fixed width (19rem), however long the name; how many
+   show at once depends on the room — the Connect page is wider than the others */
 #staff .st__grid > .st,
-#staff .st__clones > .st { flex: none; width: calc((100% - 3.3rem) / 4); }
+#staff .st__clones > .st { flex: none; width: min(19rem, 100%); }
 #staff .st__clones { display: contents; }
-@media (max-width: 900px) { #staff .st__grid > .st, #staff .st__clones > .st { width: calc((100% - 1.1rem) / 2); } }
-@media (max-width: 520px) { #staff .st__grid > .st, #staff .st__clones > .st { width: 100%; } }
 
 #staff .st__nav {
   flex: none;
@@ -170,3 +169,6 @@
 #staff .st__f[aria-pressed="true"][style] { color: #10201a; }
 #staff .st__count { margin: 0 0 0.8rem; min-height: 1.2em; font-size: 0.85rem; color: var(--fg-soft); }
 #staff .st[hidden] { display: none; }
+
+/* the Connect page gets a wider column than the other pages (64rem) so four 19rem cards fit across on a large screen */
+#page-connect .page__inner { width: min(100% - 2.5rem, 84rem); }
