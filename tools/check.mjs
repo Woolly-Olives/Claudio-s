@@ -434,7 +434,7 @@ check("Connect: cards are ONE scrolling row above the filter buttons; no intro t
              noLede: !q("#page-connect .page__lede"), nextScrolls: track.scrollLeft > before };
   }), { oneRow: true, scrollable: true, carouselAboveButtons: true, noLede: true, nextScrolls: true });
 await page.mouse.move(2, 2);   // the drift pauses under the pointer, so keep it off the cards
-check("Connect carousel: every card the same width, as many as fit shown whole; they drift right to left on their own; the order is shuffled (not alphabetical)",
+check("Connect carousel: every card the same width, three whole and a half of the fourth showing; they drift right to left on their own; the order is shuffled (not alphabetical)",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid");
     track.scrollLeft = 0;
@@ -443,7 +443,8 @@ check("Connect carousel: every card the same width, as many as fit shown whole; 
     const tr = track.getBoundingClientRect();
     const widths = new Set(vis.map(c => Math.round(c.getBoundingClientRect().width)));
     const whole = vis.filter(c => c.getBoundingClientRect().right <= tr.right + 1).length;
-    const fit = widths.size === 1 && whole >= 3;
+    const partial = vis.filter(c => { const r = c.getBoundingClientRect(); return r.left < tr.right - 1 && r.right > tr.right + 1; })[0];
+    const fit = widths.size === 1 && whole === 3 && !!partial && Math.abs((tr.right - partial.getBoundingClientRect().left) / partial.getBoundingClientRect().width - 0.5) < 0.05;
     const x0 = track.scrollLeft;
     await new Promise(r => setTimeout(r, 1800));
     const names = vis.map(c => c.querySelector(".st__name").textContent.split(" ").pop());

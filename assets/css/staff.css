@@ -170,5 +170,7 @@
 #staff .st__count { margin: 0 0 0.8rem; min-height: 1.2em; font-size: 0.85rem; color: var(--fg-soft); }
 #staff .st[hidden] { display: none; }
 
-/* the Connect page gets a wider column than the other pages (64rem) so four 19rem cards fit across on a large screen */
-#page-connect .page__inner { width: min(100% - 2.5rem, 84rem); }
+/* the Connect column is as wide as the carousel: three and a half 19rem cards
+   (3.5 x 19 + three 1.1rem gaps) plus a button and its gap at each end, so the
+   fourth card is always cut off by half. Narrower screens just show less. */
+#page-connect .page__inner { width: min(100% - 2.5rem, calc(3.5 * 19rem + 3 * 1.1rem + 2 * 2.9rem)); }
