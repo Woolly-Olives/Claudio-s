@@ -21,12 +21,16 @@
   min-width: 0;
   gap: 1.1rem;
   overflow-x: auto;
-  scroll-snap-type: x proximity;
   scrollbar-width: none;
   padding: 2px;
 }
 #staff .st__grid::-webkit-scrollbar { display: none; }
-#staff .st__grid > .st { flex: none; width: min(19rem, 78%); scroll-snap-align: start; }
+/* four cards fill the track (three gaps of 1.1rem between them); fewer on narrower screens */
+#staff .st__grid > .st,
+#staff .st__clones > .st { flex: none; width: calc((100% - 3.3rem) / 4); }
+#staff .st__clones { display: contents; }
+@media (max-width: 900px) { #staff .st__grid > .st, #staff .st__clones > .st { width: calc((100% - 1.1rem) / 2); } }
+@media (max-width: 520px) { #staff .st__grid > .st, #staff .st__clones > .st { width: 100%; } }
 
 #staff .st__nav {
   flex: none;

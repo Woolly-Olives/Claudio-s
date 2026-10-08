@@ -142,6 +142,12 @@
     return sa.localeCompare(sb) || a.name.localeCompare(b.name);
   });
 
+  /* the carousel shows people in a different random order each visit */
+  for (var k = people.length - 1; k > 0; k--) {
+    var r = Math.floor(Math.random() * (k + 1)), t = people[k];
+    people[k] = people[r]; people[r] = t;
+  }
+
   /* ---------- the cards ---------- */
 
   function field(label, value) {
@@ -239,7 +245,8 @@
     '<div class="st__carousel">' +
       '<button type="button" class="st__nav" data-dir="-1" aria-label="Previous staff">' +
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>' +
-      '<div class="st__grid" tabindex="0" role="region" aria-label="Staff cards">' + people.map(card).join("") + '</div>' +
+      '<div class="st__grid" tabindex="0" role="region" aria-label="Staff cards">' + people.map(card).join("") +
+        '<div class="st__clones" aria-hidden="true">' + people.map(card).join("") + '</div></div>' +
       '<button type="button" class="st__nav" data-dir="1" aria-label="Next staff">' +
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>' +
     '</div>' +
@@ -249,14 +256,23 @@
     }).join("") + '</div>' +
     '<p class="st__count" aria-live="polite"></p>';
 
-  var cards = [].slice.call(root.querySelectorAll(".st"));
+  var clonesBox = root.querySelector(".st__clones");
+  [].forEach.call(clonesBox.querySelectorAll(".st"), function (c) {
+    c.classList.add("st--clone");
+    [].forEach.call(c.querySelectorAll("a, button"), function (x) { x.tabIndex = -1; });
+  });
+  var cards = [].slice.call(root.querySelectorAll(".st:not(.st--clone)"));
+  var clones = [].slice.call(clonesBox.children);
   var count = root.querySelector(".st__count");
   var track = root.querySelector(".st__grid");
+
+  var shownCount = cards.length, pos = 0;
 
   root.querySelector(".st__carousel").addEventListener("click", function (e) {
     var b = e.target.closest(".st__nav");
     if (!b) { return; }
     var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (+b.getAttribute("data-dir") < 0 && track.scrollLeft < 1 && !fits()) { track.scrollLeft = loopWidth(); }
     track.scrollBy({ left: +b.getAttribute("data-dir") * track.clientWidth * 0.85, behavior: reduce ? "auto" : "smooth" });
   });
 
@@ -265,13 +281,72 @@
     if (!b) { return; }
     var val = b.getAttribute("data-val"), shown = 0;
     [].forEach.call(root.querySelectorAll(".st__f"), function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
-    cards.forEach(function (c) {
+    cards.forEach(function (c, i) {
       var ok = !val || (c.getAttribute("data-tags") || "").split("|").indexOf(val) !== -1;
       c.hidden = !ok;
+      clones[i].hidden = !ok;
       if (ok) { shown++; }
     });
+    shownCount = shown;
+    pos = 0;
     track.scrollLeft = 0;
     count.textContent = !val ? "" :
       (shown ? "Showing " + shown + " of " + cards.length + " staff." : "No staff under this tag yet — more are being added.");
+  });
+
+  /* ---------- the slow drift, right to left ----------
+     The track is moved by script, not CSS, so a hand on it (arrows, swipe,
+     wheel) simply takes over. A second copy of the cards sits after the
+     first (.st__clones); when the drift reaches it, the position jumps back
+     by exactly one copy's width, which looks the same, so the loop has no
+     seam. It runs only while Connect is open, stops under the pointer or
+     keyboard focus, and not at all for reduced motion or when every card
+     already fits. */
+  var SPEED = 28;                       // px per second
+  var open = false, held = false, last = 0, raf = 0, setTo = 0;
+  var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)");
+
+  function loopWidth() {
+    var first = cards.filter(function (c) { return !c.hidden; })[0];
+    var firstClone = clones.filter(function (c) { return !c.hidden; })[0];
+    return first && firstClone ? firstClone.offsetLeft - first.offsetLeft : 0;
+  }
+
+  function fits() { return loopWidth() <= track.clientWidth + 1; }
+  function wanted() { return open && !held && !(still && still.matches) && !fits(); }
+
+  function frame(now) {
+    raf = 0;
+    if (!wanted()) { last = 0; return; }
+    var dt = last ? Math.min(now - last, 100) : 0;
+    last = now;
+    if (Math.abs(track.scrollLeft - setTo) > 2) { pos = track.scrollLeft; }   // someone moved it
+    var w = loopWidth();
+    pos += SPEED * dt / 1000;
+    if (w > 0 && pos >= w) { pos -= w; }
+    track.scrollLeft = pos;
+    setTo = track.scrollLeft;
+    raf = requestAnimationFrame(frame);
+  }
+
+  function kick() { if (!raf && wanted()) { last = 0; raf = requestAnimationFrame(frame); } }
+
+  function hold(v) { return function () { held = v; if (!v) { pos = track.scrollLeft; kick(); } }; }
+  track.addEventListener("pointerenter", hold(true));
+  track.addEventListener("pointerleave", hold(false));
+  track.addEventListener("focusin", hold(true));
+  track.addEventListener("focusout", hold(false));
+  root.querySelector(".st__carousel").addEventListener("click", function () { pos = track.scrollLeft; });
+
+  /* a user who scrolls past either end wraps round instead of hitting a wall */
+  track.addEventListener("scroll", function () {
+    var w = loopWidth();
+    if (!w) { return; }
+    if (track.scrollLeft >= w) { track.scrollLeft -= w; setTo = track.scrollLeft; pos = setTo; }
+  });
+
+  document.addEventListener("biosoc:page", function (event) {
+    open = event.detail.id === "connect";
+    if (open) { kick(); }
   });
 })();

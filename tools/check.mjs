@@ -348,7 +348,7 @@ await page.evaluate(() => { location.hash = "#connect"; });
 await page.waitForTimeout(700);
 check("every card has a name, a photo box, module codes, both questions and an email link",
   await page.evaluate(() => {
-    const cards = [...document.querySelectorAll("#page-connect #staff .st")];
+    const cards = [...document.querySelectorAll("#page-connect #staff .st:not(.st--clone)")];
     const labels = c => [...c.querySelectorAll(".st__label")].map(l => l.textContent);
     return {
       many: cards.length > 20,
@@ -360,14 +360,14 @@ check("every card has a name, a photo box, module codes, both questions and an e
   }), { many: true, allComplete: true });
 check("the same person is never on two cards (Swidbert Ott was entered under three spellings, one email)",
   await page.evaluate(() => {
-    const cards = [...document.querySelectorAll("#staff .st")];
+    const cards = [...document.querySelectorAll("#staff .st:not(.st--clone)")];
     const emails = cards.flatMap(c => [...c.querySelectorAll(".st__mail a")].map(a => a.textContent));
     return { uniqueEmails: new Set(emails).size === emails.length,
              ott: cards.filter(c => /Ott$/.test(c.querySelector(".st__name").textContent)).length };
   }), { uniqueEmails: true, ott: 1 });
 check("no 'Modules' heading; codes are coloured like the module map's; 'Convenor' follows each convened code; no rules between the prompts",
   await page.evaluate(() => {
-    const cards = [...document.querySelectorAll("#staff .st")];
+    const cards = [...document.querySelectorAll("#staff .st:not(.st--clone)")];
     const named = n => cards.find(c => c.querySelector(".st__name").textContent.endsWith(n));
     const chip = (c, code) => [...c.querySelectorAll(".st__code")].find(l => !l.classList.contains("st__code--role") && l.textContent.startsWith(code));
     const bg = el => getComputedStyle(el).backgroundColor;
@@ -383,14 +383,14 @@ check("no 'Modules' heading; codes are coloured like the module map's; 'Convenor
   }), { noModulesLabel: true, microbiologyGreen: true, schoolCoreDarkGreen: true, convenorAfterCode: true, noRules: true });
 check("roles are red chips in the module-code style, first in the row; Convenor is plain chip text; BS2032/BS2033 is one chip",
   await page.evaluate(() => {
-    const cards = [...document.querySelectorAll("#staff .st")];
+    const cards = [...document.querySelectorAll("#staff .st:not(.st--clone)")];
     const named = n => cards.find(c => c.querySelector(".st__name").textContent.endsWith(n));
     const roles = n => [...named(n).querySelectorAll(".st__code--role")].map(r => r.textContent);
     const r0 = named("Alix Blockley").querySelector(".st__code--role");
     const chip = named("Andrew Millard").querySelector(".st__code:not(.st__code--role)");
     const joined = [...document.querySelectorAll("#staff .st__code")].map(l => l.textContent).filter(t => /BS203[23]/.test(t));
     return { blockley: roles("Alix Blockley"), storey: roles("Nina Storey"), allen: roles("Emily Allen"), saba: roles("Saba Imanzadeh"),
-             roleCount: document.querySelectorAll("#staff .st__code--role").length,
+             roleCount: document.querySelectorAll("#staff .st:not(.st--clone) .st__code--role").length,
              red: getComputedStyle(r0).backgroundColor === "rgb(255, 49, 49)",
              firstInRow: r0.parentNode.firstElementChild === r0,
              sameFont: getComputedStyle(r0).fontSize === getComputedStyle(chip).fontSize && getComputedStyle(r0).fontWeight === getComputedStyle(chip).fontWeight,
@@ -400,7 +400,7 @@ check("roles are red chips in the module-code style, first in the row; Convenor 
         red: true, firstInRow: true, sameFont: true, noSeparateConvenor: true, noLoneBS2032: true });
 check("Connect filter: one line, one All, one choice at a time (never narrowing); BS2032/BS2033 never repeated on a card",
   await page.evaluate(() => {
-    const vis = () => [...document.querySelectorAll("#staff .st")].filter(c => !c.hidden).map(c => c.querySelector(".st__name").textContent);
+    const vis = () => [...document.querySelectorAll("#staff .st:not(.st--clone)")].filter(c => !c.hidden).map(c => c.querySelector(".st__name").textContent);
     const btns = [...document.querySelectorAll("#staff .st__f")];
     const click = v => btns.find(b => b.dataset.val === v).click();
     const total = vis().length;
@@ -413,7 +413,7 @@ check("Connect filter: one line, one All, one choice at a time (never narrowing)
     click("year:2"); const y2 = vis();
     const extra = ["year:MSc", "year:PhD", "year:4"].map(v => { click(v); return vis().length; });
     click(""); 
-    const dup = [...document.querySelectorAll("#staff .st")].some(c => {
+    const dup = [...document.querySelectorAll("#staff .st:not(.st--clone)")].some(c => {
       const t = [...c.querySelectorAll(".st__code")].map(l => l.textContent).join(" ");
       return (t.match(/BS2032/g) || []).length > 1 || (t.match(/BS2033/g) || []).length > 1;
     });
@@ -425,7 +425,7 @@ check("Connect filter: one line, one All, one choice at a time (never narrowing)
 check("Connect: cards are ONE scrolling row above the filter buttons; no intro text; the arrows scroll it",
   await page.evaluate(async () => {
     const q = s => document.querySelector(s);
-    const tops = new Set([...document.querySelectorAll("#staff .st")].map(c => Math.round(c.getBoundingClientRect().top)));
+    const tops = new Set([...document.querySelectorAll("#staff .st:not(.st--clone)")].map(c => Math.round(c.getBoundingClientRect().top)));
     const track = q("#staff .st__grid"), before = track.scrollLeft;
     q('#staff .st__nav[data-dir="1"]').click();
     await new Promise(r => setTimeout(r, 900));
@@ -433,9 +433,23 @@ check("Connect: cards are ONE scrolling row above the filter buttons; no intro t
              carouselAboveButtons: q("#staff .st__carousel").getBoundingClientRect().bottom <= q("#staff .st__filters").getBoundingClientRect().top,
              noLede: !q("#page-connect .page__lede"), nextScrolls: track.scrollLeft > before };
   }), { oneRow: true, scrollable: true, carouselAboveButtons: true, noLede: true, nextScrolls: true });
+check("Connect carousel: four cards fit across; they drift right to left on their own; the order is shuffled (not alphabetical)",
+  await page.evaluate(async () => {
+    const track = document.querySelector("#staff .st__grid");
+    track.scrollLeft = 0;
+    await new Promise(r => setTimeout(r, 200));
+    const vis = [...track.querySelectorAll(":scope > .st")].filter(c => !c.hidden);
+    const tr = track.getBoundingClientRect();
+    const four = vis.slice(0, 4).map(c => c.getBoundingClientRect());
+    const fit = four.length === 4 && four[3].right <= tr.right + 1 && vis[4].getBoundingClientRect().left >= four[3].right;
+    const x0 = track.scrollLeft;
+    await new Promise(r => setTimeout(r, 1800));
+    const names = vis.map(c => c.querySelector(".st__name").textContent.split(" ").pop());
+    return { fourFit: fit, drifts: track.scrollLeft > x0, shuffled: names.join() !== [...names].sort().join() };
+  }), { fourFit: true, drifts: true, shuffled: true });
 check("photo is top-left, modules top-right, the questions and email below — photo square, half the card's width, bottom half at least as tall",
   await page.evaluate(() => {
-    const c = document.querySelector("#staff .st"), r = s => c.querySelector(s).getBoundingClientRect();
+    const c = document.querySelector("#staff .st:not(.st--clone)"), r = s => c.querySelector(s).getBoundingClientRect();
     const ph = r(".st__photo"), m = r(".st__mods"), n = r(".st__name"), b = r(".st__bottom"), cr = c.getBoundingClientRect();
     return {
       nameAbovePhoto: n.bottom <= ph.top,
