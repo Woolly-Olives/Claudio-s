@@ -464,6 +464,59 @@ check("photo is top-left, modules top-right, the questions and email below — p
 await page.evaluate(() => { location.hash = "#study-resources"; });
 await page.waitForTimeout(700);
 
+console.log("\nthe assessment calendar");
+check("calendar sits below the table: 12 unbroken Monday-first weeks (84 days), Year 1 on, Years 2/3 off, both menus filled",
+  await page.evaluate(() => {
+    const cal = document.getElementById("assess-cal"), tbl = document.querySelector(".assessment-table");
+    const days = [...cal.querySelectorAll(".ac__d")];
+    return { below: tbl.getBoundingClientRect().bottom <= cal.getBoundingClientRect().top, days: days.length,
+      firstIs23: days[0].querySelector(".ac__n").textContent === "23",
+      pressed: [...cal.querySelectorAll(".ac__y")].map(b => b.getAttribute("aria-pressed")).join(),
+      menus: [2, 3].map(y => cal.querySelectorAll('.ac__dd[data-y="' + y + '"] input').length).join() };
+  }), { below: true, days: 84, firstIs23: true, pressed: "true,false,false", menus: "24,27" });
+check("cards: exams say Time; Practical Competence uses its own wording; labs list Group Times; tutorials sit on Mondays; no year inside 2024/25",
+  await page.evaluate(() => {
+    const cal = document.getElementById("assess-cal"), pop = document.getElementById("ac-pop");
+    const open = text => { const b = [...cal.querySelectorAll(".ac__c")].find(x => x.textContent.startsWith(text)); b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); const t = pop.textContent; b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })); return t; };
+    const lab = open("Lab Practical"), mock = open("Mock exam"), pc = open("Practical Competence");
+    const mondays = [...cal.querySelectorAll(".ac__c--ADBS001")].map(b => [...cal.querySelectorAll(".ac__d")].indexOf(b.parentNode) % 7);
+    return { mockTime: /Time.*Thu 7 Nov, 10:00/.test(mock) && !/Due/.test(mock),
+             pc: /TimeAssessment groups running from 09:00 Thursday/.test(pc),
+             labGroups: /Group TimesThursday 09:00 - 12:00Thursday 14:00 - 17:00Friday 09:00 - 12:00/.test(lab),
+             tutorialsOnMondays: mondays.length === 9 && mondays.every(c => c === 0),
+             noYear: !/2024|2025/.test(mock) };
+  }), { mockTime: true, pc: true, labGroups: true, tutorialsOnMondays: true, noYear: true });
+check("crowded days: three show titles only; four show two and '+2 more' whose card lists the others in a row; a date in the next academic year shows its year; Year 2/3 say none yet",
+  await page.evaluate(() => {
+    const cal = document.getElementById("assess-cal"), D = window.BIOSOC_ASSESS, n0 = D.events.length;
+    const add = (date, title) => D.events.push({ date, mod: "BS1030", code: "BS1030", year: 1, kind: "deadline", title, time: "10:00", type: "t", weight: "1%" });
+    add("2024-10-31", "X1"); add("2024-10-31", "X2");                         // 31 Oct: lab + 2 = 3
+    add("2024-11-07", "Y1"); add("2024-11-07", "Y2");                         // 7 Nov: mock exam + lab + 2 = 4
+    add("2025-09-10", "Late");
+    const redraw = () => { const y = cal.querySelector('.ac__y[data-y="1"]'); y.click(); y.click(); };
+    redraw();
+    const days = [...cal.querySelectorAll(".ac__d")];
+    const d31 = days.find(d => d.querySelector(".ac__n").textContent === "31" && d.querySelector(".ac__c--lab") && d.querySelector(".ac__c--BS1030:not(.ac__c--lab)"));
+    const d7 = days.find(d => d.querySelector(".ac__more"));
+    const more = d7.querySelector(".ac__more");
+    more.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    const cards = document.querySelectorAll("#ac-pop .ac-card"), r0 = cards[0].getBoundingClientRect(), r1 = cards[1].getBoundingClientRect();
+    const out = { three: d31.querySelectorAll(".ac__c").length === 3 && !d31.querySelector("small") && d31.classList.contains("ac__d--many"),
+      four: d7.querySelectorAll(".ac__c").length === 2 && more.textContent === "+2 more",
+      hiddenInARow: cards.length === 2 && Math.abs(r0.top - r1.top) < 2 && r1.left > r0.left };
+    more.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+    const weeks0 = D.weeks; D.weeks = 60; redraw();           // stretch the calendar to reach September 2025
+    const late = [...cal.querySelectorAll(".ac__c")].find(b => b.textContent.startsWith("Late"));
+    late.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    out.nextYearShowsYear = /Wed 10 Sep 2025, 10:00/.test(document.getElementById("ac-pop").textContent);
+    late.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+    D.weeks = weeks0; D.events.length = n0; redraw();
+    const before = cal.querySelectorAll(".ac__c").length;
+    cal.querySelector('.ac__y[data-y="2"]').click();
+    out.noneYet = /No assessment dates have been added/.test(cal.querySelector(".ac__note").textContent) && cal.querySelectorAll(".ac__c").length === before;
+    cal.querySelector('.ac__y[data-y="2"]').click();
+    return out;
+  }), { three: true, four: true, hiddenInARow: true, nextYearShowsYear: true, noneYet: true });
 console.log("\nthe Guides bento");
 check("ten tiles, in order, sized 4/2/1×8 as asked",
   await page.evaluate(() => [...document.querySelectorAll("#page-study-resources .bento__tile")].map(a => ({

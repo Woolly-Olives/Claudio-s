@@ -60,6 +60,7 @@ specific error this project hit and why.
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Events profile card and post grid. |
 | `assets/js/staff.js`, `assets/css/staff.css`, `assets/data/staff.js` | The staff cards on Connect (see "Staff cards"). |
 | `assets/js/minical.js`, `assets/css/minical.css` | The small calendar beside the wheel on the main page. Reads `events.js`. |
+| `assets/js/assess.js`, `assets/css/assess.css`, `assets/data/assessments.js` | The assessment calendar in Study Resources, below the assessment table. The dates are hand-written in `assessments.js` (2024/25, Year 1 only). |
 | `assets/data/calendar.js` | The Outlook calendar's links, edited by hand. |
 | `assets/data/instagram-posts.js` | The most recent posts. **Generated** — see below. |
 | `tools/fetch-instagram.py` | Fetches them from Instagram's API. |

@@ -1622,3 +1622,14 @@ done as of this writing.
 ### Connect filters and role chips (added later)
 
 `staff.js` draws three filter rows (Year, Degree stream, Role; one choice each, rows combine). Years come from the modules' `year`, plus `years` in `assets/data/staff.js` (Alix Blockley is set to `FY` by hand — the curriculum has no foundation-year modules). Streams come from `streamFound()` (a copy of the module map's rule). Role filters: any "...Tutor" → Tutor, "Careers..." → Careers, "BIOsEDI". Roles are red `#ff3131` chips in the module-code style; "Convenor" is now plain chip text; `JOINED` merges BS2032/BS2033 into one chip. "Sort" was read as "filter" — people are hidden, not reordered.
+
+
+### Assessment calendar (Study Resources, below the assessment table)
+
+Shipped 2026-10-08 from a long run of mock-ups. `assets/js/assess.js` draws 12 unbroken Monday-first weeks (23 Sep – 15 Dec 2024) of day boxes from `assets/data/assessments.js`, which is **hand-transcribed** from the table's 2024/25 rows — keep the two in step by hand; the table's deadlines are prose, so they cannot be read out of it. The container is `#assess-cal` (not a section id).
+
+What was decided, so it is not re-asked: tutorial tasks sit on the Monday their window opens (the earliest they can be due); Study Well sessions are not drawn; the BS1030/BS1040 "practical prep" tasks became faded **Lab Practical** boxes on both the Thursday and Friday of each practical week (BS1030 and BS1040 alternate) — the day-of-lab was inferred, not given; colours are BS1030 `#38bdf8`, BS1040 `#4ade80`, joint `#ff3131`, ADBS001 tutorials `#c084fc`; the thick outline marks the written pieces; exams (and Practical Competence, worded "Assessment groups running from 09:00 Thursday") say **Time** on the card, the rest **Due**; a lab card lists the three Year 1 group slots; a date shows its year only from 1 Aug 2025 (the next academic year). One or two events on a day draw full size, three draw compact and title-only, four or more draw two plus "+N more" whose card shows the rest in a row (order: exam, deadline, lab, tutorial — a choice of mine, not asked for).
+
+**Year 2 and Year 3 have no dates.** The mock-ups used invented placeholder dates to show the layout; those were NOT shipped. The Year 2/3 buttons and menus (24 and 27 modules from `curriculum.js`) work but draw nothing and say so. Do not invent dates to fill them; add real events to `assessments.js` with `year` 2 or 3 and `code` set to the module code, and they appear.
+
+Known limits: shows only the 2024/25 weeks it is configured for (`start`, `weeks`), so it will look out of date; below ~44rem the grid scrolls sideways rather than reflowing; the Jan 2025 deadlines are in the data but past the last drawn week; the card is placed in the viewport and closes on scroll.
