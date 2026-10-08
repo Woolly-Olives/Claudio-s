@@ -10,7 +10,11 @@
    builds.
 
        "celia may": {
-         roles:    ["Head Tutor"],              // shown above the module codes
+         roles:    ["Head Tutor"],              // shown as red chips before the codes;
+                                                // filter groups: any "...Tutor" -> Tutor,
+                                                // "Careers..." -> Careers, "BIOsEDI"
+         years:    ["FY"],                      // extra year filters ("1","2","3","FY");
+                                                // 1-3 come from the modules already
          teaches:  ["BS3031", "BS2009"],        // modules they teach on but do
                                                 // not convene (convened ones
                                                 // are added automatically)
@@ -27,7 +31,8 @@
    ============================================================= */
 window.BIOSOC_STAFF = {
   profiles: {
-    "alix blockley": { roles: ["Careers Lead"] },
+    "alix blockley": { roles: ["Careers Lead"], years: ["FY"] },
+    "saba imanzadeh": { roles: ["BIOsEDI"] },
     "nina storey":   { roles: ["Head Tutor"] },
     "emily allen":   { roles: ["Head Tutor"] }
   }

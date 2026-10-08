@@ -369,7 +369,7 @@ check("no 'Modules' heading; codes are coloured like the module map's; 'Convenor
   await page.evaluate(() => {
     const cards = [...document.querySelectorAll("#staff .st")];
     const named = n => cards.find(c => c.querySelector(".st__name").textContent.endsWith(n));
-    const chip = (c, code) => [...c.querySelectorAll(".st__code")].find(l => l.firstChild.textContent.trim() === code);
+    const chip = (c, code) => [...c.querySelectorAll(".st__code")].find(l => !l.classList.contains("st__code--role") && l.textContent.startsWith(code));
     const bg = el => getComputedStyle(el).backgroundColor;
     const millard = named("Andrew Millard");
     const blockley = named("Alix Blockley");
@@ -381,15 +381,35 @@ check("no 'Modules' heading; codes are coloured like the module map's; 'Convenor
       noRules: cards.every(c => [...c.querySelectorAll(".st__value")].every(v => getComputedStyle(v).borderBottomWidth === "0px")),
     };
   }), { noModulesLabel: true, microbiologyGreen: true, schoolCoreDarkGreen: true, convenorAfterCode: true, noRules: true });
-check("roles sit above the module codes: Alix Blockley Careers Lead, Nina Storey and Emily Allen Head Tutor, nobody else has one",
+check("roles are red chips in the module-code style, first in the row; Convenor is plain chip text; BS2032/BS2033 is one chip",
   await page.evaluate(() => {
     const cards = [...document.querySelectorAll("#staff .st")];
-    const role = n => { const c = cards.find(x => x.querySelector(".st__name").textContent.endsWith(n)); const r = c.querySelector(".st__role");
-      return r ? { text: r.textContent, aboveCodes: r.getBoundingClientRect().bottom <= c.querySelector(".st__codes").getBoundingClientRect().top + 1 } : null; };
-    return { blockley: role("Alix Blockley"), storey: role("Nina Storey"), allen: role("Emily Allen"),
-             roleCount: document.querySelectorAll("#staff .st__role").length };
-  }), { blockley: { text: "Careers Lead", aboveCodes: true }, storey: { text: "Head Tutor", aboveCodes: true },
-        allen: { text: "Head Tutor", aboveCodes: true }, roleCount: 3 });
+    const named = n => cards.find(c => c.querySelector(".st__name").textContent.endsWith(n));
+    const roles = n => [...named(n).querySelectorAll(".st__code--role")].map(r => r.textContent);
+    const r0 = named("Alix Blockley").querySelector(".st__code--role");
+    const chip = named("Andrew Millard").querySelector(".st__code:not(.st__code--role)");
+    const joined = [...document.querySelectorAll("#staff .st__code")].map(l => l.textContent).filter(t => /BS203[23]/.test(t));
+    return { blockley: roles("Alix Blockley"), storey: roles("Nina Storey"), allen: roles("Emily Allen"), saba: roles("Saba Imanzadeh"),
+             roleCount: document.querySelectorAll("#staff .st__code--role").length,
+             red: getComputedStyle(r0).backgroundColor === "rgb(255, 49, 49)",
+             firstInRow: r0.parentNode.firstElementChild === r0,
+             sameFont: getComputedStyle(r0).fontSize === getComputedStyle(chip).fontSize && getComputedStyle(r0).fontWeight === getComputedStyle(chip).fontWeight,
+             noSeparateConvenor: !document.querySelector("#staff .st__conv"),
+             noLoneBS2032: joined.every(t => t.startsWith("BS2032/BS2033")) && joined.length >= 1 };
+  }), { blockley: ["Careers Lead"], storey: ["Head Tutor"], allen: ["Head Tutor"], saba: ["BIOsEDI"], roleCount: 4,
+        red: true, firstInRow: true, sameFont: true, noSeparateConvenor: true, noLoneBS2032: true });
+check("Connect filters: year (Alix alone under Foundation Year), degree stream, role (Tutor = both head tutors, BIOsEDI = Saba); rows combine; All resets",
+  await page.evaluate(() => {
+    const vis = () => [...document.querySelectorAll("#staff .st")].filter(c => !c.hidden).map(c => c.querySelector(".st__name").textContent);
+    const total = vis().length;
+    const click = (attr, val) => document.querySelector('#staff .st__frow[data-attr="' + attr + '"] .st__f[data-val="' + val + '"]').click();
+    click("years", "FY"); const fy = vis(); click("years", "");
+    click("roles", "Tutor"); const tutor = vis(); click("roles", "BIOsEDI"); const edi = vis(); click("roles", "");
+    click("streams", "genetics"); const gen = vis(); click("roles", "Tutor"); const both = vis(); click("roles", ""); click("streams", "");
+    click("years", "2"); const y2 = vis(); click("years", "");
+    return { fy, tutor: tutor.length, edi, genOk: gen.length > 0 && gen.length < total, bothSubset: both.every(n => gen.includes(n)) && both.length <= tutor.length,
+             y2Ok: y2.length > 0 && y2.length < total, resetAll: vis().length === total };
+  }), { fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genOk: true, bothSubset: true, y2Ok: true, resetAll: true });
 check("photo is top-left, modules top-right, the questions and email below — photo square, half the card's width, bottom half at least as tall",
   await page.evaluate(() => {
     const c = document.querySelector("#staff .st"), r = s => c.querySelector(s).getBoundingClientRect();

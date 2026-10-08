@@ -86,21 +86,9 @@
 }
 #staff .st__code--dark { color: #eaf5ee; }
 
-#staff .st__conv {
-  margin-left: 0.15rem;
-  font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  opacity: 0.8;
-}
-
-/* a role (Head Tutor, Careers Lead…), above the module codes */
-#staff .st__role {
-  margin: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  line-height: 1.25;
-}
+/* a role (Head Tutor, Careers Lead, BIOsEDI…): a chip like a module
+   code, in red, first in the row */
+#staff .st__code--role { --mc: #ff3131; color: #1a0505; }
 
 #staff .st__bottom {
   display: flex;
@@ -129,3 +117,30 @@
   color: var(--fg-soft);
   line-height: 1.5;
 }
+
+/* filters: one row each for year, degree stream and role */
+#staff .st__filters { display: flex; flex-direction: column; gap: 0.5rem; margin: 0 0 1rem; }
+#staff .st__frow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+#staff .st__flabel {
+  min-width: 6.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-soft);
+}
+#staff .st__f {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.22rem 0.65rem;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+#staff .st__f:hover { border-color: var(--fg-soft); }
+#staff .st__f[aria-pressed="true"] { background: var(--fc, var(--fg)); color: var(--bg, #fff); border-color: transparent; }
+#staff .st__f[aria-pressed="true"][style] { color: #10201a; }
+#staff .st__count { margin: 0 0 0.8rem; min-height: 1.2em; font-size: 0.85rem; color: var(--fg-soft); }
+#staff .st[hidden] { display: none; }

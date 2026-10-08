@@ -105,7 +105,7 @@
       });
   }
 
-  function paintOf(code) {
+  function streamFound(code) {
     var m = byCode[code], found = null;
     if (m && m.stream) {
       found = STREAMS.filter(function (st) { return st.id === m.stream; })[0] || null;
@@ -117,6 +117,11 @@
         })) { found = STREAMS[i]; }
       }
     }
+    return found;
+  }
+
+  function paintOf(code) {
+    var m = byCode[code], found = streamFound(code);
     if (found) { return { colour: found.colour, dark: false }; }
     if (m && m.schoolCore) { return { colour: NEUTRAL.school, dark: true }; }
     return { colour: NEUTRAL.core, dark: false };
@@ -146,6 +151,16 @@
       '</div>';
   }
 
+  /* modules that are alternatives to each other, shown as one chip */
+  var JOINED = [["BS2032", "BS2033"]];
+
+  /* the filter a role belongs to: every kind of tutor is a "Tutor" */
+  function roleGroup(r) {
+    return /tutor/i.test(r) ? "Tutor" : /careers/i.test(r) ? "Careers" : /biosedi/i.test(r) ? "BIOsEDI" : r;
+  }
+  var ROLE_FILTERS = ["Tutor", "Careers", "BIOsEDI"];
+  var YEAR_FILTERS = [["1", "Year 1"], ["2", "Year 2"], ["3", "Year 3"], ["FY", "Foundation Year"]];
+
   function card(person) {
     var extra = EXTRA[person.key] || {};
 
@@ -156,20 +171,45 @@
     (extra.teaches || []).forEach(function (c) { if (codes.indexOf(c) === -1) { codes.push(c); } });
     codes.sort();
 
+    var years = (extra.years || []).map(String);
+    var streams = [];
+    codes.forEach(function (c) {
+      var y = byCode[c] && String(byCode[c].year);
+      if (y && years.indexOf(y) === -1) { years.push(y); }
+      var f = streamFound(c);
+      if (f && streams.indexOf(f.id) === -1) { streams.push(f.id); }
+    });
+    var groups = [];
+    (extra.roles || []).forEach(function (r) {
+      var g = roleGroup(r);
+      if (groups.indexOf(g) === -1) { groups.push(g); }
+    });
+
+    /* join alternatives into one chip: [codes shown, codes it stands for] */
+    var chips = [];
+    codes.forEach(function (c) {
+      var j = JOINED.filter(function (set) { return set.indexOf(c) !== -1; })[0];
+      if (j && chips.some(function (x) { return x.codes === j; })) { return; }
+      chips.push({ codes: j ? j.filter(function (x) { return codes.indexOf(x) !== -1; }) : [c] });
+    });
+
     return '' +
-      '<article class="st">' +
+      '<article class="st" data-years="' + esc(years.join(" ")) + '" data-streams="' + esc(streams.join(" ")) +
+      '" data-roles="' + esc(groups.join("|")) + '">' +
         '<h2 class="st__name">' + esc((person.title ? person.title + " " : "") + person.name) + '</h2>' +
         '<div class="st__top">' +
           '<div class="st__photo">' +
             (extra.photo ? '<img src="' + esc(extra.photo) + '" alt="' + esc(person.name) + '">' : '') +
           '</div>' +
           '<div class="st__mods">' +
-            (extra.roles || []).map(function (r) { return '<p class="st__role">' + esc(r) + '</p>'; }).join("") +
-            '<ul class="st__codes">' + codes.map(function (code) {
-              var paint = paintOf(code);
+            '<ul class="st__codes">' +
+            (extra.roles || []).map(function (r) { return '<li class="st__code st__code--role">' + esc(r) + '</li>'; }).join("") +
+            chips.map(function (chip) {
+              var paint = paintOf(chip.codes[0]);
+              var conv = chip.codes.some(function (c) { return person.modules.indexOf(c) !== -1; });
               return '<li class="st__code' + (paint.dark ? ' st__code--dark' : '') + '" style="--mc:' + paint.colour +
-                '" title="' + esc(titleOf[code] || "") + '">' + esc(code) +
-                (person.modules.indexOf(code) !== -1 ? ' <span class="st__conv">Convenor</span>' : '') + '</li>';
+                '" title="' + esc(chip.codes.map(function (c) { return titleOf[c] || ""; }).join(" / ")) + '">' +
+                esc(chip.codes.join("/")) + (conv ? ' Convenor' : '') + '</li>';
             }).join("") + '</ul>' +
           '</div>' +
         '</div>' +
@@ -185,5 +225,52 @@
       '</article>';
   }
 
-  root.innerHTML = '<div class="st__grid">' + people.map(card).join("") + '</div>';
+  /* ---------- the filters: one choice per row, rows combine ---------- */
+
+  var anyRole = {};
+  people.forEach(function (p) { (EXTRA[p.key] && EXTRA[p.key].roles || []).forEach(function (r) { anyRole[roleGroup(r)] = 1; }); });
+  var rows = [
+    { attr: "years", label: "Year", opts: YEAR_FILTERS },
+    { attr: "streams", label: "Degree stream", opts: STREAMS.map(function (st) { return [st.id, st.label || st.id, st.colour]; }) },
+    { attr: "roles", label: "Role", opts: ROLE_FILTERS.map(function (r) { return [r, r]; }) }
+  ];
+
+  root.innerHTML = '<div class="st__filters" role="group" aria-label="Filter staff">' + rows.map(function (row) {
+    return '<div class="st__frow" data-attr="' + row.attr + '"><span class="st__flabel">' + row.label + '</span>' +
+      '<button type="button" class="st__f" data-val="" aria-pressed="true">All</button>' +
+      row.opts.map(function (o) {
+        return '<button type="button" class="st__f" data-val="' + esc(o[0]) + '" aria-pressed="false"' +
+          (o[2] ? ' style="--fc:' + o[2] + '"' : '') + '>' + esc(o[1]) + '</button>';
+      }).join("") + '</div>';
+  }).join("") + '</div>' +
+    '<p class="st__count" aria-live="polite"></p>' +
+    '<div class="st__grid">' + people.map(card).join("") + '</div>';
+
+  var chosen = { years: "", streams: "", roles: "" };
+  var cards = [].slice.call(root.querySelectorAll(".st"));
+  var count = root.querySelector(".st__count");
+
+  function apply() {
+    var shown = 0;
+    cards.forEach(function (c) {
+      var ok = Object.keys(chosen).every(function (a) {
+        if (!chosen[a]) { return true; }
+        var have = (c.getAttribute("data-" + a) || "").split(a === "roles" ? "|" : " ");
+        return have.indexOf(chosen[a]) !== -1;
+      });
+      c.hidden = !ok;
+      if (ok) { shown++; }
+    });
+    count.textContent = shown === cards.length ? "" :
+      (shown ? "Showing " + shown + " of " + cards.length + " staff." : "No staff match yet — more are being added.");
+  }
+
+  root.querySelector(".st__filters").addEventListener("click", function (e) {
+    var b = e.target.closest(".st__f");
+    if (!b) { return; }
+    var row = b.parentNode;
+    [].forEach.call(row.querySelectorAll(".st__f"), function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    chosen[row.getAttribute("data-attr")] = b.getAttribute("data-val");
+    apply();
+  });
 })();

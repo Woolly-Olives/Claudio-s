@@ -1618,3 +1618,7 @@ against unauthorized destructive-or-hard-to-reverse actions — merging into
 `main` is a one-way visibility change for anyone else watching the repo).
 The user was told both options and given the choice; neither has been
 done as of this writing.
+
+### Connect filters and role chips (added later)
+
+`staff.js` draws three filter rows (Year, Degree stream, Role; one choice each, rows combine). Years come from the modules' `year`, plus `years` in `assets/data/staff.js` (Alix Blockley is set to `FY` by hand — the curriculum has no foundation-year modules). Streams come from `streamFound()` (a copy of the module map's rule). Role filters: any "...Tutor" → Tutor, "Careers..." → Careers, "BIOsEDI". Roles are red `#ff3131` chips in the module-code style; "Convenor" is now plain chip text; `JOINED` merges BS2032/BS2033 into one chip. "Sort" was read as "filter" — people are hidden, not reordered.
