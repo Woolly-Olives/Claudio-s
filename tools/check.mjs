@@ -398,11 +398,11 @@ check("roles are red chips in the module-code style, first in the row; Convenor 
              noLoneBS2032: joined.every(t => t.startsWith("BS2032/BS2033")) && joined.length >= 1 };
   }), { blockley: ["Careers Lead"], storey: ["Head Tutor"], allen: ["Head Tutor"], saba: ["BIOsEDI"], roleCount: 4,
         red: true, firstInRow: true, sameFont: true, noSeparateConvenor: true, noLoneBS2032: true });
-check("Connect filter: one line, one All, one choice at a time (never narrowing); BS2032/BS2033 never repeated on a card",
+check("Connect filter: one line, no All button, one choice at a time, pressing it again shows everyone (never narrowing); BS2032/BS2033 never repeated on a card",
   await page.evaluate(() => {
     const vis = () => [...document.querySelectorAll("#staff .st:not(.st--clone)")].filter(c => !c.hidden).map(c => c.querySelector(".st__name").textContent);
     const btns = [...document.querySelectorAll("#staff .st__f")];
-    const click = v => btns.find(b => b.dataset.val === v).click();
+    const click = v => (v ? btns.find(b => b.dataset.val === v) : btns.find(b => b.getAttribute("aria-pressed") === "true")).click();
     const total = vis().length;
     const tops = new Set(btns.map(b => Math.round(b.getBoundingClientRect().top)));
     click("year:FY"); const fy = vis();
@@ -410,17 +410,17 @@ check("Connect filter: one line, one All, one choice at a time (never narrowing)
     click("role:BIOsEDI"); const edi = vis();
     click("stream:genetics"); const gen = vis();
     const pressed = btns.filter(b => b.getAttribute("aria-pressed") === "true").length;
-    click("year:2"); const y2 = vis();
+    click("year:2"); const y2 = vis(); const y2Pressed = btns.filter(b => b.getAttribute("aria-pressed") === "true").length;
     const extra = ["year:MSc", "year:PhD", "year:4"].map(v => { click(v); return vis().length; });
-    click(""); 
+    click(""); const afterRelease = vis().length; const noneLit = btns.every(b => b.getAttribute("aria-pressed") === "false");
     const dup = [...document.querySelectorAll("#staff .st:not(.st--clone)")].some(c => {
       const t = [...c.querySelectorAll(".st__code")].map(l => l.textContent).join(" ");
       return (t.match(/BS2032/g) || []).length > 1 || (t.match(/BS2033/g) || []).length > 1;
     });
-    return { oneLine: tops.size === 1, allCount: btns.filter(b => b.textContent === "All").length,
+    return { oneLine: tops.size === 1, allCount: btns.filter(b => b.textContent === "All").length, noneLit,
              fy, tutor: tutor.length, edi, genReplacesNotNarrows: gen.length > 0 && !gen.every(n => edi.includes(n)),
-             extraEmpty: extra.join() === "0,0,0", onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: vis().length === total, dup };
-  }), { oneLine: true, allCount: 1, fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genReplacesNotNarrows: true,
+             extraEmpty: extra.join() === "0,0,0", onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: afterRelease === total, dup };
+  }), { oneLine: true, allCount: 0, noneLit: true, fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genReplacesNotNarrows: true,
         extraEmpty: true, onePressed: true, y2Ok: true, resetAll: true, dup: false });
 check("Connect: cards are ONE scrolling row above the filter buttons; no intro text; the arrows scroll it",
   await page.evaluate(async () => {

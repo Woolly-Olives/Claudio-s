@@ -232,10 +232,11 @@
   }
 
   /* ---------- the filter: ONE row, ONE choice at a time ----------
+     (no "All" button: pressing the chosen one again shows everyone)
      Picking a button shows everyone carrying that tag; picking another
-     replaces it. Nothing narrows, nothing combines. One "All". */
+     replaces it. Nothing narrows, nothing combines. */
 
-  var opts = [["", "All"]]
+  var opts = []
     .concat(YEAR_FILTERS.map(function (o) { return ["year:" + o[0], o[1]]; }))
     .concat(STREAMS.map(function (st) { return ["stream:" + st.id, st.label || st.id, st.colour]; }))
     .concat(ROLE_FILTERS.map(function (r) { return ["role:" + r, r]; }));
@@ -251,7 +252,7 @@
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>' +
     '</div>' +
     '<div class="st__filters" role="group" aria-label="Filter staff">' + opts.map(function (o) {
-      return '<button type="button" class="st__f" data-val="' + esc(o[0]) + '" aria-pressed="' + (o[0] ? "false" : "true") + '"' +
+      return '<button type="button" class="st__f" data-val="' + esc(o[0]) + '" aria-pressed="false"' +
         (o[2] ? ' style="--fc:' + o[2] + '"' : '') + '>' + esc(o[1]) + '</button>';
     }).join("") + '</div>' +
     '<p class="st__count" aria-live="polite"></p>';
@@ -279,8 +280,10 @@
   root.querySelector(".st__filters").addEventListener("click", function (e) {
     var b = e.target.closest(".st__f");
     if (!b) { return; }
-    var val = b.getAttribute("data-val"), shown = 0;
-    [].forEach.call(root.querySelectorAll(".st__f"), function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    /* pressing the chosen button again lets go of it: everyone is shown */
+    var off = b.getAttribute("aria-pressed") === "true";
+    var val = off ? "" : b.getAttribute("data-val"), shown = 0;
+    [].forEach.call(root.querySelectorAll(".st__f"), function (x) { x.setAttribute("aria-pressed", x === b && !off ? "true" : "false"); });
     cards.forEach(function (c, i) {
       var ok = !val || (c.getAttribute("data-tags") || "").split("|").indexOf(val) !== -1;
       c.hidden = !ok;
