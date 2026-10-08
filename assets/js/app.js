@@ -51,7 +51,7 @@
     { id: "essential-links",        label: "Essential Links",       hue: 40,  sat: 72.0, light: 56.0, ink: "dark",  reveal: "zoom" },
     { id: "study-resources",        label: "Study Resources",       hue: 89,  sat: 43.0, light: 43.0, ink: "dark" },
     { id: "customise-your-degree",  label: "Customise Your Degree", hue: 130, sat: 41.2, light: 41.2, ink: "dark" },
-    { id: "opportunities",          label: "Opportunities",         hue: 175, sat: 39.1, light: 41.0, ink: "dark" },
+    { id: "opportunities",          label: "Create Your Calendar",  hue: 175, sat: 39.1, light: 41.0, ink: "dark" },
     { id: "connect",                label: "Connect",               hue: 223, sat: 37.0, light: 37.0, ink: "light" },
     { id: "events",                 label: "Events",                hue: 275, sat: 33.0, light: 30.0, ink: "light" },
     { id: "join-biosoc",            label: "BioSoc Newsletter",     hue: 330, sat: 50.2, light: 41.4, ink: "light" }
@@ -289,8 +289,9 @@
      * Taking inert off the panel also clears it from anything inside
      * that declared its own — Chromium recomputes the subtree and does
      * not put a descendant's back. Setting the attribute again does
-     * take, so re-assert it. Without this the covered Opportunities
-     * tiles are tabbable straight through their veil.
+     * take, so re-assert it. (It was added for the veiled Opportunities
+     * tiles, which are gone; it stays as a general guard for any panel
+     * that carries its own inert descendants.)
      */
     Array.prototype.forEach.call(panel.querySelectorAll("[inert]"), function (el) {
       el.removeAttribute("inert");

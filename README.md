@@ -7,7 +7,7 @@ always radiates at the slice's angle. Essential Links is the exception: it zooms
 into its slice instead (see below).
 
 The seven sections are **Essential Links**, **Study Resources**,
-**Customise Your Degree**, **Opportunities**, **Connect** and **Events**, plus
+**Customise Your Degree**, **Create Your Calendar** (formerly Opportunities; id still `opportunities`), **Connect** and **Events**, plus
 **BioSoc Newsletter**. All seven now have content.
 
 ## For whoever works on this next
@@ -60,7 +60,7 @@ specific error this project hit and why.
 | `assets/js/instagram.js`, `assets/css/instagram.css` | The Events profile card and post grid. |
 | `assets/js/staff.js`, `assets/css/staff.css`, `assets/data/staff.js` | The staff cards on Connect (see "Staff cards"). |
 | `assets/js/minical.js`, `assets/css/minical.css` | The small calendar beside the wheel on the main page. Reads `events.js`. |
-| `assets/js/assess.js`, `assets/css/assess.css`, `assets/data/assessments.js` | The assessment calendar in Study Resources, below the assessment table. The dates are hand-written in `assessments.js` (2024/25, Year 1 only). |
+| `assets/js/assess.js`, `assets/css/assess.css`, `assets/data/assessments.js` | The Term 1 Assessment Calendar, in the Create Your Calendar section. The dates are hand-written in `assessments.js` (2024/25, Year 1 only). |
 | `assets/data/calendar.js` | The Outlook calendar's links, edited by hand. |
 | `assets/data/instagram-posts.js` | The most recent posts. **Generated** — see below. |
 | `tools/fetch-instagram.py` | Fetches them from Instagram's API. |
@@ -103,8 +103,7 @@ with five dummy options (`.menu-drawer__link`, plain `<button>`s — not
 `<a>`s, so tapping one does nothing rather than writing a stray `#` into the
 URL) until there is somewhere real for them to go. Escape, the backdrop or
 its own close button all dismiss it and return focus to the toggle; `#stage`
-gets `inert` while it's open, the same device the Opportunities veil and
-every section page already use.
+gets `inert` while it's open, the same device every section page uses.
 
 **Only shows on the wheel.** An open section page already has its own
 "Menu" back button in that same top-left corner, so the burger hides itself
@@ -394,7 +393,7 @@ plain list in `index.html` takes over, and the page opens with the same bubble a
 every other section.** The arc and the list hold the same links, so they have to
 be kept in step — if you add a link to the data file, add it to that list too.
 
-## Bento tiles (Opportunities)
+## Bento tiles (Guides)
 
 A grid of differently sized tiles, for a section that is a launchpad rather than
 a document. Plain HTML in `index.html`: an `.bento` wrapper of `.bento__tile`
@@ -402,11 +401,7 @@ links, each with an eyebrow, a title, an optional note, and a
 `.bento__tag` marking it a placeholder — delete that tag as each tile is filled
 in.
 
-**The tiles are currently behind a veil** that blurs them out and says *Coming
-soon!*, because they are still placeholders. The grid carries `inert` in
-`index.html`, which is what actually stops the links underneath being clicked or
-tabbed into — CSS alone would leave them reachable by keyboard. When the tiles
-are real, remove `.bento-veil` and that `inert` **together**.
+**The Opportunities tiles and their veil were removed 2026-10-08** (that section is now Create Your Calendar). The Guides tiles in Study Resources still use this grid.
 
 One trap if you ever nest `inert` elsewhere: taking `inert` off the page panel,
 which `app.js` does whenever a section opens, also clears it from anything
@@ -423,7 +418,7 @@ ignored.
 
 Ten more `.bento__tile` links, under a "Guides" heading at the top of Study
 Resources — same grid, same `--wide`/`--tall` sizing, but **not** veiled
-or `inert`: every tile is a real, working link, unlike Opportunities'.
+or `inert`: every tile is a real, working link.
 What's a placeholder here is each tile's *destination* — a `<p
 class="guide-soon">Coming soon!</p>` — not the tile itself. Replace that
 paragraph with the real guide as each one gets written; nothing else

@@ -24,6 +24,8 @@
        weight  "10%", ...
        big     true  -> the thick outline (the written pieces)
        half    true  -> half-height box on a day with one or two events
+       n, prep lab practicals only: the practical's number, and its prep task
+               { task, due, time, weight } (see labs() at the foot of this file)
 
    Year 2 and Year 3 have no assessment schedule in the project yet, so
    the Year 2 / Year 3 buttons and menus draw nothing and say so. Do NOT
@@ -88,21 +90,46 @@ window.BIOSOC_ASSESS = {
     { date: "2024-12-12", mod: "both", code: "BS1030 + BS1040", year: 1, kind: "exam", title: "Practical Competence",
       when: "Assessment groups running from 09:00 Thursday", type: "In-person lab assessment, 45 minutes", weight: "10% of BS1030, 15% of BS1040" },
     { date: "2025-01-07", mod: "both", code: "BS1030 + BS1040", year: 1, kind: "exam", title: "End of Module Exam", time: "09:00",
-      type: "In-person exam, 60 questions, 90 minutes (joint module exam)", weight: "50% of BS1030, 50% of BS1040" },
-
-    /* lab practicals: the Thursday and Friday of each practical week,
-       BS1030 and BS1040 alternating */
-    { date: "2024-10-31", mod: "BS1030", code: "BS1030", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-11-01", mod: "BS1030", code: "BS1030", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-11-07", mod: "BS1040", code: "BS1040", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-11-08", mod: "BS1040", code: "BS1040", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-11-14", mod: "BS1030", code: "BS1030", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-11-15", mod: "BS1030", code: "BS1030", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-11-21", mod: "BS1040", code: "BS1040", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-11-22", mod: "BS1040", code: "BS1040", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-11-28", mod: "BS1030", code: "BS1030", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-11-29", mod: "BS1030", code: "BS1030", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-12-05", mod: "BS1040", code: "BS1040", year: 1, kind: "lab", half: true, title: "Lab Practical" },
-    { date: "2024-12-06", mod: "BS1040", code: "BS1040", year: 1, kind: "lab", half: true, title: "Lab Practical" }
-  ]
+      type: "In-person exam, 60 questions, 90 minutes (joint module exam)", weight: "50% of BS1030, 50% of BS1040" }
+  ].concat(labs())
 };
+
+/* ---------------------------------------------------------------
+   Lab practicals: BS1030 and BS1040 each run Practicals 1-5, two weeks
+   apart and alternating weeks, each on the Thursday and the Friday of its
+   week (the lab groups are on the card). The schedule table lists only
+   the prep task for Practicals 3-5 (and they fix those dates), so:
+     - Practicals 3-5 are the table's dates, with the task from the table;
+     - Practicals 1 and 2 are the SAME two-week rhythm run backwards —
+       an inference, not in the table — and have no task listed. */
+function labs() {
+  var PREP = "09:00 or before your practical";
+  var runs = {
+    BS1030: [
+      ["2024-10-03", 1],
+      ["2024-10-17", 2],
+      ["2024-10-31", 3, { task: "Blackboard MCQs + lab", due: "2024-10-31", time: PREP, weight: "Data used for the Practical Report" }],
+      ["2024-11-14", 4, { task: "Answer the questions in the practical booklet", due: "2024-11-14", time: PREP }],
+      ["2024-11-28", 5, { task: "Watch the video and read through the booklet", due: "2024-11-28", time: PREP }]
+    ],
+    BS1040: [
+      ["2024-10-10", 1],
+      ["2024-10-24", 2],
+      ["2024-11-07", 3, { task: "Blackboard MCQs + lab", due: "2024-11-07", time: PREP }],
+      ["2024-11-21", 4, { task: "Turnitin protocol submission, and bring a printed copy to the practical", due: "2024-11-20", time: "10:00", weight: "Formative (0%)" }],
+      ["2024-12-05", 5, { task: "Blackboard MCQs", due: "2024-12-05", time: PREP }]
+    ]
+  };
+  var out = [];
+  Object.keys(runs).forEach(function (mod) {
+    runs[mod].forEach(function (r) {
+      var thu = new Date(r[0] + "T00:00:00Z");
+      [0, 1].forEach(function (add) {
+        var d = new Date(thu.getTime() + add * 86400000);
+        out.push({ date: d.toISOString().slice(0, 10), mod: mod, code: mod, year: 1, kind: "lab", half: true,
+                   title: "Lab Practical", n: r[1], prep: r[2] || null });
+      });
+    });
+  });
+  return out;
+}

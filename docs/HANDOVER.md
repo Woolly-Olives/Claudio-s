@@ -894,11 +894,16 @@ calls were tried first and did
 not reliably fix it in this headless environment — a real elapsed-time delay
 did.
 
-### Opportunities
-Eight placeholder tiles behind a blurred veil reading **Coming soon!**. The grid
-carries `inert` so the links underneath cannot be clicked or tabbed into. **When
-the tiles become real, remove the veil and that `inert` together.** Keep the
-tile spans tiling the four-column grid exactly or the layout leaves holes.
+### Opportunities → "Create Your Calendar"
+**Cleared and renamed 2026-10-08, at explicit instruction.** The eight veiled
+placeholder tiles, the `.bento-veil` and the veil CSS are gone. The section is now
+**Create Your Calendar** (wheel label in `app.js` `SECTIONS`, the `<h1>`, the no-JS
+link) and holds the **Term 1 Assessment Calendar**, moved here from Study
+Resources (see that section, below). **The id is still `opportunities`** — it is
+the URL hash and what `app.js`, `tools/check.mjs` and the noscript menu key on;
+changing it would break bookmarks and every test, and a new id must not collide
+with a container id (`#calendar` is the mini calendar's). Do not "finish" the
+rename by changing the id without being asked.
 
 ### Connect
 **Moved 2026-10-07, at explicit instruction: the students' advice now lives in
@@ -1273,8 +1278,9 @@ hashes, so a `<div id="events">` made the browser scroll to it every time
 
 **`inert` on a descendant does not survive the panel's own `inert` being
 removed.** Chromium recomputes the subtree and does not restore a descendant's
-own. `app.js` re-asserts it on open. Without that, the veiled Opportunities
-tiles were tabbable straight through the veil.
+own. `app.js` re-asserts it on open. (That was written for the veiled
+Opportunities tiles, which were removed 2026-10-08; the re-assert stays as a general
+guard.)
 
 **`GAP_DEG` is 0.** A gap held at a constant *angle* grows with the radius, so
 any value above zero is invisible at the hub and a wedge at the rim. If a gap is
@@ -1462,8 +1468,8 @@ genuinely open.
    applies to BS2078 and BS3080, the other two `field: true` modules.
 7. `docs/handbook-issues.md` — the user will send this to the School
    themselves. No action needed from here.
-8. **The Opportunities tiles stay as placeholders, by decision** (2026-09-20).
-   Not a defect — no action needed.
+8. **(Superseded 2026-10-08.)** The Opportunities placeholder tiles were cleared out
+   and the section became "Create Your Calendar".
 9. **The assessment table stays the 2024/25 schedule until the user has the
    2026/27 one.** They will provide it when they have access. The caution note
    at the top of Study Resources stays until then.
@@ -1624,7 +1630,7 @@ done as of this writing.
 `staff.js` draws three filter rows (Year, Degree stream, Role; one choice each, rows combine). Years come from the modules' `year`, plus `years` in `assets/data/staff.js` (Alix Blockley is set to `FY` by hand — the curriculum has no foundation-year modules). Streams come from `streamFound()` (a copy of the module map's rule). Role filters: any "...Tutor" → Tutor, "Careers..." → Careers, "BIOsEDI". Roles are red `#ff3131` chips in the module-code style; "Convenor" is now plain chip text; `JOINED` merges BS2032/BS2033 into one chip. "Sort" was read as "filter" — people are hidden, not reordered.
 
 
-### Assessment calendar (Study Resources, below the assessment table)
+### Assessment calendar — now "Term 1 Assessment Calendar" in Create Your Calendar
 
 Shipped 2026-10-08 from a long run of mock-ups. `assets/js/assess.js` draws 12 unbroken Monday-first weeks (23 Sep – 15 Dec 2024) of day boxes from `assets/data/assessments.js`, which is **hand-transcribed** from the table's 2024/25 rows — keep the two in step by hand; the table's deadlines are prose, so they cannot be read out of it. The container is `#assess-cal` (not a section id).
 
@@ -1633,3 +1639,5 @@ What was decided, so it is not re-asked: tutorial tasks sit on the Monday their 
 **Year 2 and Year 3 have no dates.** The mock-ups used invented placeholder dates to show the layout; those were NOT shipped. The Year 2/3 buttons and menus (24 and 27 modules from `curriculum.js`) work but draw nothing and say so. Do not invent dates to fill them; add real events to `assessments.js` with `year` 2 or 3 and `code` set to the module code, and they appear.
 
 Known limits: shows only the 2024/25 weeks it is configured for (`start`, `weeks`), so it will look out of date; below ~44rem the grid scrolls sideways rather than reflowing; the Jan 2025 deadlines are in the data but past the last drawn week; the card is placed in the viewport and closes on scroll.
+
+**Changes 2026-10-08:** the calendar moved from Study Resources into the Create Your Calendar section and was renamed **Term 1 Assessment Calendar**; the Year 2 / Year 3 menus now offer **semester 1 modules only** (11 and 12) to match; the info card is laid **directly over its own box** (top-left corners together) — it ignores the mouse while hovering, or the box would lose the hover and flicker, and a clicked card takes the mouse so clicking it closes it; BS1030 and BS1040 each run **Lab Practicals 1–5**, and the card shows the prep task (task, task due, weight) from the table for Practicals 3–5. **Practicals 1 and 2 are the same two-week rhythm run backwards (BS1030 3 and 17 Oct, BS1040 10 and 24 Oct) — an inference, not in the table — and their cards say "None listed in the schedule".** Lab dates and tasks are built by `labs()` at the foot of `assets/data/assessments.js`.

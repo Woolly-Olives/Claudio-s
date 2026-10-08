@@ -1,9 +1,11 @@
 /* =============================================================
-   Assessment calendar (Study Resources, below the assessment table).
+   Term 1 Assessment Calendar (the "Create Your Calendar" section, id `opportunities`).
 
    Twelve unbroken weeks of day boxes, Monday first; each deadline is a
    coloured box in its day (data: assets/data/assessments.js). Hover,
-   focus or click a box for its card. A day with one or two events draws
+   focus or click a box for its card, which is laid directly over the box
+   (it ignores the mouse while hovering, or the box would lose the hover; a
+   clicked card stays until you click away or press Escape). A day with one or two events draws
    them full size; three draw all three, compact and centred; four or more
    draw the first two (exams first, then deadlines, labs, tutorials) and a
    "+N more" button whose card shows the rest side by side.
@@ -69,8 +71,9 @@
     return m && m.schoolCore ? NEUTRAL.school : NEUTRAL.core;
   }
 
+  /* the menus offer Term 1 (semester 1) modules only, to match "Term 1 Assessment Calendar" */
   function modulesOf(year) {
-    return CUR ? CUR.modules.filter(function (m) { return m.year === year; }) : [];
+    return CUR ? CUR.modules.filter(function (m) { return m.year === year && m.semester === 1; }) : [];
   }
 
   /* ---------- state ---------- */
@@ -88,18 +91,22 @@
 
   var NEXT = parse(D.nextYearFrom);
 
-  function dateLine(e) {
-    if (e.when) { return e.when; }
-    var d = parse(e.date);
+  function dayText(isoDate, time) {
+    var d = parse(isoDate);
     return DOW[d.getUTCDay()] + " " + d.getUTCDate() + " " + MON[d.getUTCMonth()] +
-      (d >= NEXT ? " " + d.getUTCFullYear() : "") + (e.time ? ", " + e.time : "");
+      (d >= NEXT ? " " + d.getUTCFullYear() : "") + (time ? ", " + time : "");
   }
+  function dateLine(e) { return e.when || dayText(e.date, e.time); }
 
   function card(e) {
     var rows;
     if (e.kind === "lab") {
+      var t = e.prep;
       rows = '<dt>Group Times</dt><dd class="ac-card__times">' + D.groupTimes.map(esc).join("<br>") + '</dd>' +
-        '<dt>Type</dt><dd>' + esc(e.type || "Practical session in the lab") + '</dd>';
+        (t ? '<dt>Task</dt><dd>' + esc(t.task) + '</dd>' +
+             '<dt>Task due</dt><dd>' + esc(dayText(t.due, t.time)) + '</dd>' +
+             (t.weight ? '<dt>Weight</dt><dd>' + esc(t.weight) + '</dd>' : "")
+           : '<dt>Task</dt><dd>None listed in the schedule</dd>');
     } else {
       rows = '<dt>' + (e.kind === "exam" ? "Time" : "Due") + '</dt><dd>' + esc(dateLine(e)) + '</dd>' +
         '<dt>Type</dt><dd>' + esc(e.type || "—") + '</dd>' +
@@ -107,7 +114,7 @@
     }
     return '<div class="ac-card" style="--ec:' + esc(D.colours[e.mod] || "#999") + '">' +
       '<div class="ac-card__strip"></div>' +
-      '<div class="ac-card__in"><strong class="ac-card__title">' + esc(e.title) + '</strong>' +
+      '<div class="ac-card__in"><strong class="ac-card__title">' + esc(e.title + (e.n ? " " + e.n : "")) + '</strong>' +
       '<span class="ac-card__mod">' + esc(e.code) + '</span><dl>' + rows + '</dl></div></div>';
   }
 
@@ -233,11 +240,12 @@
     pop.hidden = false;
     btn.setAttribute("aria-describedby", "ac-pop");
 
+    /* the card is laid directly over the box it describes, its top-left corner on the
+       box's own, and slid back into the window if that would push it off an edge */
     var r = btn.getBoundingClientRect();
-    var w = pop.offsetWidth, h = pop.offsetHeight;
+    var w = pop.offsetWidth, h = pop.offsetHeight, lift = head ? 24 : 0;
     var left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
-    var top = r.bottom + 8 + (head ? 24 : 0);
-    if (top + h > window.innerHeight - 8) { top = Math.max(8 + (head ? 24 : 0), r.top - 8 - h); }
+    var top = Math.max(8 + lift, Math.min(r.top, window.innerHeight - h - 8));
     pop.style.left = left + "px";
     pop.style.top = top + "px";
   }
@@ -246,6 +254,7 @@
     if (current) { current.removeAttribute("aria-describedby"); }
     current = null;
     pinned = false;
+    pop.classList.remove("ac-pop--pinned");
     pop.hidden = true;
   }
 
@@ -269,7 +278,7 @@
     var b = boxOf(event);
     if (!b) { return; }
     event.stopPropagation();
-    if (b === current && pinned) { hide(); } else { show(b); pinned = true; }
+    if (b === current && pinned) { hide(); } else { show(b); pinned = true; pop.classList.add("ac-pop--pinned"); }
   });
   document.addEventListener("click", function (event) {
     if (!pop.hidden && !grid.contains(event.target)) { hide(); }
