@@ -398,18 +398,29 @@ check("roles are red chips in the module-code style, first in the row; Convenor 
              noLoneBS2032: joined.every(t => t.startsWith("BS2032/BS2033")) && joined.length >= 1 };
   }), { blockley: ["Careers Lead"], storey: ["Head Tutor"], allen: ["Head Tutor"], saba: ["BIOsEDI"], roleCount: 4,
         red: true, firstInRow: true, sameFont: true, noSeparateConvenor: true, noLoneBS2032: true });
-check("Connect filters: year (Alix alone under Foundation Year), degree stream, role (Tutor = both head tutors, BIOsEDI = Saba); rows combine; All resets",
+check("Connect filter: one line, one All, one choice at a time (never narrowing); BS2032/BS2033 never repeated on a card",
   await page.evaluate(() => {
     const vis = () => [...document.querySelectorAll("#staff .st")].filter(c => !c.hidden).map(c => c.querySelector(".st__name").textContent);
+    const btns = [...document.querySelectorAll("#staff .st__f")];
+    const click = v => btns.find(b => b.dataset.val === v).click();
     const total = vis().length;
-    const click = (attr, val) => document.querySelector('#staff .st__frow[data-attr="' + attr + '"] .st__f[data-val="' + val + '"]').click();
-    click("years", "FY"); const fy = vis(); click("years", "");
-    click("roles", "Tutor"); const tutor = vis(); click("roles", "BIOsEDI"); const edi = vis(); click("roles", "");
-    click("streams", "genetics"); const gen = vis(); click("roles", "Tutor"); const both = vis(); click("roles", ""); click("streams", "");
-    click("years", "2"); const y2 = vis(); click("years", "");
-    return { fy, tutor: tutor.length, edi, genOk: gen.length > 0 && gen.length < total, bothSubset: both.every(n => gen.includes(n)) && both.length <= tutor.length,
-             y2Ok: y2.length > 0 && y2.length < total, resetAll: vis().length === total };
-  }), { fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genOk: true, bothSubset: true, y2Ok: true, resetAll: true });
+    const tops = new Set(btns.map(b => Math.round(b.getBoundingClientRect().top)));
+    click("year:FY"); const fy = vis();
+    click("role:Tutor"); const tutor = vis();
+    click("role:BIOsEDI"); const edi = vis();
+    click("stream:genetics"); const gen = vis();
+    const pressed = btns.filter(b => b.getAttribute("aria-pressed") === "true").length;
+    click("year:2"); const y2 = vis();
+    click(""); 
+    const dup = [...document.querySelectorAll("#staff .st")].some(c => {
+      const t = [...c.querySelectorAll(".st__code")].map(l => l.textContent).join(" ");
+      return (t.match(/BS2032/g) || []).length > 1 || (t.match(/BS2033/g) || []).length > 1;
+    });
+    return { oneLine: tops.size === 1, allCount: btns.filter(b => b.textContent === "All").length,
+             fy, tutor: tutor.length, edi, genReplacesNotNarrows: gen.length > 0 && !gen.every(n => edi.includes(n)),
+             onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: vis().length === total, dup };
+  }), { oneLine: true, allCount: 1, fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genReplacesNotNarrows: true,
+        onePressed: true, y2Ok: true, resetAll: true, dup: false });
 check("photo is top-left, modules top-right, the questions and email below — photo square, half the card's width, bottom half at least as tall",
   await page.evaluate(() => {
     const c = document.querySelector("#staff .st"), r = s => c.querySelector(s).getBoundingClientRect();

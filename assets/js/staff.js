@@ -189,13 +189,13 @@
     var chips = [];
     codes.forEach(function (c) {
       var j = JOINED.filter(function (set) { return set.indexOf(c) !== -1; })[0];
-      if (j && chips.some(function (x) { return x.codes === j; })) { return; }
-      chips.push({ codes: j ? j.filter(function (x) { return codes.indexOf(x) !== -1; }) : [c] });
+      if (j && chips.some(function (x) { return x.joined === j; })) { return; }
+      chips.push({ joined: j, codes: j ? j.filter(function (x) { return codes.indexOf(x) !== -1; }) : [c] });
     });
 
     return '' +
-      '<article class="st" data-years="' + esc(years.join(" ")) + '" data-streams="' + esc(streams.join(" ")) +
-      '" data-roles="' + esc(groups.join("|")) + '">' +
+      '<article class="st" data-tags="' + esc(years.map(function (y) { return "year:" + y; })
+        .concat(streams.map(function (x) { return "stream:" + x; }), groups.map(function (g) { return "role:" + g; })).join("|")) + '">' +
         '<h2 class="st__name">' + esc((person.title ? person.title + " " : "") + person.name) + '</h2>' +
         '<div class="st__top">' +
           '<div class="st__photo">' +
@@ -225,52 +225,36 @@
       '</article>';
   }
 
-  /* ---------- the filters: one choice per row, rows combine ---------- */
+  /* ---------- the filter: ONE row, ONE choice at a time ----------
+     Picking a button shows everyone carrying that tag; picking another
+     replaces it. Nothing narrows, nothing combines. One "All". */
 
-  var anyRole = {};
-  people.forEach(function (p) { (EXTRA[p.key] && EXTRA[p.key].roles || []).forEach(function (r) { anyRole[roleGroup(r)] = 1; }); });
-  var rows = [
-    { attr: "years", label: "Year", opts: YEAR_FILTERS },
-    { attr: "streams", label: "Degree stream", opts: STREAMS.map(function (st) { return [st.id, st.label || st.id, st.colour]; }) },
-    { attr: "roles", label: "Role", opts: ROLE_FILTERS.map(function (r) { return [r, r]; }) }
-  ];
+  var opts = [["", "All"]]
+    .concat(YEAR_FILTERS.map(function (o) { return ["year:" + o[0], o[1]]; }))
+    .concat(STREAMS.map(function (st) { return ["stream:" + st.id, st.label || st.id, st.colour]; }))
+    .concat(ROLE_FILTERS.map(function (r) { return ["role:" + r, r]; }));
 
-  root.innerHTML = '<div class="st__filters" role="group" aria-label="Filter staff">' + rows.map(function (row) {
-    return '<div class="st__frow" data-attr="' + row.attr + '"><span class="st__flabel">' + row.label + '</span>' +
-      '<button type="button" class="st__f" data-val="" aria-pressed="true">All</button>' +
-      row.opts.map(function (o) {
-        return '<button type="button" class="st__f" data-val="' + esc(o[0]) + '" aria-pressed="false"' +
-          (o[2] ? ' style="--fc:' + o[2] + '"' : '') + '>' + esc(o[1]) + '</button>';
-      }).join("") + '</div>';
+  root.innerHTML = '<div class="st__filters" role="group" aria-label="Filter staff">' + opts.map(function (o) {
+    return '<button type="button" class="st__f" data-val="' + esc(o[0]) + '" aria-pressed="' + (o[0] ? "false" : "true") + '"' +
+      (o[2] ? ' style="--fc:' + o[2] + '"' : '') + '>' + esc(o[1]) + '</button>';
   }).join("") + '</div>' +
     '<p class="st__count" aria-live="polite"></p>' +
     '<div class="st__grid">' + people.map(card).join("") + '</div>';
 
-  var chosen = { years: "", streams: "", roles: "" };
   var cards = [].slice.call(root.querySelectorAll(".st"));
   var count = root.querySelector(".st__count");
-
-  function apply() {
-    var shown = 0;
-    cards.forEach(function (c) {
-      var ok = Object.keys(chosen).every(function (a) {
-        if (!chosen[a]) { return true; }
-        var have = (c.getAttribute("data-" + a) || "").split(a === "roles" ? "|" : " ");
-        return have.indexOf(chosen[a]) !== -1;
-      });
-      c.hidden = !ok;
-      if (ok) { shown++; }
-    });
-    count.textContent = shown === cards.length ? "" :
-      (shown ? "Showing " + shown + " of " + cards.length + " staff." : "No staff match yet — more are being added.");
-  }
 
   root.querySelector(".st__filters").addEventListener("click", function (e) {
     var b = e.target.closest(".st__f");
     if (!b) { return; }
-    var row = b.parentNode;
-    [].forEach.call(row.querySelectorAll(".st__f"), function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
-    chosen[row.getAttribute("data-attr")] = b.getAttribute("data-val");
-    apply();
+    var val = b.getAttribute("data-val"), shown = 0;
+    [].forEach.call(root.querySelectorAll(".st__f"), function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    cards.forEach(function (c) {
+      var ok = !val || (c.getAttribute("data-tags") || "").split("|").indexOf(val) !== -1;
+      c.hidden = !ok;
+      if (ok) { shown++; }
+    });
+    count.textContent = !val ? "" :
+      (shown ? "Showing " + shown + " of " + cards.length + " staff." : "No staff under this tag yet — more are being added.");
   });
 })();

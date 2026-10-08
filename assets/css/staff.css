@@ -118,21 +118,21 @@
   line-height: 1.5;
 }
 
-/* filters: one row each for year, degree stream and role */
-#staff .st__filters { display: flex; flex-direction: column; gap: 0.5rem; margin: 0 0 1rem; }
-#staff .st__frow { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
-#staff .st__flabel {
-  min-width: 6.5rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--fg-soft);
+/* filter: a single line of buttons (scrolls sideways rather than wrapping on a narrow screen) */
+#staff .st__filters {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.3rem;
 }
 #staff .st__f {
   font: inherit;
   font-size: 0.8rem;
-  padding: 0.22rem 0.65rem;
+  flex: none;
+  white-space: nowrap;
+  padding: 0.22rem 0.6rem;
   color: var(--fg);
   background: transparent;
   border: 1px solid var(--line);
