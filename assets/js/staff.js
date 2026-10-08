@@ -234,15 +234,31 @@
     .concat(STREAMS.map(function (st) { return ["stream:" + st.id, st.label || st.id, st.colour]; }))
     .concat(ROLE_FILTERS.map(function (r) { return ["role:" + r, r]; }));
 
-  root.innerHTML = '<div class="st__filters" role="group" aria-label="Filter staff">' + opts.map(function (o) {
-    return '<button type="button" class="st__f" data-val="' + esc(o[0]) + '" aria-pressed="' + (o[0] ? "false" : "true") + '"' +
-      (o[2] ? ' style="--fc:' + o[2] + '"' : '') + '>' + esc(o[1]) + '</button>';
-  }).join("") + '</div>' +
-    '<p class="st__count" aria-live="polite"></p>' +
-    '<div class="st__grid">' + people.map(card).join("") + '</div>';
+  /* a one-row carousel of cards on top, the filter buttons below it */
+  root.innerHTML =
+    '<div class="st__carousel">' +
+      '<button type="button" class="st__nav" data-dir="-1" aria-label="Previous staff">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>' +
+      '<div class="st__grid" tabindex="0" role="region" aria-label="Staff cards">' + people.map(card).join("") + '</div>' +
+      '<button type="button" class="st__nav" data-dir="1" aria-label="Next staff">' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>' +
+    '</div>' +
+    '<div class="st__filters" role="group" aria-label="Filter staff">' + opts.map(function (o) {
+      return '<button type="button" class="st__f" data-val="' + esc(o[0]) + '" aria-pressed="' + (o[0] ? "false" : "true") + '"' +
+        (o[2] ? ' style="--fc:' + o[2] + '"' : '') + '>' + esc(o[1]) + '</button>';
+    }).join("") + '</div>' +
+    '<p class="st__count" aria-live="polite"></p>';
 
   var cards = [].slice.call(root.querySelectorAll(".st"));
   var count = root.querySelector(".st__count");
+  var track = root.querySelector(".st__grid");
+
+  root.querySelector(".st__carousel").addEventListener("click", function (e) {
+    var b = e.target.closest(".st__nav");
+    if (!b) { return; }
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    track.scrollBy({ left: +b.getAttribute("data-dir") * track.clientWidth * 0.85, behavior: reduce ? "auto" : "smooth" });
+  });
 
   root.querySelector(".st__filters").addEventListener("click", function (e) {
     var b = e.target.closest(".st__f");
@@ -254,6 +270,7 @@
       c.hidden = !ok;
       if (ok) { shown++; }
     });
+    track.scrollLeft = 0;
     count.textContent = !val ? "" :
       (shown ? "Showing " + shown + " of " + cards.length + " staff." : "No staff under this tag yet — more are being added.");
   });

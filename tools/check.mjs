@@ -422,6 +422,17 @@ check("Connect filter: one line, one All, one choice at a time (never narrowing)
              extraEmpty: extra.join() === "0,0,0", onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: vis().length === total, dup };
   }), { oneLine: true, allCount: 1, fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genReplacesNotNarrows: true,
         extraEmpty: true, onePressed: true, y2Ok: true, resetAll: true, dup: false });
+check("Connect: cards are ONE scrolling row above the filter buttons; no intro text; the arrows scroll it",
+  await page.evaluate(async () => {
+    const q = s => document.querySelector(s);
+    const tops = new Set([...document.querySelectorAll("#staff .st")].map(c => Math.round(c.getBoundingClientRect().top)));
+    const track = q("#staff .st__grid"), before = track.scrollLeft;
+    q('#staff .st__nav[data-dir="1"]').click();
+    await new Promise(r => setTimeout(r, 900));
+    return { oneRow: tops.size === 1, scrollable: track.scrollWidth > track.clientWidth,
+             carouselAboveButtons: q("#staff .st__carousel").getBoundingClientRect().bottom <= q("#staff .st__filters").getBoundingClientRect().top,
+             noLede: !q("#page-connect .page__lede"), nextScrolls: track.scrollLeft > before };
+  }), { oneRow: true, scrollable: true, carouselAboveButtons: true, noLede: true, nextScrolls: true });
 check("photo is top-left, modules top-right, the questions and email below — photo square, half the card's width, bottom half at least as tall",
   await page.evaluate(() => {
     const c = document.querySelector("#staff .st"), r = s => c.querySelector(s).getBoundingClientRect();
