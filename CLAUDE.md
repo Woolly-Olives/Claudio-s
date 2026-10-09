@@ -118,3 +118,11 @@ something cannot be done as written, say so plainly in a sentence or two and
 build the nearest working thing anyway, behind a switch where possible — that
 has been right every time. Send screenshots. Give real links and never invent
 one. No flattery; be objective and critical where it is warranted.
+
+**Explain first, change only when told to.** If the user asks a question or asks
+"why" (why did X break, what is the corner rounding, are the days square), answer
+and stop — do not edit files, commit or push, even when the answer exposes a bug
+you caused. Say what the fix would be and wait for an explicit instruction to
+fix, change, add or ship it (stated 2026-10-09). "Mock-up" or "preview" likewise
+means a browser-only preview that saves nothing; only "ship" or "implement" (or
+an equivalent) changes the site.
