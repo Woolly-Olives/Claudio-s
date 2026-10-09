@@ -614,6 +614,18 @@ check("Year 2 / 3 modules: the Year 2 button brings only BS2200; BS2013 etc. arr
     click(1);
     return out;
   }), { onlyBS2200: true, ok: true, chip: true, chipGone: true, excluded: true, weeks: true });
+check("month names are whole: October (Thu 1) and December (Tue 1) spill across two days and read in full; November (Sun 1) is cut at the week's edge as intended; no day clips its neighbour's overflow",
+  await page.evaluate(() => {
+    const cal = document.getElementById("assess-cal");
+    const lab = name => [...cal.querySelectorAll(".ac__ml")].find(l => l.textContent === name);
+    const whole = l => { const r = document.createRange(); r.selectNodeContents(l); return l.scrollWidth <= l.clientWidth + 1 && r.getBoundingClientRect().width <= l.clientWidth + 1; };
+    const day = l => l.parentNode.getBoundingClientRect();
+    const oct = lab("October"), dec = lab("December"), nov = lab("November");
+    return { octWhole: whole(oct), octTwoDays: oct.getBoundingClientRect().width > day(oct).width * 1.8,
+             decWhole: whole(dec), decTwoDays: dec.getBoundingClientRect().width > day(dec).width * 1.8,
+             novCut: !whole(nov) && Math.abs(nov.getBoundingClientRect().width - day(nov).width) < 1,
+             notClipped: getComputedStyle(oct.parentNode).overflow === "visible" };
+  }), { octWhole: true, octTwoDays: true, decWhole: true, decTwoDays: true, novCut: true, notClipped: true });
 check("days are a fixed 144px (9rem) tall — equal in every week, and not forced square (narrow days stay as tall); boxes and the info card have 8px corners; nothing overflows its day",
   await page.evaluate(async () => {
     const cal = document.getElementById("assess-cal");

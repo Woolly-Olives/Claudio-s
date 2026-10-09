@@ -55,7 +55,7 @@
 }
 
 #assess-cal .ac__d {
-  position: relative; display: flex; flex-direction: column; height: 9rem; min-height: 0; overflow: hidden; padding: 3px;
+  position: relative; display: flex; flex-direction: column; height: 9rem; min-height: 0; padding: 3px;   /* NOT overflow:hidden — the month's name spills into the next day */
   border-radius: 14px; background: color-mix(in srgb, var(--fg) 5%, transparent);
 }
 #assess-cal .ac__d--alt { background: color-mix(in srgb, var(--fg) 9%, transparent); }
