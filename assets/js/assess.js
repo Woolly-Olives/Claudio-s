@@ -138,6 +138,7 @@
 
   var shown = [];                           // events drawn this time; data-k indexes it
 
+  /* the box carries the name only; the weighting (and everything else) is in the card */
   function chip(e, compact) {
     shown.push(e);
     var colour = colourOf(e);
@@ -145,7 +146,6 @@
       (colour === NEUTRAL.school ? ' ac__c--dark' : '') +
       (!compact && e.half ? ' ac__c--half' : '') + '" style="--bx:' + esc(colour) + '" data-k="' + (shown.length - 1) + '" aria-label="' + esc(e.title + (e.n ? " " + e.n : "")) + '">' +
       '<span class="ac__t">' + esc(e.short ? "..." : e.title + (e.n ? "\u00a0" + e.n : "")) + '</span>' +   /* non-breaking: the number never wraps alone */
-      (!compact && e.weight && e.kind !== "lab" && e.kind !== "tutorial" ? '<small>' + esc(e.weight.split(" together")[0]) + '</small>' : '') +
       '</button>';
   }
 
@@ -180,17 +180,27 @@
     grid.innerHTML = h;
     hide();
 
-    /* the modules on show under the buttons: the ones that ride on the Year button
-       (no way to remove them) and every module ticked in a menu */
+    /* the modules on show under the buttons: Year 1 shows BS1030, BS1040 and the ADBS001
+       tutorials (in the colours of their boxes); Years 2 and 3 show the ones that ride on
+       the Year button (no way to remove them) and every module ticked in a menu */
     var withYear = (WITH_YEAR[year] || []);
     var pickedCodes = Object.keys(picked).sort();
-    sel.innerHTML = withYear.concat(pickedCodes).map(function (code) {
-      var m = byCode[code], riding = withYear.indexOf(code) !== -1;
-      return '<span class="ac__sel-chip"><i style="background:' + esc(swatch(code)) + '"></i><b>' + esc(code) + '</b>' +
-        '<span>' + esc(m ? m.title : "") + '</span>' +
-        (riding ? '<small>(with Year ' + year + ')</small>'
-                : '<button type="button" class="ac__sel-x" data-code="' + esc(code) + '" aria-label="Remove ' + esc(code) + '">✕</button>') + '</span>';
-    }).join("");
+    function selChip(colour, code, label, tail) {
+      return '<span class="ac__sel-chip"><i style="background:' + esc(colour) + '"></i><b>' + esc(code) + '</b>' +
+        (label ? '<span>' + esc(label) + '</span>' : '') + tail + '</span>';
+    }
+    var chips = year === 1
+      ? [selChip(D.colours.BS1030, "BS1030", byCode.BS1030 ? byCode.BS1030.title : "", ""),
+         selChip(D.colours.BS1040, "BS1040", byCode.BS1040 ? byCode.BS1040.title : "", ""),
+         selChip(D.colours.ADBS001, "Tutorials", "(ADBS001)", "")]
+      : [];
+    withYear.concat(pickedCodes).forEach(function (code) {
+      var riding = withYear.indexOf(code) !== -1;
+      chips.push(selChip(swatch(code), code, byCode[code] ? byCode[code].title : "",
+        riding ? '<small>(with Year ' + year + ')</small>'
+               : '<button type="button" class="ac__sel-x" data-code="' + esc(code) + '" aria-label="Remove ' + esc(code) + '">✕</button>'));
+    });
+    sel.innerHTML = chips.join("");
     sel.hidden = !sel.innerHTML;
     var drawnLater = evs.some(function (e) { return e.year > 1 || picked[e.code]; });
     note.textContent = (year > 1 || pickedCodes.length) && !drawnLater

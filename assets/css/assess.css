@@ -75,13 +75,12 @@
 /* the deadline boxes. Their text scales with the calendar's own width (cqw: the
    .ac__wrap container), so a narrow day keeps whole words instead of clipping them */
 #assess-cal .ac__c {
-  position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;
+  position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center;   /* name on the left, centred top to bottom */
   min-height: 0; overflow: hidden; overflow-wrap: anywhere;
   margin-top: 3px; padding: 0.35rem 0.5rem; font: inherit; font-size: clamp(0.66rem, 1.6cqw, 1rem); font-weight: 700; line-height: 1.25; text-align: left;
   color: #10201a; border: 0; border-radius: 8px; cursor: pointer; min-width: 0;
   background: var(--bx);   /* --bx is set on each box by assess.js, from its module's colour */
 }
-#assess-cal .ac__c small { display: block; font-size: clamp(0.6rem, 1.25cqw, 0.8rem); font-weight: 500; }
 #assess-cal .ac__c--ADBS001 { color: #1c0a30; }
 #assess-cal .ac__c--dark { color: #eaf5ee; }                 /* the dark school-core green needs light ink */
 #assess-cal .ac__c--half { flex: none; height: 3.5rem; }
@@ -98,8 +97,7 @@
 #assess-cal .ac__d--two .ac__c,
 #assess-cal .ac__d--many .ac__c { flex: 1 1 0; height: auto; margin-top: 2px; line-height: 1.15; }
 #assess-cal .ac__d--two .ac__c { padding: 0.15rem 0.45rem; font-size: clamp(0.64rem, 1.45cqw, 0.9rem); }
-#assess-cal .ac__d--two .ac__c small { font-size: clamp(0.58rem, 1.15cqw, 0.74rem); }
-#assess-cal .ac__d--many .ac__c { align-items: center; justify-content: center; padding: 0 0.4rem; font-size: clamp(0.62rem, 1.4cqw, 0.88rem); }
+#assess-cal .ac__d--many .ac__c { padding: 0 0.4rem; font-size: clamp(0.62rem, 1.4cqw, 0.88rem); }
 #assess-cal .ac__d--many .ac__t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
 #assess-cal .ac__more {

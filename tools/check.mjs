@@ -549,7 +549,9 @@ check("Year buttons work like radio buttons (one at a time, the chosen one can't
     click(2); out.y2 = press(); out.y2Note = chips() === "BS2200" && /with Year 2/.test(cal.querySelector(".ac__sel").textContent);
     click(2); out.y2Again = press();
     click(3); out.y3 = press(); out.y3Note = chips() === "BS3PROJ" && /No assessment dates have been added/.test(cal.querySelector(".ac__note").textContent);
-    click(1); out.back = press(); out.noNoteForY1 = cal.querySelector(".ac__note").textContent === "" && cal.querySelector(".ac__sel").hidden;
+    click(1); out.back = press(); out.noNoteForY1 = cal.querySelector(".ac__note").textContent === "";
+    out.y1Chips = chips() === "BS1030,BS1040,Tutorials" && [...cal.querySelectorAll(".ac__sel-chip i")].map(i => i.style.backgroundColor).join() === "rgb(56, 189, 248),rgb(74, 222, 128),rgb(192, 132, 252)" &&
+                  cal.querySelector(".ac__sel").textContent.includes("(ADBS001)") && !cal.querySelector(".ac__sel-x");
     const codes = [...cal.querySelectorAll(".ac__dd input")].map(i => i.value);
     out.excluded = !codes.includes("BS2200") && !codes.includes("BS3PROJ");
     out.oneLine = [...cal.querySelectorAll(".ac__dd")].map(d => { d.open = true; const m = d.querySelector(".ac__menu");
@@ -559,7 +561,7 @@ check("Year buttons work like radio buttons (one at a time, the chosen one can't
       d.open = false; return ok && inWindow && allShown; }).join();
     return out;
   }), { start: "true,false,false", y2: "false,true,false", y2Note: true, y2Again: "false,true,false", y3: "false,false,true", y3Note: true,
-        back: "true,false,false", noNoteForY1: true, excluded: true, oneLine: "true,true" });
+        back: "true,false,false", noNoteForY1: true, y1Chips: true, excluded: true, oneLine: "true,true" });
 check("crowded days: three show titles only; four show two and '+2 more' whose card lists the others in a row; a date in the next academic year shows its year; a year with no dated modules says none yet",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal"), D = window.BIOSOC_ASSESS, n0 = D.events.length;
@@ -626,6 +628,17 @@ check("month names are whole: October (Thu 1) and December (Tue 1) spill across 
              novCut: !whole(nov) && Math.abs(nov.getBoundingClientRect().width - day(nov).width) < 1,
              notClipped: getComputedStyle(oct.parentNode).overflow === "visible" };
   }), { octWhole: true, octTwoDays: true, decWhole: true, decTwoDays: true, novCut: true, notClipped: true });
+check("a box shows only the assessment's name (no weighting underneath; that is in the info box) — left-aligned and vertically centred in the box, on one-, two- and three-item days",
+  await page.evaluate(() => {
+    const cal = document.getElementById("assess-cal");
+    const boxes = [...cal.querySelectorAll(".ac__c")];
+    const off = b => { const r = b.getBoundingClientRect(), t = document.createRange(); t.selectNodeContents(b.querySelector(".ac__t"));
+      const q = t.getBoundingClientRect(); return { left: q.left - r.left, vmid: Math.abs((q.top - r.top) - (r.bottom - q.bottom)) }; };
+    const tops = ["Stats 1", "Scientific Summary", "Mock exam", "Lab Practical 3"].map(n => boxes.find(b => b.textContent.startsWith(n)));
+    return { noSmall: !cal.querySelector(".ac__c small"), onlyName: boxes.every(b => b.children.length === 1),
+             centred: tops.every(b => off(b).vmid < 3.5), onTheLeft: tops.every(b => off(b).left < 14),
+             weightInCard: (() => { const pop = document.getElementById("ac-pop"), b = tops[0]; b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); const t = pop.textContent; b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })); return /Weight10% together/.test(t); })() };
+  }), { noSmall: true, onlyName: true, centred: true, onTheLeft: true, weightInCard: true });
 check("days are a fixed 144px (9rem) tall — equal in every week, and not forced square (narrow days stay as tall); boxes and the info card have 8px corners; nothing overflows its day",
   await page.evaluate(async () => {
     const cal = document.getElementById("assess-cal");
