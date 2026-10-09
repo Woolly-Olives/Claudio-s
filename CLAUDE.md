@@ -42,8 +42,11 @@ something breaks that it would not have caught. Work on branch
 - **"Create Your Calendar" is the old Opportunities section.** Its id was
   changed to `create-your-calendar` on 2026-10-09 (the id is the URL hash and
   what `app.js` and `tools/check.mjs` key on; no redirect from `#opportunities`).
-  The Term 1 Assessment Calendar (`assess.js`, `assessments.js`) lives there;
-  Year 2/3 have no dates and none are to be invented.
+  The Term 1 Assessment Calendar (`assess.js`, `assessments.js`) lives there. Its
+  dates are all APPROXIMATE (2024/25 moved on to 2026/27, plus the user's own
+  Year 2/3 deadlines) and are labelled so; do not invent any date the user has not
+  supplied, and do not drop the approximate labels. Days are a fixed 9rem tall,
+  deliberately not square — see `docs/HANDOVER.md`.
 - **Colour is three-state now, not two**: system dark, system light, or
   forced by `[data-theme]` from the light/dark toggle (`assets/js/theme.js`,
   top right). A component that hardcodes a colour instead of `var(--token)`

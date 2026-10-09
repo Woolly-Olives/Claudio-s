@@ -47,7 +47,7 @@
 
 /* below ~44rem the seven columns would be too thin: let the grid scroll sideways instead */
 #assess-cal .ac__scroll { overflow-x: auto; }
-#assess-cal .ac__wrap { min-width: 42rem; }
+#assess-cal .ac__wrap { min-width: 42rem; container-type: inline-size; }
 
 #assess-cal .ac__dow, #assess-cal .ac__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--ac-gap); }
 #assess-cal .ac__dow span {
@@ -55,7 +55,7 @@
 }
 
 #assess-cal .ac__d {
-  position: relative; display: flex; flex-direction: column; min-height: 8rem; padding: 3px;
+  position: relative; display: flex; flex-direction: column; height: 9rem; min-height: 0; overflow: hidden; padding: 3px;
   border-radius: 14px; background: color-mix(in srgb, var(--fg) 5%, transparent);
 }
 #assess-cal .ac__d--alt { background: color-mix(in srgb, var(--fg) 9%, transparent); }
@@ -72,18 +72,18 @@
 }
 #assess-cal .ac__ml--one { width: 100%; }
 
-/* the deadline boxes */
+/* the deadline boxes. Their text scales with the calendar's own width (cqw: the
+   .ac__wrap container), so a narrow day keeps whole words instead of clipping them */
 #assess-cal .ac__c {
   position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;
-  margin-top: 3px; padding: 0.35rem 0.5rem; font: inherit; font-size: 1rem; font-weight: 700; line-height: 1.25; text-align: left;
-  color: #10201a; border: 0; border-radius: 10px; cursor: pointer; min-width: 0;
-  background: var(--bx);
+  min-height: 0; overflow: hidden; overflow-wrap: anywhere;
+  margin-top: 3px; padding: 0.35rem 0.5rem; font: inherit; font-size: clamp(0.66rem, 1.6cqw, 1rem); font-weight: 700; line-height: 1.25; text-align: left;
+  color: #10201a; border: 0; border-radius: 8px; cursor: pointer; min-width: 0;
+  background: var(--bx);   /* --bx is set on each box by assess.js, from its module's colour */
 }
-#assess-cal .ac__c small { display: block; font-size: 0.8rem; font-weight: 500; }
-#assess-cal .ac__c--BS1030 { --bx: #38bdf8; }
-#assess-cal .ac__c--BS1040 { --bx: #4ade80; }
-#assess-cal .ac__c--both   { --bx: #ff3131; }
-#assess-cal .ac__c--ADBS001 { --bx: #c084fc; color: #1c0a30; }
+#assess-cal .ac__c small { display: block; font-size: clamp(0.6rem, 1.25cqw, 0.8rem); font-weight: 500; }
+#assess-cal .ac__c--ADBS001 { color: #1c0a30; }
+#assess-cal .ac__c--dark { color: #eaf5ee; }                 /* the dark school-core green needs light ink */
 #assess-cal .ac__c--half { flex: none; height: 3.5rem; }
 /* a lab practical is the faded one: the fill, not the words */
 #assess-cal .ac__c--lab { background: color-mix(in srgb, var(--bx) 40%, transparent); color: var(--fg); }
@@ -93,14 +93,31 @@
 /* while its card is open the card covers the box, corner to corner: no ring poking out round it */
 #assess-cal [aria-describedby] { outline: none; }
 
-/* three or more on a day: titles only, centred, one line each */
-#assess-cal .ac__d--many .ac__c { align-items: center; justify-content: center; margin-top: 2px; padding: 0 0.4rem; font-size: 0.95rem; }
+/* two on a day share it equally; three or more (and the "+N more" days) are titles only,
+   centred, one line each — all in the fixed 9rem the day has */
+#assess-cal .ac__d--two .ac__c,
+#assess-cal .ac__d--many .ac__c { flex: 1 1 0; height: auto; margin-top: 2px; line-height: 1.15; }
+#assess-cal .ac__d--two .ac__c { padding: 0.15rem 0.45rem; font-size: clamp(0.64rem, 1.45cqw, 0.9rem); }
+#assess-cal .ac__d--two .ac__c small { font-size: clamp(0.58rem, 1.15cqw, 0.74rem); }
+#assess-cal .ac__d--many .ac__c { align-items: center; justify-content: center; padding: 0 0.4rem; font-size: clamp(0.62rem, 1.4cqw, 0.88rem); }
 #assess-cal .ac__d--many .ac__t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
 #assess-cal .ac__more {
-  position: relative; z-index: 2; flex: none; height: 1.5rem; margin-top: 3px; font: inherit; font-size: 0.8rem; font-weight: 800;
-  color: var(--fg); background: var(--surface); border: 2px solid var(--fg); border-radius: 10px; cursor: pointer;
+  position: relative; z-index: 2; flex: none; height: 1.35rem; margin-top: 2px; font: inherit; font-size: clamp(0.6rem, 1.2cqw, 0.74rem); font-weight: 800;
+  color: var(--fg); background: var(--surface); border: 2px solid var(--fg); border-radius: 8px; cursor: pointer;
 }
+
+/* the modules on show, listed under the Year buttons */
+#assess-cal .ac__sel { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 0.7rem; }
+#assess-cal .ac__sel[hidden] { display: none; }
+#assess-cal .ac__sel-chip {
+  display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.22rem 0.65rem; font-size: 0.78rem;
+  border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--fg) 6%, transparent);
+}
+#assess-cal .ac__sel-chip i { flex: none; width: 0.65rem; height: 0.65rem; border-radius: 3px; }
+#assess-cal .ac__sel-chip small { color: var(--fg-soft); }
+#assess-cal .ac__sel-x { font: inherit; padding: 0 0.1rem; color: var(--fg-soft); background: none; border: 0; cursor: pointer; }
+#assess-cal .ac__sel-x:hover, #assess-cal .ac__sel-x:focus-visible { color: var(--fg); }
 
 /* the card (appended to <body>, positioned in the viewport by assess.js) */
 .ac-pop {
@@ -113,7 +130,7 @@
 }
 .ac-card {
   min-width: 16rem; overflow: hidden; color: var(--fg); background: var(--surface);
-  border: 2px solid var(--fg); border-radius: 10px; box-shadow: 0 14px 34px hsl(0 0% 0% / 0.3);
+  border: 2px solid var(--fg); border-radius: 8px; box-shadow: 0 14px 34px hsl(0 0% 0% / 0.3);
 }
 .ac-card__strip { height: 0.6rem; background: var(--ec); }
 .ac-card__in { padding: 0.6rem 0.75rem 0.75rem; }
@@ -123,3 +140,4 @@
 .ac-card dt { color: var(--fg-soft); }
 .ac-card dd { margin: 0; font-weight: 600; }
 .ac-card__times { white-space: nowrap; }
+.ac-card__approx { margin: 0.55rem 0 0; font-size: 0.72rem; line-height: 1.3; color: var(--fg-soft); }

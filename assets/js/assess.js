@@ -1,20 +1,23 @@
 /* =============================================================
    Term 1 Assessment Calendar (the "Create Your Calendar" section, id `create-your-calendar`).
 
-   Twelve unbroken weeks of day boxes, Monday first; each deadline is a
+   Unbroken weeks of day boxes (11, from Mon 28 Sep 2026), Monday first; each deadline is a
    coloured box in its day (data: assets/data/assessments.js). Hover,
    focus or click a box for its card, which is laid directly over the box
    (the hover holds while the mouse is over the box or the card; clicking the
    box or the card keeps it open, and it closes only on a click outside both,
-   Escape, or scrolling). A day with one or two events draws
-   them full size; three draw all three, compact and centred; four or more
+   Escape, or scrolling). Every day is a fixed 9rem tall (about 144px, as wide as
+   it is on a desktop; NOT forced square, so it stays legible on narrow screens),
+   so the text scales with the calendar's width. A day with one event draws it
+   full size, two share the day; three draw all three, compact and centred; four or more
    draw the first two (exams first, then deadlines, labs, tutorials) and a
    "+N more" button whose card shows the rest side by side.
 
    The Year 1 / 2 / 3 buttons pick one year at a time, and the two
-   menus add single Term 1 Year 2 and Year 3 modules. Only Year 1 has dates —
-   see the data file — so asking for Year 2 or 3 says "none added yet"
-   instead of drawing anything. Nothing here fetches or runs on a timer.
+   menus add single Term 1 Year 2 and Year 3 modules; the modules on show are
+   listed as chips under the buttons. Year 1's events come with its button;
+   Year 2 and 3 buttons bring only BS2200 / BS3PROJ, and the rest are picked in the
+   menus. Every date is approximate — see assets/data/assessments.js. Nothing here fetches or runs on a timer.
    ============================================================= */
 (function () {
   "use strict";
@@ -90,11 +93,16 @@
   var year = 1;                            // one Year button at a time, like radio buttons
   var picked = {};                         // module code -> true (single modules from the menus)
 
+  /* What is drawn: all of Year 1's events with the Year 1 button; with Year 2 or 3 only
+     the modules that ride on the button; plus every module picked in a menu. */
   function wanted() {
     return D.events.filter(function (e) {
-      return e.year === year || picked[e.code];
+      var rides = year === 1 || (WITH_YEAR[year] || []).indexOf(e.code) !== -1;
+      return (e.year === year && rides) || picked[e.code];
     });
   }
+
+  function colourOf(e) { return D.colours[e.mod] || swatch(e.code); }
 
   /* ---------- drawing ---------- */
 
@@ -121,18 +129,21 @@
         '<dt>Type</dt><dd>' + esc(e.type || "—") + '</dd>' +
         '<dt>Weight</dt><dd>' + esc(e.weight || "—") + '</dd>';
     }
-    return '<div class="ac-card" style="--ec:' + esc(D.colours[e.mod] || "#999") + '">' +
+    return '<div class="ac-card" style="--ec:' + esc(colourOf(e)) + '">' +
       '<div class="ac-card__strip"></div>' +
       '<div class="ac-card__in"><strong class="ac-card__title">' + esc(e.title + (e.n ? " " + e.n : "")) + '</strong>' +
-      '<span class="ac-card__mod">' + esc(e.code) + '</span><dl>' + rows + '</dl></div></div>';
+      '<span class="ac-card__mod">' + esc(e.code) + '</span><dl>' + rows + '</dl>' +
+      '<p class="ac-card__approx">' + esc(e.approx || D.approxNote || "") + '</p></div></div>';
   }
 
   var shown = [];                           // events drawn this time; data-k indexes it
 
   function chip(e, compact) {
     shown.push(e);
+    var colour = colourOf(e);
     return '<button type="button" class="ac__c ac__c--' + esc(e.mod) + ' ac__c--' + esc(e.kind) +
-      (!compact && e.half ? ' ac__c--half' : '') + '" data-k="' + (shown.length - 1) + '" aria-label="' + esc(e.title + (e.n ? " " + e.n : "")) + '">' +
+      (colour === NEUTRAL.school ? ' ac__c--dark' : '') +
+      (!compact && e.half ? ' ac__c--half' : '') + '" style="--bx:' + esc(colour) + '" data-k="' + (shown.length - 1) + '" aria-label="' + esc(e.title + (e.n ? " " + e.n : "")) + '">' +
       '<span class="ac__t">' + esc(e.short ? "..." : e.title + (e.n ? "\u00a0" + e.n : "")) + '</span>' +   /* non-breaking: the number never wraps alone */
       (!compact && e.weight && e.kind !== "lab" && e.kind !== "tutorial" ? '<small>' + esc(e.weight.split(" together")[0]) + '</small>' : '') +
       '</button>';
@@ -149,7 +160,7 @@
       var ks = rest.map(function (e) { shown.push(e); return shown.length - 1; });
       more = '<button type="button" class="ac__more" data-ks="' + ks.join(",") + '">+' + rest.length + ' more</button>';
     }
-    return '<div class="ac__d' + (many ? ' ac__d--many' : '') + (m % 2 ? ' ac__d--alt' : '') + '">' +
+    return '<div class="ac__d' + (many ? ' ac__d--many' : '') + (evs.length === 2 ? ' ac__d--two' : '') + (m % 2 ? ' ac__d--alt' : '') + '">' +
       '<b class="ac__n">' + day + '</b>' +
       (day === 1 ? '<span class="ac__ml' + (col === 6 ? ' ac__ml--one' : '') + '" aria-hidden="true">' + FULL[m] + '</span>' : '') +
       vis.map(function (e) { return chip(e, many); }).join("") + more + '</div>';
@@ -169,10 +180,21 @@
     grid.innerHTML = h;
     hide();
 
-    var inc = (WITH_YEAR[year] || []).map(function (c) { return c + (byCode[c] ? " " + byCode[c].title : ""); });
-    var asked = (year > 1 || Object.keys(picked).length) && !evs.some(function (e) { return e.year > 1; });
-    note.textContent = (inc.length ? "Year " + year + " includes " + inc.join(", ") + ". " : "") +
-      (asked ? "No assessment dates have been added for Year 2 or Year 3 modules yet — only Year 1's schedule is on the site." : "");
+    /* the modules on show under the buttons: the ones that ride on the Year button
+       (no way to remove them) and every module ticked in a menu */
+    var withYear = (WITH_YEAR[year] || []);
+    var pickedCodes = Object.keys(picked).sort();
+    sel.innerHTML = withYear.concat(pickedCodes).map(function (code) {
+      var m = byCode[code], riding = withYear.indexOf(code) !== -1;
+      return '<span class="ac__sel-chip"><i style="background:' + esc(swatch(code)) + '"></i><b>' + esc(code) + '</b>' +
+        '<span>' + esc(m ? m.title : "") + '</span>' +
+        (riding ? '<small>(with Year ' + year + ')</small>'
+                : '<button type="button" class="ac__sel-x" data-code="' + esc(code) + '" aria-label="Remove ' + esc(code) + '">✕</button>') + '</span>';
+    }).join("");
+    sel.hidden = !sel.innerHTML;
+    var drawnLater = evs.some(function (e) { return e.year > 1 || picked[e.code]; });
+    note.textContent = (year > 1 || pickedCodes.length) && !drawnLater
+      ? "No assessment dates have been added for this selection yet." : "";
     [].forEach.call(root.querySelectorAll(".ac__y"), function (b) {
       b.setAttribute("aria-pressed", +b.getAttribute("data-y") === year ? "true" : "false");
     });
@@ -198,6 +220,7 @@
         return '<button type="button" class="ac__y" data-y="' + y + '" aria-pressed="' + (y === year ? "true" : "false") + '">Year ' + y + '</button>';
       }).join("") + menu(2) + menu(3) +
     '</div>' +
+    '<div class="ac__sel" hidden></div>' +
     '<p class="ac__note" aria-live="polite"></p>' +
     '<div class="ac__scroll"><div class="ac__wrap">' +
       '<div class="ac__dow" aria-hidden="true">' + ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(function (n) { return '<span>' + n + '</span>'; }).join("") + '</div>' +
@@ -205,6 +228,7 @@
 
   var grid = root.querySelector(".ac__grid");
   var note = root.querySelector(".ac__note");
+  var sel = root.querySelector(".ac__sel");
 
   root.querySelector(".ac__bar").addEventListener("click", function (event) {
     var b = event.target.closest(".ac__y");
@@ -216,6 +240,14 @@
     var cb = event.target;
     if (cb.type !== "checkbox") { return; }
     if (cb.checked) { picked[cb.value] = true; } else { delete picked[cb.value]; }
+    draw();
+  });
+  sel.addEventListener("click", function (event) {              // the ✕ on a chip unticks that module
+    var x = event.target.closest(".ac__sel-x");
+    if (!x) { return; }
+    var code = x.getAttribute("data-code");
+    delete picked[code];
+    [].forEach.call(root.querySelectorAll('.ac__dd input'), function (i) { if (i.value === code) { i.checked = false; } });
     draw();
   });
   [].forEach.call(root.querySelectorAll(".ac__dd"), function (d) {   // a wide menu slides left rather than off-screen

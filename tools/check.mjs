@@ -466,28 +466,28 @@ await page.waitForTimeout(700);
 console.log("\nthe Term 1 Assessment Calendar");
 await page.evaluate(() => { location.hash = "#create-your-calendar"; });
 await page.waitForTimeout(700);
-check("12 unbroken Monday-first weeks (84 days), Year 1 selected, both menus filled with Term 1 (semester 1) modules only — minus BS2200 and the Year 3 project, which ride on their year buttons",
+check("11 unbroken Monday-first weeks (77 days, from Mon 28 Sep), Year 1 selected, both menus filled with Term 1 (semester 1) modules only — minus BS2200 and the Year 3 project, which ride on their year buttons",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal");
     const days = [...cal.querySelectorAll(".ac__d")];
     const sem = {}; window.BIOSOC_CURRICULUM.modules.forEach(m => { sem[m.code] = m.semester; });
     const offered = [...cal.querySelectorAll(".ac__dd input")].map(i => sem[i.value]);
     return { days: days.length, onlyTerm1: offered.length > 0 && offered.every(x => x === 1),
-      firstIs23: days[0].querySelector(".ac__n").textContent === "23",
+      firstIs28: days[0].querySelector(".ac__n").textContent === "28",
       pressed: [...cal.querySelectorAll(".ac__y")].map(b => b.getAttribute("aria-pressed")).join(),
       menus: [2, 3].map(y => cal.querySelectorAll('.ac__dd[data-y="' + y + '"] input').length).join() };
-  }), { days: 84, onlyTerm1: true, firstIs23: true, pressed: "true,false,false", menus: "10,11" });
-check("cards: exams say Time; Practical Competence uses its own wording; labs list Group Times; tutorials sit on Mondays; no year inside 2024/25",
+  }), { days: 77, onlyTerm1: true, firstIs28: true, pressed: "true,false,false", menus: "10,11" });
+check("cards: exams say Time; Practical Competence uses its own wording; labs list Group Times; tutorials sit on Mondays; no year inside 2026/27; every card says its date is approximate",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal"), pop = document.getElementById("ac-pop");
     const open = text => { const b = [...cal.querySelectorAll(".ac__c")].find(x => x.textContent.startsWith(text)); b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); const t = pop.textContent; b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })); return t; };
     const lab = open("Lab Practical"), mock = open("Mock exam"), pc = open("Practical Competence");
     const mondays = [...cal.querySelectorAll(".ac__c--ADBS001")].map(b => [...cal.querySelectorAll(".ac__d")].indexOf(b.parentNode) % 7);
-    return { mockTime: /Time.*Thu 7 Nov, 10:00/.test(mock) && !/Due/.test(mock),
+    return { mockTime: /Time.*Thu 5 Nov, 10:00/.test(mock) && !/Due/.test(mock) && /Approximate/.test(mock),
              pc: /TimeAssessment groups running from 09:00 Thursday/.test(pc),
              labGroups: /Group TimesThursday 09:00 - 12:00Thursday 14:00 - 17:00Friday 09:00 - 12:00/.test(lab),
              tutorialsOnMondays: mondays.length === 9 && mondays.every(c => c === 0),
-             noYear: !/2024|2025/.test(mock) };
+             noYear: !/2026|2027/.test(mock.replace(/Approximate[^]*$/, "")) };
   }), { mockTime: true, pc: true, labGroups: true, tutorialsOnMondays: true, noYear: true });
 check("practicals: BS1030 and BS1040 each run Practicals 1-5 on a Thursday and a Friday, two weeks apart; cards show the prep task from the table (and say none is listed for 1 and 2)",
   await page.evaluate(() => {
@@ -496,13 +496,13 @@ check("practicals: BS1030 and BS1040 each run Practicals 1-5 on a Thursday and a
     const labs = [...cal.querySelectorAll(".ac__c--lab")];
     const dow = b => days.indexOf(b.parentNode) % 7;
     const card = (mod, n) => { const e = window.BIOSOC_ASSESS.events.find(x => x.kind === "lab" && x.mod === mod && x.n === n);
-      const b = labs.find(x => window.BIOSOC_ASSESS.events.indexOf(e) >= 0 && days.indexOf(x.parentNode) === Math.round((new Date(e.date + "T00:00:00Z") - new Date("2024-09-23T00:00:00Z")) / 864e5));
+      const b = labs.find(x => window.BIOSOC_ASSESS.events.indexOf(e) >= 0 && days.indexOf(x.parentNode) === Math.round((new Date(e.date + "T00:00:00Z") - new Date("2026-09-28T00:00:00Z")) / 864e5));
       b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); const t = pop.textContent; b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })); return t; };
     const per = mod => window.BIOSOC_ASSESS.events.filter(e => e.kind === "lab" && e.mod === mod);
     return { counts: [per("BS1030").length, per("BS1040").length].join(), thuFri: labs.every(b => dow(b) === 3 || dow(b) === 4),
       numbers: [1, 2, 3, 4, 5].every(n => per("BS1030").some(e => e.n === n) && per("BS1040").some(e => e.n === n)),
-      p3: /Lab Practical 3/.test(card("BS1030", 3)) && /TaskBlackboard MCQs \+ lab/.test(card("BS1030", 3)) && /Task dueThu 31 Oct, 09:00 or before your practical/.test(card("BS1030", 3)) && /WeightData used for the Practical Report/.test(card("BS1030", 3)),
-      p4: /TaskTurnitin protocol submission/.test(card("BS1040", 4)) && /Task dueWed 20 Nov, 10:00/.test(card("BS1040", 4)) && /WeightFormative \(0%\)/.test(card("BS1040", 4)),
+      p3: /Lab Practical 3/.test(card("BS1030", 3)) && /TaskBlackboard MCQs \+ lab/.test(card("BS1030", 3)) && /Task dueThu 29 Oct, 09:00 or before your practical/.test(card("BS1030", 3)) && /WeightData used for the Practical Report/.test(card("BS1030", 3)),
+      p4: /TaskTurnitin protocol submission/.test(card("BS1040", 4)) && /Task dueWed 18 Nov, 10:00/.test(card("BS1040", 4)) && /WeightFormative \(0%\)/.test(card("BS1040", 4)),
       p1: /Lab Practical 1/.test(card("BS1030", 1)) && /None listed in the schedule/.test(card("BS1040", 1)),
       fridayDots: labs.filter(b => dow(b) === 4).every(b => b.textContent === "..." && /^Lab Practical \d/.test(b.getAttribute("aria-label"))) &&
                   labs.filter(b => dow(b) === 3).every(b => /^Lab Practical\s[1-5]$/.test(b.textContent)) &&
@@ -545,10 +545,11 @@ check("Year buttons work like radio buttons (one at a time, the chosen one can't
     const press = () => [...cal.querySelectorAll(".ac__y")].map(b => b.getAttribute("aria-pressed")).join();
     const click = y => cal.querySelector('.ac__y[data-y="' + y + '"]').click();
     const out = { start: press() };
-    click(2); out.y2 = press(); out.y2Note = /Year 2 includes BS2200 Research Skills 1\./.test(cal.querySelector(".ac__note").textContent);
+    const chips = () => [...cal.querySelectorAll(".ac__sel-chip")].map(c => c.querySelector("b").textContent).join();
+    click(2); out.y2 = press(); out.y2Note = chips() === "BS2200" && /with Year 2/.test(cal.querySelector(".ac__sel").textContent);
     click(2); out.y2Again = press();
-    click(3); out.y3 = press(); out.y3Note = /Year 3 includes BS3PROJ Research Project\./.test(cal.querySelector(".ac__note").textContent);
-    click(1); out.back = press(); out.noNoteForY1 = cal.querySelector(".ac__note").textContent === "";
+    click(3); out.y3 = press(); out.y3Note = chips() === "BS3PROJ" && /No assessment dates have been added/.test(cal.querySelector(".ac__note").textContent);
+    click(1); out.back = press(); out.noNoteForY1 = cal.querySelector(".ac__note").textContent === "" && cal.querySelector(".ac__sel").hidden;
     const codes = [...cal.querySelectorAll(".ac__dd input")].map(i => i.value);
     out.excluded = !codes.includes("BS2200") && !codes.includes("BS3PROJ");
     out.oneLine = [...cal.querySelectorAll(".ac__dd")].map(d => { d.open = true; const m = d.querySelector(".ac__menu");
@@ -559,17 +560,17 @@ check("Year buttons work like radio buttons (one at a time, the chosen one can't
     return out;
   }), { start: "true,false,false", y2: "false,true,false", y2Note: true, y2Again: "false,true,false", y3: "false,false,true", y3Note: true,
         back: "true,false,false", noNoteForY1: true, excluded: true, oneLine: "true,true" });
-check("crowded days: three show titles only; four show two and '+2 more' whose card lists the others in a row; a date in the next academic year shows its year; Year 2/3 say none yet",
+check("crowded days: three show titles only; four show two and '+2 more' whose card lists the others in a row; a date in the next academic year shows its year; a year with no dated modules says none yet",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal"), D = window.BIOSOC_ASSESS, n0 = D.events.length;
     const add = (date, title) => D.events.push({ date, mod: "BS1030", code: "BS1030", year: 1, kind: "deadline", title, time: "10:00", type: "t", weight: "1%" });
-    add("2024-10-31", "X1"); add("2024-10-31", "X2");                         // 31 Oct: lab + 2 = 3
-    add("2024-11-07", "Y1"); add("2024-11-07", "Y2");                         // 7 Nov: mock exam + lab + 2 = 4
-    add("2025-09-10", "Late");
+    add("2026-10-29", "X1"); add("2026-10-29", "X2");                         // Thu 29 Oct: lab + 2 = 3
+    add("2026-11-05", "Y1"); add("2026-11-05", "Y2");                         // Thu 5 Nov: mock exam + lab + 2 = 4
+    add("2027-09-09", "Late");
     const redraw = () => { const y = cal.querySelector('.ac__y[data-y="1"]'); y.click(); y.click(); };
     redraw();
     const days = [...cal.querySelectorAll(".ac__d")];
-    const d31 = days.find(d => d.querySelector(".ac__n").textContent === "31" && d.querySelector(".ac__c--lab") && d.querySelector(".ac__c--BS1030:not(.ac__c--lab)"));
+    const d31 = days.find(d => d.querySelector(".ac__n").textContent === "29" && d.querySelector(".ac__c--lab") && d.querySelector(".ac__c--BS1030:not(.ac__c--lab)"));
     const d7 = days.find(d => d.querySelector(".ac__more"));
     const more = d7.querySelector(".ac__more");
     more.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
@@ -578,17 +579,60 @@ check("crowded days: three show titles only; four show two and '+2 more' whose c
       four: d7.querySelectorAll(".ac__c").length === 2 && more.textContent === "+2 more",
       hiddenInARow: cards.length === 2 && Math.abs(r0.top - r1.top) < 2 && r1.left > r0.left };
     more.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-    const weeks0 = D.weeks; D.weeks = 60; redraw();           // stretch the calendar to reach September 2025
+    const weeks0 = D.weeks; D.weeks = 60; redraw();           // stretch the calendar to reach September 2027
     const late = [...cal.querySelectorAll(".ac__c")].find(b => b.textContent.startsWith("Late"));
     late.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    out.nextYearShowsYear = /Wed 10 Sep 2025, 10:00/.test(document.getElementById("ac-pop").textContent);
+    out.nextYearShowsYear = /Thu 9 Sep 2027, 10:00/.test(document.getElementById("ac-pop").textContent);
     late.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
     D.weeks = weeks0; D.events.length = n0; redraw();
-    cal.querySelector('.ac__y[data-y="2"]').click();
+    cal.querySelector('.ac__y[data-y="3"]').click();
     out.noneYet = /No assessment dates have been added/.test(cal.querySelector(".ac__note").textContent) && cal.querySelectorAll(".ac__c").length === 0;
     cal.querySelector('.ac__y[data-y="1"]').click();
     return out;
   }), { three: true, four: true, hiddenInARow: true, nextYearShowsYear: true, noneYet: true });
+check("Year 2 / 3 modules: the Year 2 button brings only BS2200; BS2013 etc. arrive when picked in the menu, under their stream colour, listed as a chip that the ✕ removes; BS2014 and BS3069 stay out; Year 3 modules on their approximate Mondays",
+  await page.evaluate(() => {
+    const cal = document.getElementById("assess-cal"), D = window.BIOSOC_ASSESS;
+    const click = y => cal.querySelector('.ac__y[data-y="' + y + '"]').click();
+    const pick = (code, on) => { const i = [...cal.querySelectorAll(".ac__dd input")].find(x => x.value === code); i.checked = on; i.dispatchEvent(new Event("change", { bubbles: true })); };
+    const titles = () => [...cal.querySelectorAll(".ac__c")].map(b => b.getAttribute("aria-label"));
+    click(2);
+    const out = { onlyBS2200: titles().length === 3 && titles().every(t => t.startsWith("BS2200")) };
+    pick("BS2013", true);
+    const b = [...cal.querySelectorAll(".ac__c")].find(x => x.getAttribute("aria-label") === "BS2013 Report");
+    const day = [...cal.querySelectorAll(".ac__d")].indexOf(b.parentNode);
+    out.ok = !!b && getComputedStyle(b).backgroundColor === "rgb(255, 153, 255)" && day % 7 === 0 && b.parentNode.querySelector(".ac__n").textContent === "30";   // Mon 30 Nov, week 20, physiology pink
+    out.chip = [...cal.querySelectorAll(".ac__sel-chip b")].map(x => x.textContent).join() === "BS2200,BS2013";
+    cal.querySelector('.ac__sel-x[data-code="BS2013"]').click();
+    out.chipGone = !titles().includes("BS2013 Report") && !cal.querySelector('.ac__dd input[value="BS2013"]').checked && cal.querySelector(".ac__n2").textContent === "";
+    out.excluded = !D.events.some(e => e.code === "BS2014" || e.code === "BS3069") && D.events.some(e => e.code === "BS2015");
+    // every Year 3 module the user listed sits on a Monday, on the right week-10-is-21-Sep date
+    const mon = w => new Date(Date.UTC(2026, 8, 21) + (w - 10) * 7 * 864e5).toISOString().slice(0, 10);
+    const want = { BS3000: [21], BS3010: [21], BS3015: [17], BS3031: [21], BS3038: [19], BS3054: [20], BS3055: [18], BS3064: [14], BS3068: [16, 21], BS3070: [19],
+                   BS2013: [20], BS2015: [13], BS2094: [17], MB2020: [20], MB2050: [16], MB2051: [16] };
+    out.weeks = Object.keys(want).every(c => { const got = D.events.filter(e => e.code === c).map(e => e.date).sort().join(); return got === want[c].map(mon).sort().join(); });
+    click(1);
+    return out;
+  }), { onlyBS2200: true, ok: true, chip: true, chipGone: true, excluded: true, weeks: true });
+check("days are a fixed 144px (9rem) tall — equal in every week, and not forced square (narrow days stay as tall); boxes and the info card have 8px corners; nothing overflows its day",
+  await page.evaluate(async () => {
+    const cal = document.getElementById("assess-cal");
+    const days = () => [...cal.querySelectorAll(".ac__d")];
+    const heights = () => [...new Set(days().map(d => Math.round(d.getBoundingClientRect().height)))];
+    const overflow = () => days().filter(d => [...d.children].some(c => !c.classList.contains("ac__ml") && c.getBoundingClientRect().bottom > d.getBoundingClientRect().bottom + 0.5)).length;
+    const out = { tall: heights().join() };
+    cal.querySelector('.ac__y[data-y="2"]').click();
+    ["BS2009", "BS2059", "BS2093", "BS2013", "MB2050", "MB2051"].forEach(c => { const i = [...cal.querySelectorAll(".ac__dd input")].find(x => x.value === c); i.checked = true; i.dispatchEvent(new Event("change", { bubbles: true })); });
+    out.crowdedTall = heights().join(); out.noOverflow = overflow();
+    const b = cal.querySelector(".ac__c");
+    out.radius = getComputedStyle(b).borderTopLeftRadius;
+    b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+    out.cardRadius = getComputedStyle(document.querySelector("#ac-pop .ac-card")).borderTopLeftRadius;
+    b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+    [...cal.querySelectorAll(".ac__sel-x")].forEach(x => x.click());
+    cal.querySelector('.ac__y[data-y="1"]').click();
+    return out;
+  }), { tall: "144", crowdedTall: "144", noOverflow: 0, radius: "8px", cardRadius: "8px" });
 await page.evaluate(() => { location.hash = "#study-resources"; });
 await page.waitForTimeout(700);
 console.log("\nthe Guides bento");
