@@ -228,16 +228,20 @@
 
   /* ---------- URL state ---------- */
 
+  /* The query string is shared: the Term 1 Assessment Calendar keeps its own ?year= and
+     ?modules= in it (assets/js/assess.js), so this only ever touches ITS keys and leaves
+     any others alone — it used to rebuild the whole query and so wiped them. */
   function writeUrl() {
-    var params = new URLSearchParams();
-    params.set("degree", state.degree);
+    var params = new URLSearchParams(location.search);
+    ["degree", "all"].concat(COLUMNS.map(function (c) { return c.id; })).forEach(function (k) { params.delete(k); });
     var any = false;
     COLUMNS.forEach(function (c) {
       if (state.picks[c.id].length) { params.set(c.id, state.picks[c.id].join(".")); any = true; }
     });
     if (state.showAll) { params.set("all", "1"); any = true; }
-    var qs = (state.degree === DATA.degrees[0].id && !any) ? "" : "?" + params.toString();
-    history.replaceState(null, "", location.pathname + qs + location.hash);
+    if (state.degree !== DATA.degrees[0].id || any) { params.set("degree", state.degree); }
+    var qs = params.toString().replace(/%2C/gi, ",");
+    history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash);
   }
 
   function readUrl() {

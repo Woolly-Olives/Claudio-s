@@ -179,6 +179,7 @@
     }
     grid.innerHTML = h;
     hide();
+    writeUrl();
 
     /* the modules on show under the buttons: Year 1 shows BS1030, BS1040 and the ADBS001
        tutorials (in the colours of their boxes); Years 2 and 3 show the ones that ride on
@@ -234,7 +235,9 @@
     '<p class="ac__note" aria-live="polite"></p>' +
     '<div class="ac__scroll"><div class="ac__wrap">' +
       '<div class="ac__dow" aria-hidden="true">' + ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(function (n) { return '<span>' + n + '</span>'; }).join("") + '</div>' +
-      '<div class="ac__grid"></div></div></div>';
+      '<div class="ac__grid"></div></div></div>' +
+    '<p class="ac__dl"><button type="button" class="ac__print">Download your custom calendar</button>' +
+      '<span class="ac__dl-hint">Opens your browser\u2019s print window \u2014 choose \u201cSave as PDF\u201d.</span></p>';
 
   var grid = root.querySelector(".ac__grid");
   var note = root.querySelector(".ac__note");
@@ -357,5 +360,71 @@
   document.addEventListener("scroll", function () { if (!pop.hidden) { hide(); } }, true);
   document.addEventListener("biosoc:page", hide);
 
+  /* ---------- a link that remembers the selection ----------
+     The Year and the picked modules live in the address (?year=2&modules=BS2013,MB2050,
+     before the #create-your-calendar), kept up to date as you click, so the address bar IS
+     the shareable link and can be bookmarked. Anything unknown in it is ignored. The default
+     (Year 1, no modules) leaves a clean address. */
+
+  function pickable() {
+    var ok = {};
+    [2, 3].forEach(function (y) { modulesOf(y).forEach(function (m) { ok[m.code] = true; }); });
+    return ok;
+  }
+
+  function readUrl() {
+    var q;
+    try { q = new URLSearchParams(window.location.search); } catch (e) { return; }
+    var y = parseInt(q.get("year"), 10);
+    if (y >= 1 && y <= 3) { year = y; }
+    var ok = pickable();
+    (q.get("modules") || "").split(",").forEach(function (c) {
+      c = c.trim().toUpperCase();
+      if (ok[c]) { picked[c] = true; }
+    });
+    [].forEach.call(root.querySelectorAll(".ac__dd input"), function (i) { i.checked = !!picked[i.value]; });
+  }
+
+  function writeUrl() {
+    try {
+      var q = new URLSearchParams(window.location.search);
+      q.delete("year"); q.delete("modules");
+      if (year !== 1) { q.set("year", String(year)); }
+      var codes = Object.keys(picked).sort();
+      if (codes.length) { q.set("modules", codes.join(",")); }
+      var qs = q.toString().replace(/%2C/gi, ",");
+      window.history.replaceState(window.history.state, "", window.location.pathname + (qs ? "?" + qs : "") + window.location.hash);
+    } catch (e) { /* a file:// page or a locked-down browser: the link just does not update */ }
+  }
+
+  /* ---------- "Download your custom calendar" ---------- */
+
+  function longDate(d) { return DOW[d.getUTCDay()] + " " + d.getUTCDate() + " " + MON[d.getUTCMonth()]; }
+
+  function printCalendar() {
+    var old = document.getElementById("ac-print");
+    if (old) { old.parentNode.removeChild(old); }
+    var first = parse(D.start), last = new Date(first.getTime() + (D.weeks * 7 - 1) * 864e5);
+    var box = document.createElement("div");
+    box.id = "ac-print";
+    box.innerHTML = '<h1>Term 1 Assessment Calendar</h1>' +
+      '<p class="ac-print__sub">' + esc(D.academicYear) + ' \u00b7 Year ' + year + ' \u00b7 ' + esc(longDate(first)) + ' \u2013 ' + esc(longDate(last)) + ' ' + last.getUTCFullYear() + '</p>' +
+      sel.outerHTML + root.querySelector(".ac__wrap").outerHTML +
+      '<p class="ac-print__foot"><strong>Approximate dates.</strong> ' + esc(D.approxNote || "") + ' BioSoc Student Hub.</p>';
+    document.body.appendChild(box);
+    document.documentElement.classList.add("ac-printing");
+    function done() {
+      document.documentElement.classList.remove("ac-printing");
+      if (box.parentNode) { box.parentNode.removeChild(box); }
+    }
+    window.addEventListener("afterprint", done, { once: true });
+    window.print();
+  }
+
+  root.addEventListener("click", function (event) {
+    if (event.target.closest(".ac__print")) { printCalendar(); }
+  });
+
+  readUrl();
   draw();
 })();

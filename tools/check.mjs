@@ -634,7 +634,7 @@ check("a box shows only the assessment's name (no weighting underneath; that is 
     const boxes = [...cal.querySelectorAll(".ac__c")];
     const off = b => { const r = b.getBoundingClientRect(), t = document.createRange(); t.selectNodeContents(b.querySelector(".ac__t"));
       const q = t.getBoundingClientRect(); return { left: q.left - r.left, vmid: Math.abs((q.top - r.top) - (r.bottom - q.bottom)) }; };
-    const tops = ["Stats 1", "Scientific Summary", "Mock exam", "Lab Practical 3"].map(n => boxes.find(b => b.textContent.startsWith(n)));
+    const tops = ["Stats 1", "Scientific Summary", "Mock exam", "Lab Practical 3"].map(n => boxes.find(b => b.textContent.replace(/\u00a0/g, " ").startsWith(n)));
     return { noSmall: !cal.querySelector(".ac__c small"), onlyName: boxes.every(b => b.children.length === 1),
              centred: tops.every(b => off(b).vmid < 3.5), onTheLeft: tops.every(b => off(b).left < 14),
              weightInCard: (() => { const pop = document.getElementById("ac-pop"), b = tops[0]; b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); const t = pop.textContent; b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })); return /Weight10% together/.test(t); })() };
@@ -658,6 +658,79 @@ check("days are a fixed 144px (9rem) tall — equal in every week, and not force
     cal.querySelector('.ac__y[data-y="1"]').click();
     return out;
   }), { tall: "144", crowdedTall: "144", noOverflow: 0, radius: "8px", cardRadius: "8px" });
+{
+  const shared = await browser.newPage({ viewport: { width: 1500, height: 1200 } });
+  await shared.goto(SITE + "?year=2&modules=BS2013,mb2050,BOGUS,BS2200#create-your-calendar");
+  await shared.waitForTimeout(900);
+  check("a shareable link: ?year=2&modules=BS2013,MB2050#create-your-calendar opens the section on Year 2 with those modules picked (unknown codes and BS2200, which rides on the button, are ignored); the address follows every click, keeps the #hash, and the default Year 1 with nothing picked leaves a clean address",
+    await shared.evaluate(() => {
+      const cal = document.getElementById("assess-cal");
+      const press = () => [...cal.querySelectorAll(".ac__y")].map(b => b.getAttribute("aria-pressed")).join();
+      const chips = () => [...cal.querySelectorAll(".ac__sel-chip b")].map(c => c.textContent).join();
+      const out = { open: location.hash === "#create-your-calendar" && document.body.classList.contains("is-page-open"),
+        loaded: press() === "false,true,false" && chips() === "BS2200,BS2013,MB2050" && cal.querySelector('.ac__dd input[value="BS2013"]').checked && !cal.querySelector('.ac__dd input[value="MB2050"]').checked === false,
+        boxes: [...cal.querySelectorAll(".ac__c")].some(b => b.getAttribute("aria-label") === "BS2013 Report") };
+      cal.querySelector('.ac__y[data-y="3"]').click();
+      out.afterYear = location.search === "?year=3&modules=BS2013,MB2050" && location.hash === "#create-your-calendar";
+      cal.querySelector('.ac__sel-x[data-code="MB2050"]').click();
+      out.afterChip = location.search === "?year=3&modules=BS2013";
+      cal.querySelector('.ac__sel-x[data-code="BS2013"]').click();
+      cal.querySelector('.ac__y[data-y="1"]').click();
+      out.clean = location.search === "" && location.hash === "#create-your-calendar";
+      return out;
+    }), { open: true, loaded: true, boxes: true, afterYear: true, afterChip: true, clean: true });
+  await shared.goto(SITE + "?degree=genetics&year=3&modules=BS3000#create-your-calendar");
+  await shared.waitForTimeout(900);
+  check("the calendar's link keys and the module map's (?degree=...) share one query string without wiping each other, in both directions",
+    await shared.evaluate(async () => {
+      const q = () => new URLSearchParams(location.search);
+      const out = { startBoth: q().get("year") === "3" && q().get("degree") === "genetics" && q().get("modules") === "BS3000" };
+      document.querySelector('#assess-cal .ac__y[data-y="2"]').click();                    // calendar writes: the degree stays
+      out.calendarKeepsDegree = q().get("year") === "2" && q().get("degree") === "genetics";
+      const btn = [...document.querySelectorAll("#module-map .deg, #module-map [data-degree]")].find(b => (b.dataset.degree || b.dataset.id) === "zoology");
+      if (btn) { btn.click(); }                                                         // module map writes: the calendar's keys stay
+      out.mapKeepsCalendar = !!btn && q().get("degree") === "zoology" && q().get("year") === "2";
+      document.querySelector('#assess-cal .ac__y[data-y="1"]').click();
+      return out;
+    }), { startBoth: true, calendarKeepsDegree: true, mapKeepsCalendar: true });
+  await shared.goto(SITE + "?year=9&modules=#create-your-calendar");
+  await shared.waitForTimeout(700);
+  check("a nonsense link falls back to Year 1 with nothing picked",
+    await shared.evaluate(() => [...document.querySelectorAll("#assess-cal .ac__y")].map(b => b.getAttribute("aria-pressed")).join()), "true,false,false");
+  await shared.close();
+}
+check("'Download your custom calendar' is the last thing in the section; it builds a one-page A4 printout titled Term 1 Assessment Calendar (the chosen year and modules, 77 days, an approximate-dates note) and hides everything else while printing",
+  await (async () => {
+    await page.evaluate(() => { window.__printed = 0; window.print = () => { window.__printed++; }; document.querySelector("#assess-cal .ac__print").click(); });
+    await page.emulateMedia({ media: "print", colorScheme: "light" });
+    const out = await page.evaluate(() => {
+      const box = document.getElementById("ac-print"), btn = document.querySelector("#assess-cal .ac__print"), cal = document.getElementById("assess-cal");
+      const others = [...document.body.children].filter(c => c !== box && c.nodeType === 1);
+      return { clicked: window.__printed === 1,
+        last: btn.getBoundingClientRect().top >= cal.querySelector(".ac__grid").getBoundingClientRect().bottom && btn.textContent === "Download your custom calendar",
+        title: box.querySelector("h1").textContent === "Term 1 Assessment Calendar" && /Year 1/.test(box.querySelector(".ac-print__sub").textContent),
+        days: box.querySelectorAll(".ac__d").length, note: /Approximate/.test(box.textContent),
+        onlyPrintout: getComputedStyle(box).display === "flex" && others.every(c => getComputedStyle(c).display === "none") && document.documentElement.classList.contains("ac-printing"),
+        lightInk: getComputedStyle(box).color === "rgb(13, 28, 22)", fits: box.scrollHeight < 1030 };
+    });
+    const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true });
+    out.onePage = (pdf.toString("latin1").match(/\/Type\s*\/Page[^s]/g) || []).length === 1;
+    await page.emulateMedia({ media: "screen", colorScheme: "dark" });
+    await page.evaluate(() => window.dispatchEvent(new Event("afterprint")));
+    out.cleanedUp = await page.evaluate(() => !document.getElementById("ac-print") && !document.documentElement.classList.contains("ac-printing"));
+    return out;
+  })(), { clicked: true, last: true, title: true, days: 77, note: true, onlyPrintout: true, lightInk: true, fits: true, onePage: true, cleanedUp: true });
+check("the printout stays on one A4 page even with every module picked (the grid shrinks its days to make room for the chips)",
+  await (async () => {
+    await page.evaluate(() => { window.print = () => {}; [...document.querySelectorAll("#assess-cal .ac__dd input")].forEach(i => { if (!i.checked) { i.click(); } }); document.querySelector("#assess-cal .ac__print").click(); });
+    await page.emulateMedia({ media: "print", colorScheme: "light" });
+    const chips = await page.evaluate(() => document.querySelectorAll("#ac-print .ac__sel-chip").length);
+    const pdf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: true });
+    const pages = (pdf.toString("latin1").match(/\/Type\s*\/Page[^s]/g) || []).length;
+    await page.emulateMedia({ media: "screen", colorScheme: "dark" });
+    await page.evaluate(() => { window.dispatchEvent(new Event("afterprint")); [...document.querySelectorAll("#assess-cal .ac__dd input")].forEach(i => { if (i.checked) { i.click(); } }); });
+    return { manyChips: chips >= 20, pages };
+  })(), { manyChips: true, pages: 1 });
 await page.evaluate(() => { location.hash = "#study-resources"; });
 await page.waitForTimeout(700);
 console.log("\nthe Guides bento");
