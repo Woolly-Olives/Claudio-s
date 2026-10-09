@@ -12,7 +12,7 @@ import { chromium } from "/opt/node22/lib/node_modules/playwright/index.mjs";
 
 const SITE = process.env.SITE || "http://localhost:8123/index.html";
 const SECTIONS = ["essential-links", "study-resources", "customise-your-degree",
-                  "opportunities", "connect", "events", "join-biosoc"];
+                  "create-your-calendar", "connect", "events", "join-biosoc"];
 
 let failures = 0;
 function check(name, got, want) {
@@ -464,9 +464,9 @@ await page.evaluate(() => { location.hash = "#study-resources"; });
 await page.waitForTimeout(700);
 
 console.log("\nthe Term 1 Assessment Calendar");
-await page.evaluate(() => { location.hash = "#opportunities"; });
+await page.evaluate(() => { location.hash = "#create-your-calendar"; });
 await page.waitForTimeout(700);
-check("12 unbroken Monday-first weeks (84 days), Year 1 on, Years 2/3 off, both menus filled with Term 1 (semester 1) modules only",
+check("12 unbroken Monday-first weeks (84 days), Year 1 selected, both menus filled with Term 1 (semester 1) modules only — minus BS2200 and the Year 3 project, which ride on their year buttons",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal");
     const days = [...cal.querySelectorAll(".ac__d")];
@@ -476,7 +476,7 @@ check("12 unbroken Monday-first weeks (84 days), Year 1 on, Years 2/3 off, both 
       firstIs23: days[0].querySelector(".ac__n").textContent === "23",
       pressed: [...cal.querySelectorAll(".ac__y")].map(b => b.getAttribute("aria-pressed")).join(),
       menus: [2, 3].map(y => cal.querySelectorAll('.ac__dd[data-y="' + y + '"] input').length).join() };
-  }), { days: 84, onlyTerm1: true, firstIs23: true, pressed: "true,false,false", menus: "11,12" });
+  }), { days: 84, onlyTerm1: true, firstIs23: true, pressed: "true,false,false", menus: "10,11" });
 check("cards: exams say Time; Practical Competence uses its own wording; labs list Group Times; tutorials sit on Mondays; no year inside 2024/25",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal"), pop = document.getElementById("ac-pop");
@@ -503,24 +503,51 @@ check("practicals: BS1030 and BS1040 each run Practicals 1-5 on a Thursday and a
       numbers: [1, 2, 3, 4, 5].every(n => per("BS1030").some(e => e.n === n) && per("BS1040").some(e => e.n === n)),
       p3: /Lab Practical 3/.test(card("BS1030", 3)) && /TaskBlackboard MCQs \+ lab/.test(card("BS1030", 3)) && /Task dueThu 31 Oct, 09:00 or before your practical/.test(card("BS1030", 3)) && /WeightData used for the Practical Report/.test(card("BS1030", 3)),
       p4: /TaskTurnitin protocol submission/.test(card("BS1040", 4)) && /Task dueWed 20 Nov, 10:00/.test(card("BS1040", 4)) && /WeightFormative \(0%\)/.test(card("BS1040", 4)),
-      p1: /Lab Practical 1/.test(card("BS1030", 1)) && /None listed in the schedule/.test(card("BS1040", 1)) };
-  }), { counts: "10,10", thuFri: true, numbers: true, p3: true, p4: true, p1: true });
-check("the card is laid directly over its own deadline box (top-left corners together), ignores the mouse while hovering, and a clicked card takes it so a click closes it",
+      p1: /Lab Practical 1/.test(card("BS1030", 1)) && /None listed in the schedule/.test(card("BS1040", 1)),
+      fridayDots: labs.filter(b => dow(b) === 4).every(b => b.textContent === "..." && /^Lab Practical \d/.test(b.getAttribute("aria-label"))) &&
+                  labs.filter(b => dow(b) === 3).every(b => b.textContent === "Lab Practical"),
+      fridayCardKeepsTitle: (() => { const f = labs.find(b => dow(b) === 4); f.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); const t = pop.querySelector(".ac-card__title").textContent; f.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })); return /^Lab Practical \d$/.test(t); })() };
+  }), { counts: "10,10", thuFri: true, numbers: true, p3: true, p4: true, p1: true, fridayDots: true, fridayCardKeepsTitle: true });
+check("the card is laid over its own deadline box, corner to corner, with the same rounding; it stays while the mouse is on the card; leaving the card closes it; a clicked card stays until clicked away",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal"), pop = document.getElementById("ac-pop");
     const b = [...cal.querySelectorAll(".ac__c")].find(x => x.textContent.startsWith("Mock exam"));
     b.scrollIntoView({ block: "center" });
     b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    const r = b.getBoundingClientRect(), p = pop.querySelector(".ac-card").getBoundingClientRect();
-    const out = { onTop: Math.abs(p.left - r.left) < 2 && Math.abs(p.top - r.top) < 2 && p.width >= r.width - 1, hoverIgnoresMouse: getComputedStyle(pop).pointerEvents === "none" };
-    b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+    const card = pop.querySelector(".ac-card"), r = b.getBoundingClientRect(), p = card.getBoundingClientRect();
+    const out = { sameCorner: Math.abs(p.left - r.left) < 0.5 && Math.abs(p.top - r.top) < 0.5 && p.width >= r.width - 1,
+      sameRounding: getComputedStyle(card).borderTopLeftRadius === getComputedStyle(b).borderTopLeftRadius,
+      noRingOnBox: getComputedStyle(b).outlineStyle === "none" };
+    b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, relatedTarget: card }));     // the mouse slides from the box onto the card
+    out.staysOnCard = !pop.hidden;
+    pop.dispatchEvent(new MouseEvent("mouseleave", { relatedTarget: document.body }));
+    out.closesOnLeave = pop.hidden;
     b.click();
-    out.pinnedTakesMouse = getComputedStyle(pop).pointerEvents === "auto";
-    pop.querySelector(".ac-card").click();
-    document.body.click();
-    out.closes = pop.hidden;
+    out.pinned = !pop.hidden;
+    pop.dispatchEvent(new MouseEvent("mouseleave", { relatedTarget: document.body }));
+    out.pinnedSurvivesLeave = !pop.hidden;
+    pop.querySelector(".ac-card").click();      // (a fresh card: show() re-rendered it)
+    out.closesOnClick = pop.hidden;
     return out;
-  }), { onTop: true, hoverIgnoresMouse: true, pinnedTakesMouse: true, closes: true });
+  }), { sameCorner: true, sameRounding: true, noRingOnBox: true, staysOnCard: true, closesOnLeave: true, pinned: true, pinnedSurvivesLeave: true, closesOnClick: true });
+check("Year buttons work like radio buttons (one at a time, the chosen one can't be unpicked); Year 2 and 3 name the modules that ride on them; BS2200 and BS3PROJ are not in the menus; every menu title fits on one line",
+  await page.evaluate(() => {
+    const cal = document.getElementById("assess-cal");
+    const press = () => [...cal.querySelectorAll(".ac__y")].map(b => b.getAttribute("aria-pressed")).join();
+    const click = y => cal.querySelector('.ac__y[data-y="' + y + '"]').click();
+    const out = { start: press() };
+    click(2); out.y2 = press(); out.y2Note = /Year 2 includes BS2200 Research Skills 1\./.test(cal.querySelector(".ac__note").textContent);
+    click(2); out.y2Again = press();
+    click(3); out.y3 = press(); out.y3Note = /Year 3 includes BS3PROJ Research Project\./.test(cal.querySelector(".ac__note").textContent);
+    click(1); out.back = press(); out.noNoteForY1 = cal.querySelector(".ac__note").textContent === "";
+    const codes = [...cal.querySelectorAll(".ac__dd input")].map(i => i.value);
+    out.excluded = !codes.includes("BS2200") && !codes.includes("BS3PROJ");
+    out.oneLine = [...cal.querySelectorAll(".ac__dd")].map(d => { d.open = true; const m = d.querySelector(".ac__menu");
+      const ok = m.scrollWidth <= m.clientWidth + 1 && [...m.querySelectorAll("label")].every(l => l.offsetHeight < 34);
+      const inWindow = m.getBoundingClientRect().right <= window.innerWidth; d.open = false; return ok && inWindow; }).join();
+    return out;
+  }), { start: "true,false,false", y2: "false,true,false", y2Note: true, y2Again: "false,true,false", y3: "false,false,true", y3Note: true,
+        back: "true,false,false", noNoteForY1: true, excluded: true, oneLine: "true,true" });
 check("crowded days: three show titles only; four show two and '+2 more' whose card lists the others in a row; a date in the next academic year shows its year; Year 2/3 say none yet",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal"), D = window.BIOSOC_ASSESS, n0 = D.events.length;
@@ -546,10 +573,9 @@ check("crowded days: three show titles only; four show two and '+2 more' whose c
     out.nextYearShowsYear = /Wed 10 Sep 2025, 10:00/.test(document.getElementById("ac-pop").textContent);
     late.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
     D.weeks = weeks0; D.events.length = n0; redraw();
-    const before = cal.querySelectorAll(".ac__c").length;
     cal.querySelector('.ac__y[data-y="2"]').click();
-    out.noneYet = /No assessment dates have been added/.test(cal.querySelector(".ac__note").textContent) && cal.querySelectorAll(".ac__c").length === before;
-    cal.querySelector('.ac__y[data-y="2"]').click();
+    out.noneYet = /No assessment dates have been added/.test(cal.querySelector(".ac__note").textContent) && cal.querySelectorAll(".ac__c").length === 0;
+    cal.querySelector('.ac__y[data-y="1"]').click();
     return out;
   }), { three: true, four: true, hiddenInARow: true, nextYearShowsYear: true, noneYet: true });
 await page.evaluate(() => { location.hash = "#study-resources"; });
@@ -717,17 +743,17 @@ check("moving off the hub restores the default line",
   await page.evaluate(() => document.querySelector("#links-arc .arc__readout__note").textContent),
   "Here are the most useful links for university in one place!");
 
-console.log("\nthe Create Your Calendar section (the old Opportunities, id still `opportunities`)");
-await page.evaluate(() => { location.hash = "#opportunities"; });
+console.log("\nthe Create Your Calendar section (the old Opportunities; id changed to create-your-calendar)");
+await page.evaluate(() => { location.hash = "#create-your-calendar"; });
 await page.waitForTimeout(700);
 check("Opportunities is cleared out and renamed: wheel label, heading and no-JS link all say Create Your Calendar; no tiles or veil left; the calendar moved here from Study Resources",
   await page.evaluate(() => ({
     wheelLabel: [...document.querySelectorAll(".slice-label")].some(l => l.textContent.trim() === "Create Your Calendar"),
     noOldLabel: ![...document.querySelectorAll(".slice-label")].some(l => l.textContent.trim() === "Opportunities"),
-    heading: document.getElementById("h-opportunities").textContent,
-    section: document.querySelector("#page-opportunities h2").textContent,
-    noTiles: document.querySelectorAll("#page-opportunities .bento__tile, .bento-veil").length,
-    calendarHere: !!document.querySelector("#page-opportunities #assess-cal"),
+    heading: document.getElementById("h-create-your-calendar").textContent,
+    section: document.querySelector("#page-create-your-calendar h2").textContent,
+    noTiles: document.querySelectorAll("#page-create-your-calendar .bento__tile, .bento-veil").length,
+    calendarHere: !!document.querySelector("#page-create-your-calendar #assess-cal"),
     calendarGoneFromStudy: !document.querySelector("#page-study-resources #assess-cal"),
     noscript: /Create Your Calendar/.test(document.querySelector("noscript").textContent) || /Create Your Calendar/.test(document.querySelector("noscript").innerHTML),
   })),

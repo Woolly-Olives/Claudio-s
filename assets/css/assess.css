@@ -31,13 +31,13 @@
 }
 #assess-cal .ac__menu {
   position: absolute; top: calc(100% + 4px); left: 0; z-index: 10;
-  width: min(24rem, 86vw); max-height: 20rem; overflow: auto; padding: 0.35rem;
+  width: max-content; max-width: calc(100vw - 1rem); max-height: 20rem; overflow: auto; padding: 0.35rem;
   background: var(--surface); border: 2px solid var(--fg); border-radius: 0.75rem;
   box-shadow: 0 12px 30px hsl(0 0% 0% / 0.3);
 }
 #assess-cal .ac__menu label {
   display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem;
-  border-radius: 0.5rem; font-size: 0.85rem; cursor: pointer;
+  border-radius: 0.5rem; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
 }
 #assess-cal .ac__menu label:hover { background: var(--line-soft); }
 #assess-cal .ac__menu i { flex: none; width: 0.75rem; height: 0.75rem; border-radius: 3px; }
@@ -91,6 +91,8 @@
 #assess-cal .ac__c:hover, #assess-cal .ac__c:focus-visible, #assess-cal .ac__more:hover, #assess-cal .ac__more:focus-visible {
   outline: 2px solid var(--fg); outline-offset: 1px;
 }
+/* while its card is open the card covers the box, corner to corner: no ring poking out round it */
+#assess-cal [aria-describedby] { outline: none; }
 
 /* three or more on a day: titles only, centred, one line each */
 #assess-cal .ac__d--many .ac__c { align-items: center; justify-content: center; margin-top: 2px; padding: 0 0.4rem; font-size: 0.95rem; }
@@ -104,18 +106,15 @@
 /* the card (appended to <body>, positioned in the viewport by assess.js) */
 .ac-pop {
   position: fixed; z-index: 60; display: flex; gap: 0.6rem; max-width: calc(100vw - 16px);
-  pointer-events: none;
 }
 .ac-pop[hidden] { display: none; }
-/* a clicked (pinned) card takes the mouse so that clicking it closes it — it covers its own box */
-.ac-pop--pinned { pointer-events: auto; cursor: pointer; }
 .ac-pop__head {
   position: absolute; top: -1.5rem; left: 0; padding: 0.15rem 0.6rem; font-size: 0.75rem; font-weight: 700;
   color: var(--bg); background: var(--fg); border-radius: 0.5rem;
 }
 .ac-card {
   min-width: 16rem; overflow: hidden; color: var(--fg); background: var(--surface);
-  border: 2px solid var(--fg); border-radius: 0.9rem; box-shadow: 0 14px 34px hsl(0 0% 0% / 0.3);
+  border: 2px solid var(--fg); border-radius: 10px; box-shadow: 0 14px 34px hsl(0 0% 0% / 0.3);
 }
 .ac-card__strip { height: 0.6rem; background: var(--ec); }
 .ac-card__in { padding: 0.6rem 0.75rem 0.75rem; }

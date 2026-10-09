@@ -899,11 +899,7 @@ did.
 placeholder tiles, the `.bento-veil` and the veil CSS are gone. The section is now
 **Create Your Calendar** (wheel label in `app.js` `SECTIONS`, the `<h1>`, the no-JS
 link) and holds the **Term 1 Assessment Calendar**, moved here from Study
-Resources (see that section, below). **The id is still `opportunities`** — it is
-the URL hash and what `app.js`, `tools/check.mjs` and the noscript menu key on;
-changing it would break bookmarks and every test, and a new id must not collide
-with a container id (`#calendar` is the mini calendar's). Do not "finish" the
-rename by changing the id without being asked.
+Resources (see that section, below). **The id was changed from `opportunities` to `create-your-calendar` on 2026-10-09, at explicit instruction** (so `#opportunities` bookmarks no longer open it — no redirect was added). It is the URL hash and what `app.js` `SECTIONS`, `tools/check.mjs` and the noscript menu key on; a container id must still never equal it.
 
 ### Connect
 **Moved 2026-10-07, at explicit instruction: the students' advice now lives in
@@ -1641,3 +1637,5 @@ What was decided, so it is not re-asked: tutorial tasks sit on the Monday their 
 Known limits: shows only the 2024/25 weeks it is configured for (`start`, `weeks`), so it will look out of date; below ~44rem the grid scrolls sideways rather than reflowing; the Jan 2025 deadlines are in the data but past the last drawn week; the card is placed in the viewport and closes on scroll.
 
 **Changes 2026-10-08:** the calendar moved from Study Resources into the Create Your Calendar section and was renamed **Term 1 Assessment Calendar**; the Year 2 / Year 3 menus now offer **semester 1 modules only** (11 and 12) to match; the info card is laid **directly over its own box** (top-left corners together) — it ignores the mouse while hovering, or the box would lose the hover and flicker, and a clicked card takes the mouse so clicking it closes it; BS1030 and BS1040 each run **Lab Practicals 1–5**, and the card shows the prep task (task, task due, weight) from the table for Practicals 3–5. **Practicals 1 and 2 are the same two-week rhythm run backwards (BS1030 3 and 17 Oct, BS1040 10 and 24 Oct) — an inference, not in the table — and their cards say "None listed in the schedule".** Lab dates and tasks are built by `labs()` at the foot of `assets/data/assessments.js`.
+
+**Changes 2026-10-09:** section id → `create-your-calendar`. The info card now **holds while the mouse is over the card as well as the box** (it covers the box, so the mouse lands on it); it has the **same 10px rounding** as the boxes and lies corner to corner on its box (the box's hover ring is suppressed while its card is open). **One Year button at a time** (radio behaviour; the chosen one cannot be unpicked) — Year 2 and Year 3 name the modules that ride on them (**BS2200** and **BS3PROJ**, "Year 3 Project", which are no longer in the menus; their events, when there are any, take `year` 2 / 3). The menus are as wide as their longest title (one line each) and slide left rather than off-screen. On BS1030/BS1040 lab practicals the **Friday box reads just "..."** (`short: true` in `labs()`); its `aria-label` and the card keep "Lab Practical N".

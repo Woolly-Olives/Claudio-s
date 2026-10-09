@@ -1,17 +1,17 @@
 /* =============================================================
-   Term 1 Assessment Calendar (the "Create Your Calendar" section, id `opportunities`).
+   Term 1 Assessment Calendar (the "Create Your Calendar" section, id `create-your-calendar`).
 
    Twelve unbroken weeks of day boxes, Monday first; each deadline is a
    coloured box in its day (data: assets/data/assessments.js). Hover,
    focus or click a box for its card, which is laid directly over the box
-   (it ignores the mouse while hovering, or the box would lose the hover; a
-   clicked card stays until you click away or press Escape). A day with one or two events draws
+   (the hover holds while the mouse is over the box or the card; a clicked
+   card stays until you click away or press Escape). A day with one or two events draws
    them full size; three draw all three, compact and centred; four or more
    draw the first two (exams first, then deadlines, labs, tutorials) and a
    "+N more" button whose card shows the rest side by side.
 
-   Year 1 / 2 / 3 buttons switch a year's events on or off, and the two
-   menus pick single Year 2 and Year 3 modules. Only Year 1 has dates —
+   The Year 1 / 2 / 3 buttons pick one year at a time, and the two
+   menus add single Term 1 Year 2 and Year 3 modules. Only Year 1 has dates —
    see the data file — so asking for Year 2 or 3 says "none added yet"
    instead of drawing anything. Nothing here fetches or runs on a timer.
    ============================================================= */
@@ -71,19 +71,27 @@
     return m && m.schoolCore ? NEUTRAL.school : NEUTRAL.core;
   }
 
-  /* the menus offer Term 1 (semester 1) modules only, to match "Term 1 Assessment Calendar" */
+  /* Modules every student in a year takes ride on that year's button rather than
+     being pickable in its menu: select Year 2 and BS2200's dates (when there are
+     any) draw with the rest of Year 2; likewise the Year 3 project. */
+  var WITH_YEAR = { 2: ["BS2200"], 3: ["BS3PROJ"] };
+
+  /* the menus offer Term 1 (semester 1) modules only, to match "Term 1 Assessment
+     Calendar", minus the ones that ride on the year button */
   function modulesOf(year) {
-    return CUR ? CUR.modules.filter(function (m) { return m.year === year && m.semester === 1; }) : [];
+    return CUR ? CUR.modules.filter(function (m) {
+      return m.year === year && m.semester === 1 && (WITH_YEAR[year] || []).indexOf(m.code) === -1;
+    }) : [];
   }
 
   /* ---------- state ---------- */
 
-  var yearOn = { 1: true, 2: false, 3: false };
-  var picked = {};                         // module code -> true
+  var year = 1;                            // one Year button at a time, like radio buttons
+  var picked = {};                         // module code -> true (single modules from the menus)
 
   function wanted() {
     return D.events.filter(function (e) {
-      return yearOn[e.year] || picked[e.code];
+      return e.year === year || picked[e.code];
     });
   }
 
@@ -123,8 +131,8 @@
   function chip(e, compact) {
     shown.push(e);
     return '<button type="button" class="ac__c ac__c--' + esc(e.mod) + ' ac__c--' + esc(e.kind) +
-      (e.big ? ' ac__c--big' : '') + (!compact && e.half ? ' ac__c--half' : '') + '" data-k="' + (shown.length - 1) + '">' +
-      '<span class="ac__t">' + esc(e.title) + '</span>' +
+      (e.big ? ' ac__c--big' : '') + (!compact && e.half ? ' ac__c--half' : '') + '" data-k="' + (shown.length - 1) + '" aria-label="' + esc(e.title + (e.n ? " " + e.n : "")) + '">' +
+      '<span class="ac__t">' + esc(e.short ? "..." : e.title) + '</span>' +
       (!compact && e.weight && e.kind !== "lab" && e.kind !== "tutorial" ? '<small>' + esc(e.weight.split(" together")[0]) + '</small>' : '') +
       '</button>';
   }
@@ -160,11 +168,12 @@
     grid.innerHTML = h;
     hide();
 
-    var asked = (yearOn[2] || yearOn[3] || Object.keys(picked).length) &&
-      !evs.some(function (e) { return e.year > 1; });
-    note.textContent = asked ? "No assessment dates have been added for Year 2 or Year 3 modules yet — only Year 1's schedule is on the site." : "";
+    var inc = (WITH_YEAR[year] || []).map(function (c) { return c + (byCode[c] ? " " + byCode[c].title : ""); });
+    var asked = (year > 1 || Object.keys(picked).length) && !evs.some(function (e) { return e.year > 1; });
+    note.textContent = (inc.length ? "Year " + year + " includes " + inc.join(", ") + ". " : "") +
+      (asked ? "No assessment dates have been added for Year 2 or Year 3 modules yet — only Year 1's schedule is on the site." : "");
     [].forEach.call(root.querySelectorAll(".ac__y"), function (b) {
-      b.setAttribute("aria-pressed", yearOn[b.getAttribute("data-y")] ? "true" : "false");
+      b.setAttribute("aria-pressed", +b.getAttribute("data-y") === year ? "true" : "false");
     });
     [2, 3].forEach(function (y) {
       var n = modulesOf(y).filter(function (m) { return picked[m.code]; }).length;
@@ -185,7 +194,7 @@
   root.innerHTML =
     '<div class="ac__bar">' +
       [1, 2, 3].map(function (y) {
-        return '<button type="button" class="ac__y" data-y="' + y + '" aria-pressed="' + (yearOn[y] ? "true" : "false") + '">Year ' + y + '</button>';
+        return '<button type="button" class="ac__y" data-y="' + y + '" aria-pressed="' + (y === year ? "true" : "false") + '">Year ' + y + '</button>';
       }).join("") + menu(2) + menu(3) +
     '</div>' +
     '<p class="ac__note" aria-live="polite"></p>' +
@@ -199,8 +208,7 @@
   root.querySelector(".ac__bar").addEventListener("click", function (event) {
     var b = event.target.closest(".ac__y");
     if (!b) { return; }
-    var y = b.getAttribute("data-y");
-    yearOn[y] = !yearOn[y];
+    year = +b.getAttribute("data-y");
     draw();
   });
   root.querySelector(".ac__bar").addEventListener("change", function (event) {
@@ -208,6 +216,15 @@
     if (cb.type !== "checkbox") { return; }
     if (cb.checked) { picked[cb.value] = true; } else { delete picked[cb.value]; }
     draw();
+  });
+  [].forEach.call(root.querySelectorAll(".ac__dd"), function (d) {   // a wide menu slides left rather than off-screen
+    d.addEventListener("toggle", function () {
+      var m = d.querySelector(".ac__menu");
+      m.style.left = "0px";
+      if (!d.open) { return; }
+      var over = m.getBoundingClientRect().right - (window.innerWidth - 8);
+      if (over > 0) { m.style.left = -over + "px"; }
+    });
   });
   document.addEventListener("click", function (event) {      // a menu closes when you click away
     [].forEach.call(root.querySelectorAll(".ac__dd[open]"), function (d) {
@@ -254,7 +271,6 @@
     if (current) { current.removeAttribute("aria-describedby"); }
     current = null;
     pinned = false;
-    pop.classList.remove("ac-pop--pinned");
     pop.hidden = true;
   }
 
@@ -266,9 +282,14 @@
     var b = boxOf(event);
     if (b && !pinned && b !== current) { show(b); }
   });
+  /* the card covers its box, so the mouse ends up on the card: that must not count as
+     leaving. The hover lasts while the mouse is over the box OR the card. */
   grid.addEventListener("mouseout", function (event) {
-    if (boxOf(event) && !pinned) { hide(); }
+    if (!boxOf(event) || pinned) { return; }
+    if (event.relatedTarget && pop.contains(event.relatedTarget)) { return; }
+    hide();
   });
+  pop.addEventListener("mouseleave", function () { if (!pinned) { hide(); } });
   grid.addEventListener("focusin", function (event) {
     var b = boxOf(event);
     if (b) { show(b); }
@@ -278,7 +299,7 @@
     var b = boxOf(event);
     if (!b) { return; }
     event.stopPropagation();
-    if (b === current && pinned) { hide(); } else { show(b); pinned = true; pop.classList.add("ac-pop--pinned"); }
+    if (b === current && pinned) { hide(); } else { show(b); pinned = true; }
   });
   document.addEventListener("click", function (event) {
     if (!pop.hidden && !grid.contains(event.target)) { hide(); }

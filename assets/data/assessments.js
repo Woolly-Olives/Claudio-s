@@ -24,8 +24,13 @@
        weight  "10%", ...
        big     true  -> the thick outline (the written pieces)
        half    true  -> half-height box on a day with one or two events
+       short   true  -> the box shows just "..." (the card keeps the title); used
+               on the Friday lab boxes
        n, prep lab practicals only: the practical's number, and its prep task
                { task, due, time, weight } (see labs() at the foot of this file)
+
+   Modules every student in a year takes (BS2200 in Year 2, BS3PROJ in Year 3) show
+   with that year's button, not in its menu: give their events year 2 / 3.
 
    Year 2 and Year 3 have no assessment schedule in the project yet, so
    the Year 2 / Year 3 buttons and menus draw nothing and say so. Do NOT
@@ -127,7 +132,7 @@ function labs() {
       [0, 1].forEach(function (add) {
         var d = new Date(thu.getTime() + add * 86400000);
         out.push({ date: d.toISOString().slice(0, 10), mod: mod, code: mod, year: 1, kind: "lab", half: true,
-                   title: "Lab Practical", n: r[1], prep: r[2] || null });
+                   title: "Lab Practical", n: r[1], prep: r[2] || null, short: add === 1 });
       });
     });
   });

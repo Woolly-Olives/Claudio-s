@@ -39,11 +39,11 @@ something breaks that it would not have caught. Work on branch
 - **`inert` on a descendant does not survive the panel's `inert` being
   removed.** `app.js` re-asserts it on open (written for the veiled
   Opportunities tiles, removed 2026-10-08; kept as a general guard).
-- **"Create Your Calendar" is the old Opportunities section — its id is still
-  `opportunities`.** Only the words changed; the id is the URL hash and what
-  `app.js` and `tools/check.mjs` key on. The Term 1 Assessment Calendar
-  (`assess.js`, `assessments.js`) lives there; Year 2/3 have no dates and none
-  are to be invented.
+- **"Create Your Calendar" is the old Opportunities section.** Its id was
+  changed to `create-your-calendar` on 2026-10-09 (the id is the URL hash and
+  what `app.js` and `tools/check.mjs` key on; no redirect from `#opportunities`).
+  The Term 1 Assessment Calendar (`assess.js`, `assessments.js`) lives there;
+  Year 2/3 have no dates and none are to be invented.
 - **Colour is three-state now, not two**: system dark, system light, or
   forced by `[data-theme]` from the light/dark toggle (`assets/js/theme.js`,
   top right). A component that hardcodes a colour instead of `var(--token)`

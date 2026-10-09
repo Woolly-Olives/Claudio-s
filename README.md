@@ -7,7 +7,7 @@ always radiates at the slice's angle. Essential Links is the exception: it zooms
 into its slice instead (see below).
 
 The seven sections are **Essential Links**, **Study Resources**,
-**Customise Your Degree**, **Create Your Calendar** (formerly Opportunities; id still `opportunities`), **Connect** and **Events**, plus
+**Customise Your Degree**, **Create Your Calendar** (formerly Opportunities; id `create-your-calendar`), **Connect** and **Events**, plus
 **BioSoc Newsletter**. All seven now have content.
 
 ## For whoever works on this next
