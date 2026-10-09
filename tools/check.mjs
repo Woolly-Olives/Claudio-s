@@ -505,10 +505,11 @@ check("practicals: BS1030 and BS1040 each run Practicals 1-5 on a Thursday and a
       p4: /TaskTurnitin protocol submission/.test(card("BS1040", 4)) && /Task dueWed 20 Nov, 10:00/.test(card("BS1040", 4)) && /WeightFormative \(0%\)/.test(card("BS1040", 4)),
       p1: /Lab Practical 1/.test(card("BS1030", 1)) && /None listed in the schedule/.test(card("BS1040", 1)),
       fridayDots: labs.filter(b => dow(b) === 4).every(b => b.textContent === "..." && /^Lab Practical \d/.test(b.getAttribute("aria-label"))) &&
-                  labs.filter(b => dow(b) === 3).every(b => b.textContent === "Lab Practical"),
+                  labs.filter(b => dow(b) === 3).every(b => /^Lab Practical\s[1-5]$/.test(b.textContent)) &&
+                  new Set(labs.filter(b => dow(b) === 3).map(b => b.textContent)).size === 5,
       fridayCardKeepsTitle: (() => { const f = labs.find(b => dow(b) === 4); f.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); const t = pop.querySelector(".ac-card__title").textContent; f.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })); return /^Lab Practical \d$/.test(t); })() };
   }), { counts: "10,10", thuFri: true, numbers: true, p3: true, p4: true, p1: true, fridayDots: true, fridayCardKeepsTitle: true });
-check("the card is laid over its own deadline box, corner to corner, with the same rounding; it stays while the mouse is on the card; leaving the card closes it; a clicked card stays until clicked away",
+check("the card is laid over its own deadline box, corner to corner, with the same rounding; it stays while the mouse is on the card; leaving the card closes it; clicking the box or the card keeps it open and only a click outside both closes it; no thick outlines on any box",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal"), pop = document.getElementById("ac-pop");
     const b = [...cal.querySelectorAll(".ac__c")].find(x => x.textContent.startsWith("Mock exam"));
@@ -517,19 +518,27 @@ check("the card is laid over its own deadline box, corner to corner, with the sa
     const card = pop.querySelector(".ac-card"), r = b.getBoundingClientRect(), p = card.getBoundingClientRect();
     const out = { sameCorner: Math.abs(p.left - r.left) < 0.5 && Math.abs(p.top - r.top) < 0.5 && p.width >= r.width - 1,
       sameRounding: getComputedStyle(card).borderTopLeftRadius === getComputedStyle(b).borderTopLeftRadius,
-      noRingOnBox: getComputedStyle(b).outlineStyle === "none" };
+      noRingOnBox: getComputedStyle(b).outlineStyle === "none",
+      noThickOutlines: [...cal.querySelectorAll(".ac__c")].every(x => getComputedStyle(x).borderTopWidth === "0px") };
     b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, relatedTarget: card }));     // the mouse slides from the box onto the card
     out.staysOnCard = !pop.hidden;
     pop.dispatchEvent(new MouseEvent("mouseleave", { relatedTarget: document.body }));
     out.closesOnLeave = pop.hidden;
-    b.click();
+    b.click();                                                                               // click the box: pinned
     out.pinned = !pop.hidden;
     pop.dispatchEvent(new MouseEvent("mouseleave", { relatedTarget: document.body }));
     out.pinnedSurvivesLeave = !pop.hidden;
-    pop.querySelector(".ac-card").click();      // (a fresh card: show() re-rendered it)
-    out.closesOnClick = pop.hidden;
+    pop.querySelector(".ac-card").click();                                                   // click the card: stays
+    out.cardClickKeeps = !pop.hidden;
+    b.click();                                                                               // click the box again: stays
+    out.boxClickKeeps = !pop.hidden;
+    cal.querySelector(".ac__grid").click();                                                  // click empty calendar: closes
+    out.outsideCloses = pop.hidden;
+    b.click(); document.body.click();
+    out.bodyCloses = pop.hidden;
     return out;
-  }), { sameCorner: true, sameRounding: true, noRingOnBox: true, staysOnCard: true, closesOnLeave: true, pinned: true, pinnedSurvivesLeave: true, closesOnClick: true });
+  }), { sameCorner: true, sameRounding: true, noRingOnBox: true, noThickOutlines: true, staysOnCard: true, closesOnLeave: true, pinned: true,
+        pinnedSurvivesLeave: true, cardClickKeeps: true, boxClickKeeps: true, outsideCloses: true, bodyCloses: true });
 check("Year buttons work like radio buttons (one at a time, the chosen one can't be unpicked); Year 2 and 3 name the modules that ride on them; BS2200 and BS3PROJ are not in the menus; every menu title fits on one line",
   await page.evaluate(() => {
     const cal = document.getElementById("assess-cal");
@@ -544,7 +553,9 @@ check("Year buttons work like radio buttons (one at a time, the chosen one can't
     out.excluded = !codes.includes("BS2200") && !codes.includes("BS3PROJ");
     out.oneLine = [...cal.querySelectorAll(".ac__dd")].map(d => { d.open = true; const m = d.querySelector(".ac__menu");
       const ok = m.scrollWidth <= m.clientWidth + 1 && [...m.querySelectorAll("label")].every(l => l.offsetHeight < 34);
-      const inWindow = m.getBoundingClientRect().right <= window.innerWidth; d.open = false; return ok && inWindow; }).join();
+      const inWindow = m.getBoundingClientRect().right <= window.innerWidth;
+      const allShown = m.scrollHeight <= m.clientHeight + 1;       // no scrolling inside the menu: every option visible at once
+      d.open = false; return ok && inWindow && allShown; }).join();
     return out;
   }), { start: "true,false,false", y2: "false,true,false", y2Note: true, y2Again: "false,true,false", y3: "false,false,true", y3Note: true,
         back: "true,false,false", noNoteForY1: true, excluded: true, oneLine: "true,true" });

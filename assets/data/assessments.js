@@ -22,7 +22,6 @@
        when    overrides the date-and-time line on the card
        type    "Blackboard MCQs", ...
        weight  "10%", ...
-       big     true  -> the thick outline (the written pieces)
        half    true  -> half-height box on a day with one or two events
        short   true  -> the box shows just "..." (the card keeps the title); used
                on the Friday lab boxes
@@ -75,15 +74,15 @@ window.BIOSOC_ASSESS = {
 
     { date: "2024-10-16", mod: "BS1040", code: "BS1040", year: 1, kind: "deadline", half: true, title: "Stats 1", time: "10:00",
       type: "Blackboard MCQs", weight: "10% together with all 4 stats MCQs" },
-    { date: "2024-10-23", mod: "BS1030", code: "BS1030", year: 1, kind: "deadline", big: true, title: "Scientific Summary", time: "10:00",
+    { date: "2024-10-23", mod: "BS1030", code: "BS1030", year: 1, kind: "deadline", title: "Scientific Summary", time: "10:00",
       type: "Essay", weight: "10%" },
     { date: "2024-10-30", mod: "BS1040", code: "BS1040", year: 1, kind: "deadline", half: true, title: "Stats 2", time: "10:00",
       type: "Blackboard MCQs", weight: "10% together with all 4 stats MCQs" },
-    { date: "2024-11-13", mod: "BS1030", code: "BS1030", year: 1, kind: "deadline", big: true, title: "Practical Report", time: "10:00",
+    { date: "2024-11-13", mod: "BS1030", code: "BS1030", year: 1, kind: "deadline", title: "Practical Report", time: "10:00",
       type: "Report submission via Turnitin", weight: "20%" },
     { date: "2024-11-13", mod: "BS1040", code: "BS1040", year: 1, kind: "deadline", half: true, title: "Stats 3", time: "10:00",
       type: "Blackboard MCQ", weight: "10% together with all 4 stats MCQs" },
-    { date: "2024-11-27", mod: "BS1040", code: "BS1040", year: 1, kind: "deadline", big: true, title: "Essay", time: "10:00",
+    { date: "2024-11-27", mod: "BS1040", code: "BS1040", year: 1, kind: "deadline", title: "Essay", time: "10:00",
       type: "Essay submitted via Turnitin", weight: "20%" },
     { date: "2024-11-27", mod: "BS1040", code: "BS1040", year: 1, kind: "deadline", half: true, title: "Stats 4", time: "10:00",
       type: "Blackboard MCQs", weight: "10% together with all 4 stats MCQs" },

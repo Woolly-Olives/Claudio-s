@@ -4,8 +4,9 @@
    Twelve unbroken weeks of day boxes, Monday first; each deadline is a
    coloured box in its day (data: assets/data/assessments.js). Hover,
    focus or click a box for its card, which is laid directly over the box
-   (the hover holds while the mouse is over the box or the card; a clicked
-   card stays until you click away or press Escape). A day with one or two events draws
+   (the hover holds while the mouse is over the box or the card; clicking the
+   box or the card keeps it open, and it closes only on a click outside both,
+   Escape, or scrolling). A day with one or two events draws
    them full size; three draw all three, compact and centred; four or more
    draw the first two (exams first, then deadlines, labs, tutorials) and a
    "+N more" button whose card shows the rest side by side.
@@ -131,8 +132,8 @@
   function chip(e, compact) {
     shown.push(e);
     return '<button type="button" class="ac__c ac__c--' + esc(e.mod) + ' ac__c--' + esc(e.kind) +
-      (e.big ? ' ac__c--big' : '') + (!compact && e.half ? ' ac__c--half' : '') + '" data-k="' + (shown.length - 1) + '" aria-label="' + esc(e.title + (e.n ? " " + e.n : "")) + '">' +
-      '<span class="ac__t">' + esc(e.short ? "..." : e.title) + '</span>' +
+      (!compact && e.half ? ' ac__c--half' : '') + '" data-k="' + (shown.length - 1) + '" aria-label="' + esc(e.title + (e.n ? " " + e.n : "")) + '">' +
+      '<span class="ac__t">' + esc(e.short ? "..." : e.title + (e.n ? "\u00a0" + e.n : "")) + '</span>' +   /* non-breaking: the number never wraps alone */
       (!compact && e.weight && e.kind !== "lab" && e.kind !== "tutorial" ? '<small>' + esc(e.weight.split(" together")[0]) + '</small>' : '') +
       '</button>';
   }
@@ -298,11 +299,14 @@
   grid.addEventListener("click", function (event) {
     var b = boxOf(event);
     if (!b) { return; }
-    event.stopPropagation();
-    if (b === current && pinned) { hide(); } else { show(b); pinned = true; }
+    /* a click on a box (or its open card) never closes the card — it pins it;
+       only a click outside the box and card does that */
+    if (b !== current) { show(b); }
+    pinned = true;
   });
   document.addEventListener("click", function (event) {
-    if (!pop.hidden && !grid.contains(event.target)) { hide(); }
+    if (pop.hidden || pop.contains(event.target) || boxOf(event)) { return; }
+    hide();
   });
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && !pop.hidden) { hide(); }

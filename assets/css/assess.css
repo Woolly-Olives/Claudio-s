@@ -31,7 +31,7 @@
 }
 #assess-cal .ac__menu {
   position: absolute; top: calc(100% + 4px); left: 0; z-index: 10;
-  width: max-content; max-width: calc(100vw - 1rem); max-height: 20rem; overflow: auto; padding: 0.35rem;
+  width: max-content; max-width: calc(100vw - 1rem); max-height: calc(100vh - 2rem); overflow: auto; padding: 0.35rem;
   background: var(--surface); border: 2px solid var(--fg); border-radius: 0.75rem;
   box-shadow: 0 12px 30px hsl(0 0% 0% / 0.3);
 }
@@ -84,7 +84,6 @@
 #assess-cal .ac__c--BS1040 { --bx: #4ade80; }
 #assess-cal .ac__c--both   { --bx: #ff3131; }
 #assess-cal .ac__c--ADBS001 { --bx: #c084fc; color: #1c0a30; }
-#assess-cal .ac__c--big { border: 3px solid var(--fg); padding: 0.2rem 0.35rem; }
 #assess-cal .ac__c--half { flex: none; height: 3.5rem; }
 /* a lab practical is the faded one: the fill, not the words */
 #assess-cal .ac__c--lab { background: color-mix(in srgb, var(--bx) 40%, transparent); color: var(--fg); }
