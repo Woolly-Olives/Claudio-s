@@ -930,6 +930,14 @@ check("every intro arrow lines up level with Year 1 Semester 1's",
 check("three veils, not six — one per year, labelled just \"Year N\"",
   await page.evaluate(() => [...document.querySelectorAll("#module-map .mm__veil__label")].map(el => el.textContent)),
   ["Year 1", "Year 2", "Year 3"]);
+check("the covers are under half as opaque as before (was 0.82 / 0.85)",
+  await page.evaluate(() => [...document.querySelectorAll("#module-map .mm__veil")].every(v => { const m = getComputedStyle(v).backgroundColor.match(/[\d.]+/g); return m.length === 4 && +m[3] > 0 && +m[3] <= 0.41; })),
+  true);
+check("the big Year titles ride on top of the covers: above them, and still off-position while the last year has yet to float in",
+  await page.evaluate(() => {
+    const heads = [...document.querySelectorAll("#module-map .mm__year-head")], veil = document.querySelector("#module-map .mm__veil");
+    return { above: heads.every(h => +getComputedStyle(h).zIndex > +getComputedStyle(veil).zIndex), lastMoving: getComputedStyle(heads[2]).transform !== "none" };
+  }), { above: true, lastMoving: true });
 check("the veil arrow is massive — at least 4x its old 2.4rem–3.6rem size",
   await page.evaluate(() => document.querySelector("#module-map .mm__veil__arrow").getBoundingClientRect().width >= 150),
   true);
@@ -1025,6 +1033,16 @@ check("BS1060 (nested list) shows 1 bullet with 3 sub-bullets",
 check("a module with no overview (BS2009) shows N/A instead",
   await overviewOf("BS2009"), { hasNA: true, topLevel: 0, nested: 0 });
 
+check("the 'i' details box is twice as wide as before (60rem, four semesters across), capped by a narrower window",
+  await (async () => {
+    await page.waitForTimeout(2500);   // the intro is long over
+    await page.evaluate(() => document.querySelector('[data-info="BS1030"]').click());
+    await page.waitForTimeout(200);
+    const w = await page.evaluate(() => document.querySelector("#module-map .sheet__card").getBoundingClientRect().width);
+    await page.evaluate(() => document.querySelector("[data-close]").click());
+    await page.waitForTimeout(150);
+    return Math.round(w);
+  })(), 960);
 console.log("\nModule Convenors / Aims / Learning Outcomes / Method of Assessment");
 async function detailSectionsOf(code) {
   await page.evaluate(c => document.querySelector('[data-info="' + c + '"]').click(), code);
@@ -1207,6 +1225,14 @@ check("it sits level with the wheel — never higher than the circle — and cle
     const w = document.querySelector(".wheel").getBoundingClientRect();
     return { notAbove: c.top >= w.top - 1, notBelow: c.bottom <= w.bottom + 1, clearOfWheel: c.right < w.left };
   }), { notAbove: true, notBelow: true, clearOfWheel: true });
+check("the gap between the mini calendar and the circle is 5rem (2.5 x the original 2rem)",
+  await calPage.evaluate(() => {
+    const c = document.querySelector("#minical").getBoundingClientRect();
+    const mc = document.querySelector("#minical .mc").getBoundingClientRect();
+    const w = document.querySelector(".wheel").getBoundingClientRect();
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    return Math.round((w.left - c.right) / rem * 10) / 10;
+  }), 5);
 check("a day with an event is coloured; hovering it opens a box with the event's title",
   await (async () => {
     const btn = calPage.locator("#minical button.mc__day--ev").first();

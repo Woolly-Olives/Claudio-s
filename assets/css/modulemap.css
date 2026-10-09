@@ -286,6 +286,8 @@
   margin: 0 0 0.2rem;
   padding-bottom: 0.2rem;
   border-bottom: 2px solid hsl(var(--dh) 50% 50% / 0.35);
+  position: relative;
+  z-index: 5;   /* above the intro's veil (z-index 4), so the title rides on top of it */
   font-size: 2.7rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -684,7 +686,7 @@
 
 #module-map .sheet__card {
   position: relative;
-  width: min(100%, 30rem);
+  width: min(100%, 60rem);   /* twice the original 30rem: four semesters wide */
   max-height: 80vh;
   overflow-y: auto;
   padding: 1.5rem 1.6rem;
@@ -900,7 +902,12 @@
   transform: translateY(-120px);
 }
 
-#module-map .col.is-floated {
+#module-map .mm__board--intro .mm__year-head {
+  transform: translateY(-120px);
+}
+
+#module-map .col.is-floated,
+#module-map .mm__year-head.is-floated {
   transform: none;
   transition: transform 1000ms ease-in-out;
 }
@@ -938,7 +945,7 @@
   position: absolute;
   z-index: 4;
   border-radius: 14px;
-  background: hsl(var(--dh) 45% 12% / 0.82);
+  background: hsl(var(--dh) 45% 12% / 0.36);   /* was 0.82; under half as opaque */
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
   color: hsl(var(--dh) 70% 92%);
@@ -946,7 +953,7 @@
 }
 
 @media (prefers-color-scheme: light) {
-  #module-map .mm__veil { background: hsl(var(--dh) 55% 22% / 0.85); }
+  #module-map .mm__veil { background: hsl(var(--dh) 55% 22% / 0.38); }
 }
 
 /* Positioned by runIntro() in modulemap.js, not centred in its own

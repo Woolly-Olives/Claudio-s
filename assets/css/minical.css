@@ -24,7 +24,7 @@
   --g: calc(var(--s) * 0.18);              /* the gap between squares */
   position: absolute;
   top: calc(50% - var(--wheel-size) / 2);
-  right: calc(50% + var(--wheel-size) / 2 + 2rem);
+  right: calc(50% + var(--wheel-size) / 2 + 5rem);   /* 2.5x the original 2rem gap */
   height: var(--wheel-size);
   display: flex;
   align-items: center;
@@ -146,8 +146,8 @@
 .mc-tip__note { margin-top: 0.15rem; color: var(--fg-soft); font-size: 0.78rem; }
 
 /* Below this width the wheel (capped at 640px) leaves less than the
-   calendar's own width plus its gap to either side, so rather than
-   overlap the wheel it simply isn't shown. */
-@media (max-width: 1080px) {
+   calendar's own width (~160px) plus its 5rem gap to either side, so rather
+   than run off the screen it simply isn't shown. */
+@media (max-width: 1160px) {
   .minical { display: none; }
 }

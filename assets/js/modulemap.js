@@ -1005,6 +1005,7 @@
       colEl.classList.remove("is-floated");
       colEl.classList.remove("is-revealed");
     });
+    yearHeads.forEach(function (h) { h.classList.remove("is-floated"); });
 
     /*
      * One veil per year, spanning both of its semester columns and the
@@ -1092,6 +1093,7 @@
       window.setTimeout(function () {
         cols[y * 2].classList.add("is-floated");
         cols[y * 2 + 1].classList.add("is-floated");
+        yearHeads[y].classList.add("is-floated");   // the big title travels down with its veil, on top of it
         veil.style.transition = "transform " + FLOAT_MS + "ms ease-in-out";
         veil.style.transform = "";
       }, START_MS + y * STEP_MS);
@@ -1122,6 +1124,7 @@
                 c.classList.remove("is-floated");
                 c.classList.remove("is-revealed");
               });
+              yearHeads.forEach(function (h) { h.classList.remove("is-floated"); });
             }
           }, VEIL_MS + 200);
         }, y * STEP_MS);
