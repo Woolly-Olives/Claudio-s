@@ -74,6 +74,7 @@
     if (found) { return found.colour; }
     return m && m.schoolCore ? NEUTRAL.school : NEUTRAL.core;
   }
+  window.BIOSOC_SWATCH = swatch;   // sand.js (the Sand Visualiser) colours its modules with the same rule
 
   /* Modules every student in a year takes ride on that year's button rather than
      being pickable in its menu: select Year 2 and BS2200's dates (when there are

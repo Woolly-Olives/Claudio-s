@@ -115,13 +115,13 @@ check("closed by default, 75%-of-phone-width panel (capped at 320px)",
   { open: false, matchesFormula: true });
 await page.click("#menu-toggle");
 await page.waitForTimeout(350);
-check("opens with five options (four dummy, Timetable real) and moves focus inside",
+check("opens with six options (four dummy, Timetable and Sand Visualiser real) and moves focus inside",
   await page.evaluate(() => ({
     open: document.getElementById("menu-drawer").classList.contains("is-open"),
     options: [...document.querySelectorAll(".menu-drawer__link")].map(b => b.textContent),
     focusInPanel: document.getElementById("menu-drawer-panel").contains(document.activeElement),
   })),
-  { open: true, options: ["FAQs", "Campus map", "Contact list", "About BioSoc", "Timetable"], focusInPanel: true });
+  { open: true, options: ["FAQs", "Campus map", "Contact list", "About BioSoc", "Timetable", "Sand Visualiser"], focusInPanel: true });
 await page.keyboard.press("Escape");
 await page.waitForTimeout(350);
 check("Escape closes it and returns focus to the toggle",
@@ -221,6 +221,53 @@ check("back button returns to the wheel", await (async () => {
   await page.waitForTimeout(700);
   return page.evaluate(() => ({ hash: location.hash, anyOpen: document.body.classList.contains("is-page-open") }));
 })(), { hash: "", anyOpen: false });
+
+console.log("\nthe Sand Visualiser page");
+const ink = () => page.evaluate(() => { const c = document.querySelector("#sand-viz canvas"), d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) { if (d[i] > 0) { n++; } } return n; });
+check("a plain link in the burger menu; nothing is drawn until the page is opened (biosoc:page gate)",
+  await page.evaluate(() => {
+    const link = document.querySelector('.menu-drawer__link[href="#sand-visualiser"]');
+    const c = document.querySelector("#sand-viz canvas"), d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    return { tag: link.tagName, closesMenu: link.hasAttribute("data-menu-close"), blank: d.every(v => v === 0) };
+  }), { tag: "A", closesMenu: true, blank: true });
+await page.click("#menu-toggle");
+await page.waitForTimeout(350);
+await page.click('.menu-drawer__link[href="#sand-visualiser"]');
+await page.waitForTimeout(1800);
+check("opens as a flat sub-page and starts pouring",
+  await page.evaluate(() => ({
+    drawerOpen: document.getElementById("menu-drawer").classList.contains("is-open"),
+    pageOpen: document.getElementById("page-sand-visualiser").classList.contains("is-open"),
+    clipPath: getComputedStyle(document.getElementById("page-sand-visualiser")).clipPath,
+    title: document.querySelector("#h-sand-visualiser").textContent,
+  })), { drawerOpen: false, pageOpen: true, clipPath: "none", title: "Sand Visualiser" });
+const midInk = await ink();
+await page.waitForTimeout(6500);
+const endInk = await ink();
+check("the pile builds up and ends fuller than it was mid-pour", endInk > midInk && midInk > 0, true);
+check("the deadlines are listed under the picture (modules BS2200, BS2009, BS2059, BS2093 only), with an approximate-dates note",
+  await page.evaluate(() => {
+    const li = [...document.querySelectorAll("#sand-viz .sv__list li")].map(l => l.querySelector("b").textContent);
+    return { some: li.length >= 5, only: li.every(c => ["BS2200", "BS2009", "BS2059", "BS2093"].includes(c)), note: /Approximate/.test(document.querySelector("#sand-viz .sv__note").textContent) };
+  }), { some: true, only: true, note: true });
+await page.click("#sand-viz .sv__replay");
+await page.waitForTimeout(400);
+check("Replay starts the pour again from an empty picture", (await ink()) < endInk * 0.6, true);
+await page.waitForTimeout(6500);
+check("back button returns to the wheel", await (async () => {
+  await page.click("#page-sand-visualiser [data-back]");
+  await page.waitForTimeout(700);
+  return page.evaluate(() => ({ hash: location.hash, anyOpen: document.body.classList.contains("is-page-open") }));
+})(), { hash: "", anyOpen: false });
+{
+  const calm = await browser.newPage({ viewport: { width: 1400, height: 900 }, reducedMotion: "reduce" });
+  await calm.goto(SITE + "#sand-visualiser");
+  await calm.waitForTimeout(2200);
+  const n = await calm.evaluate(() => { const c = document.querySelector("#sand-viz canvas"), d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data; let k = 0; for (let i = 3; i < d.length; i += 4) { if (d[i] > 0) { k++; } } return { pixels: k, replayHidden: document.querySelector("#sand-viz .sv__replay").hidden }; });
+  check("with reduced motion the finished picture is there at once and there is no Replay",
+    { drawn: n.pixels > endInk * 0.8, replayHidden: n.replayHidden }, { drawn: true, replayHidden: true });
+  await calm.close();
+}
 
 console.log("\nsub-pages open without the section-level bubble");
 /* .page--flat sets clip-path: none unconditionally (not just once open),

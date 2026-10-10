@@ -1,0 +1,28 @@
+/* =============================================================
+   Sand Visualiser (assets/js/sand.js). Scoped to #sand-viz. Colours are
+   the site's tokens, so it follows system dark / light / the toggle.
+   ============================================================= */
+#sand-viz { margin: 0 0 2rem; }
+#sand-viz .sv__legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin: 0 0 0.9rem; font-size: 0.82rem; color: var(--fg-soft); }
+#sand-viz .sv__key { display: inline-flex; align-items: center; gap: 0.4rem; }
+#sand-viz .sv__key b, #sand-viz .sv__list b { color: var(--fg); }
+#sand-viz .sv__key i, #sand-viz .sv__list i { flex: none; width: 0.75rem; height: 0.75rem; border-radius: 3px; display: inline-block; }
+
+/* under ~45rem the weeks would be too thin to read: let the picture scroll sideways, as the calendar does */
+#sand-viz .sv__wrap { overflow-x: auto; border-radius: 14px; background: color-mix(in srgb, var(--fg) 4%, transparent); padding: 0.5rem; }
+#sand-viz .sv__canvas { display: block; width: 100%; min-width: 45rem; height: auto; aspect-ratio: 1440 / 345; }
+
+#sand-viz .sv__bar { display: flex; align-items: center; gap: 0.9rem; margin: 0.8rem 0 0; min-height: 2.4rem; }
+#sand-viz .sv__replay {
+  font: inherit; font-weight: 700; font-size: 0.9rem; padding: 0.45rem 1.1rem; cursor: pointer;
+  color: var(--bg); background: var(--fg); border: 2px solid var(--fg); border-radius: 999px;
+}
+#sand-viz .sv__replay[hidden] { display: none; }
+#sand-viz .sv__replay:hover, #sand-viz .sv__replay:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+#sand-viz .sv__status { font-size: 0.85rem; color: var(--fg-soft); }
+
+#sand-viz .sv__h { margin: 1.4rem 0 0.6rem; font-size: 1rem; }
+#sand-viz .sv__list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 0.35rem 1.4rem; font-size: 0.85rem; }
+#sand-viz .sv__list li { display: flex; align-items: baseline; gap: 0.45rem; flex-wrap: wrap; }
+#sand-viz .sv__list span { color: var(--fg-soft); }
+#sand-viz .sv__note { margin: 1.2rem 0 0; font-size: 0.82rem; line-height: 1.5; color: var(--fg-soft); max-width: 60rem; }

@@ -77,13 +77,13 @@
 
   /*
    * Pages reached from somewhere other than a Guides tile or a wheel
-   * slice — currently just Timetable, opened from the burger menu
-   * (index.html) — but still routed, opened and closed exactly like
+   * slice — currently Timetable and the Sand Visualiser, opened from the
+   * burger menu (index.html) — but still routed, opened and closed exactly like
    * everything else. Not a GUIDE_ID: there is no parent section to
    * send Escape or the back button to, so both fall through to
    * goToMenu() (the wheel) for these, same as the seven SECTIONS.
    */
-  var EXTRA_IDS = ["timetable"];
+  var EXTRA_IDS = ["timetable", "sand-visualiser"];
 
   /* --- wheel geometry, in the SVG's 100x100 user units --- */
   var CENTRE   = 50;

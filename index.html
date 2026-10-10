@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="assets/css/minical.css">
 <link rel="stylesheet" href="assets/css/staff.css">
 <link rel="stylesheet" href="assets/css/assess.css">
+<link rel="stylesheet" href="assets/css/sand.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='none' stroke='%234ccf9a' stroke-width='10'/><circle cx='50' cy='50' r='12' fill='%234ccf9a'/></svg>">
 <script>
 document.documentElement.classList.remove('no-js');
@@ -69,6 +70,7 @@ try {
       <button class="menu-drawer__link" type="button">Contact list</button>
       <button class="menu-drawer__link" type="button">About BioSoc</button>
       <a class="menu-drawer__link" href="#timetable" data-menu-close>Timetable</a>
+      <a class="menu-drawer__link" href="#sand-visualiser" data-menu-close>Sand Visualiser</a>
     </nav>
   </div>
 </div>
@@ -933,6 +935,33 @@ try {
   </div>
 </section>
 
+<!-- Reached from the burger menu, like Timetable (app.js's EXTRA_IDS). Built by
+     assets/js/sand.js on the first biosoc:page that names it. -->
+<section class="page page--flat" id="page-sand-visualiser" data-section="sand-visualiser" style="--hue: 150" aria-labelledby="h-sand-visualiser" inert>
+  <div class="page__chrome">
+    <button class="page__back" type="button" data-back>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      <span>Menu</span>
+    </button>
+  </div>
+  <div class="page__scroll">
+    <div class="page__inner page__inner--wide">
+      <header class="page__head">
+        <p class="page__eyebrow">BioSoc</p>
+        <h1 class="page__title" id="h-sand-visualiser" tabindex="-1">Sand Visualiser</h1>
+      </header>
+      <div class="page__body">
+        <p class="table-hint">How much assessment weighting is building up at once, week by week, for BS2200, BS2009, BS2059 and BS2093 &mdash; poured in as sand. Dates are approximate.</p>
+        <div id="sand-viz">
+          <noscript>
+            <p class="page__empty">The sand picture needs JavaScript. Check Blackboard for your deadlines instead.</p>
+          </noscript>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <script src="assets/data/links.js"></script>
 <script src="assets/data/curriculum.js"></script>
 <script src="assets/data/instagram.js"></script>
@@ -953,6 +982,7 @@ try {
 <script src="assets/js/minical.js"></script>
 <script src="assets/js/staff.js"></script>
 <script src="assets/js/assess.js"></script>
+<script src="assets/js/sand.js"></script>
 <script src="assets/js/advice.js"></script>
 <script src="assets/js/timetable.js"></script>
 <script src="assets/js/theme.js"></script>
