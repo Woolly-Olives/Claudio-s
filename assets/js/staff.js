@@ -285,7 +285,7 @@
   var count = root.querySelector(".st__count");
   var track = root.querySelector(".st__grid");
 
-  var shownCount = cards.length, pos = 0;
+  var shownCount = cards.length;
 
   /* ---------- two rows, staggered ----------
      The track is a two-row grid filled column by column, so the cards
@@ -358,7 +358,7 @@
   var resizeTimer = 0;
   window.addEventListener("resize", function () {
     window.clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(function () { measure(); layout(); track.scrollLeft = 0; pos = 0; kick(); }, 120);
+    resizeTimer = window.setTimeout(function () { measure(); layout(); resetRows(); kick(); }, 120);
   });
   layout();
 
@@ -374,13 +374,13 @@
     if (sliding) { window.cancelAnimationFrame(sliding); sliding = 0; }
     if (w && track.scrollLeft + delta < 0) { track.scrollLeft += w; }
     var from = track.scrollLeft, t0 = 0;
-    if (reduce) { track.scrollLeft = from + delta; pos = track.scrollLeft; setTo = pos; sliding = 0; kick(); return; }
+    if (reduce) { track.scrollLeft = from + delta; sliding = 0; absorb(); render(); kick(); return; }
     function step(now) {
       if (!t0) { t0 = now; }
       var k = Math.min(1, (now - t0) / SLIDE_MS), e = 1 - Math.pow(1 - k, 3);     // ease-out
       track.scrollLeft = from + delta * e;
       if (k < 1) { sliding = window.requestAnimationFrame(step); }
-      else { sliding = 0; pos = track.scrollLeft; setTo = pos; kick(); }
+      else { sliding = 0; absorb(); render(); kick(); }
     }
     sliding = window.requestAnimationFrame(step);
   }
@@ -452,16 +452,18 @@
     var hadFocus = card.contains(document.activeElement) && document.activeElement.classList.contains("st__flip");
     setFlipped(card, on);
     if (twin) { setFlipped(twin, on); }
+    kick();
     // focus follows to the other face's button — once the turn is over, because while it runs the
     // face that is turning away is `visibility: hidden` and a focused element there loses focus
     function refocus() { if (hadFocus) { card.querySelector(on ? ".st__face--back .st__flip" : ".st__face--front .st__flip").focus({ preventScroll: true }); } }
     if (reduce || !card.animate) { refocus(); return; }
     card._flipping = true;
+    kick();                    // (re)decide which rows may drift now that this card's row is being turned
     var kf = frames(on);
     var a = card.querySelector(".st__face--front").animate(kf.front, { duration: FLIP_MS, easing: "ease-out" });
     card.querySelector(".st__face--back").animate(kf.back, { duration: FLIP_MS, easing: "ease-out" });
     card.animate(SHADOW, { duration: FLIP_MS, easing: "linear" });
-    a.onfinish = a.oncancel = function () { card._flipping = false; refocus(); };
+    a.onfinish = a.oncancel = function () { card._flipping = false; refocus(); kick(); };
   }
 
   track.addEventListener("click", function (e) {
@@ -486,22 +488,29 @@
     shownCount = shown;
     setFlipped.init();
     layout();
-    pos = 0;
-    track.scrollLeft = 0;
+    resetRows();
     count.textContent = !val ? "" :
       (shown ? "Showing " + shown + " of " + cards.length + " staff." : "No staff under this tag yet — more are being added.");
   });
 
-  /* ---------- the slow drift, right to left ----------
-     The track is moved by script, not CSS, so a hand on it (arrows, swipe,
-     wheel) simply takes over. A second copy of the cards sits after the
-     first (.st__clones); when the drift reaches it, the position jumps back
-     by exactly one copy's width, which looks the same, so the loop has no
-     seam. It runs only while Connect is open, stops under the pointer or
-     keyboard focus, and not at all for reduced motion or when every card
-     already fits. */
+  /* ---------- the slow drift, right to left — each row on its own ----------
+     A second copy of the cards sits after the first (.st__clones); every position
+     is taken modulo one copy's width (loopWidth), which looks the same, so the
+     loop has no seam. The two rows have a position each (xTop, xLow). The track's
+     scrollLeft carries the top row's; the bottom row is the top row plus a lag,
+     applied as a transform (--rx-low, used by .st--low in staff.css). A row that
+     is HELD stands still while the other carries on, so the lag between the rows
+     builds up and the staggered pattern is not kept after one has been held.
+     A row is held while the pointer is over it, while keyboard focus is in one of
+     its cards, or while one of its cards is turned over or turning. Hover and
+     focus are tracked separately: a button losing focus mid-turn must not release
+     a row the pointer is still on (that let the drift run on for about a second
+     after the flip button was pressed). Arrows, swipe and wheel move both rows
+     (absorb). It runs only while Connect is open, and not at all for reduced
+     motion, in the few-staff mode, or when every card already fits. */
   var SPEED = 28;                       // px per second
-  var open = false, held = false, last = 0, raf = 0, setTo = 0;
+  var open = false, last = 0, raf = 0, setTo = 0, xTop = 0, xLow = 0;
+  var hoverRow = null, focusRow = null;           // "top" | "low" | "both" | null
   var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)");
 
   function loopWidth() {
@@ -509,38 +518,81 @@
     var firstClone = clones.filter(function (c) { return !c.hidden; })[0];
     return first && firstClone ? firstClone.offsetLeft - first.offsetLeft : 0;
   }
-
   function fits() { return loopWidth() <= track.clientWidth + 1; }
-  function wanted() { return open && !held && !sliding && !isStatic && !(still && still.matches) && !fits(); }
+
+  function wrapW(x, w) { return w > 0 ? ((x % w) + w) % w : x; }
+  function rowOf(el) { return el.classList.contains("st--low") ? "low" : "top"; }
+
+  /* someone other than the drift moved the track (arrows, swipe, wheel): both rows go with it */
+  function absorb() {
+    if (Math.abs(track.scrollLeft - setTo) <= 1) { return; }      // our own write, give or take rounding
+    var d = track.scrollLeft - wrapW(xTop, loopWidth());          // measured from the exact position, not the rounded read-back
+    xTop += d; xLow += d;
+  }
+  function render() {
+    var w = loopWidth();
+    if (!w || isStatic) { track.style.setProperty("--rx-low", "0px"); return; }
+    var s = wrapW(xTop, w);
+    track.scrollLeft = s;
+    setTo = track.scrollLeft;
+    track.style.setProperty("--rx-low", (wrapW(xLow, w) - s) + "px");
+  }
+  function resetRows() {
+    xTop = 0; xLow = 0; track.scrollLeft = 0; setTo = 0;
+    track.style.setProperty("--rx-low", "0px");
+  }
+
+  function heldRows() {
+    var h = { top: false, low: false };
+    function mark(r) { if (r === "both") { h.top = true; h.low = true; } else if (r) { h[r] = true; } }
+    mark(hoverRow); mark(focusRow);
+    cards.concat(clones).forEach(function (c) {
+      if (!c.hidden && (c.classList.contains("is-flipped") || c._flipping)) { mark(rowOf(c)); }
+    });
+    return h;
+  }
+  function wanted() {
+    if (!open || sliding || isStatic || (still && still.matches) || fits()) { return false; }
+    var h = heldRows();
+    return !(h.top && h.low);
+  }
 
   function frame(now) {
     raf = 0;
     if (!wanted()) { last = 0; return; }
     var dt = last ? Math.min(now - last, 100) : 0;
     last = now;
-    if (Math.abs(track.scrollLeft - setTo) > 2) { pos = track.scrollLeft; }   // someone moved it
-    var w = loopWidth();
-    pos += SPEED * dt / 1000;
-    if (w > 0 && pos >= w) { pos -= w; }
-    track.scrollLeft = pos;
-    setTo = track.scrollLeft;
+    absorb();
+    var h = heldRows(), dx = SPEED * dt / 1000;
+    if (!h.top) { xTop += dx; }
+    if (!h.low) { xLow += dx; }
+    render();
     raf = requestAnimationFrame(frame);
   }
 
   function kick() { if (!raf && wanted()) { last = 0; raf = requestAnimationFrame(frame); } }
 
-  function hold(v) { return function () { held = v; if (!v) { pos = track.scrollLeft; kick(); } }; }
-  track.addEventListener("pointerenter", hold(true));
-  track.addEventListener("pointerleave", hold(false));
-  track.addEventListener("focusin", hold(true));
-  track.addEventListener("focusout", hold(false));
+  /* which row is the pointer on? above the line halfway between the rows = top */
+  function rowAt(y) {
+    var vis = cards.filter(function (c) { return !c.hidden; });
+    var top = vis.filter(function (c) { return !c.classList.contains("st--low"); })[0];
+    var low = vis.filter(function (c) { return c.classList.contains("st--low"); })[0];
+    if (!top || !low) { return "top"; }
+    return y < (top.getBoundingClientRect().bottom + low.getBoundingClientRect().top) / 2 ? "top" : "low";
+  }
+  function pointerOn(e) {
+    // a real pointer event has coordinates; a bare synthetic "pointerenter" (used by tests and previews) holds both rows
+    var r = typeof e.clientY === "number" ? rowAt(e.clientY) : "both";
+    if (r !== hoverRow) { hoverRow = r; kick(); }      // moving from one row to the other frees the one left behind
+  }
+  track.addEventListener("pointerenter", pointerOn);
+  track.addEventListener("pointermove", pointerOn);
+  track.addEventListener("pointerleave", function () { hoverRow = null; kick(); });
+  track.addEventListener("focusin", function (e) { var c = e.target.closest && e.target.closest(".st"); focusRow = c ? rowOf(c) : "both"; kick(); });
+  track.addEventListener("focusout", function () { focusRow = null; kick(); });
 
-  /* a user who scrolls past either end wraps round instead of hitting a wall */
-  track.addEventListener("scroll", function () {
-    var w = loopWidth();
-    if (!w) { return; }
-    if (track.scrollLeft >= w) { track.scrollLeft -= w; setTo = track.scrollLeft; pos = setTo; }
-  });
+  /* the track moved (arrows, swipe, wheel, or the drift itself): keep both rows' positions and the wrap in step */
+  track.addEventListener("scroll", function () { absorb(); render(); });
 
   document.addEventListener("biosoc:page", function (event) {
     open = event.detail.id === "connect";

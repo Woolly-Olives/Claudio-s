@@ -555,7 +555,8 @@ check("Connect: cards are TWO staggered scrolling rows (alternating top / bottom
     const alternates = all.every((c, i) => c.classList.contains("st--low") === (i % 2 === 1));
     const lowL = all.filter(c => c.classList.contains("st--low")).map(c => c.getBoundingClientRect().left), topL = all.filter(c => !c.classList.contains("st--low")).map(c => c.getBoundingClientRect().left);
     const w = all[0].getBoundingClientRect().width;
-    const staggered = Math.abs(lowL[0] - (topL[0] - 2 * (w + 17.6) / 3)) < 2;   // two thirds of a step to the left of the top card in its column = a third right of the one before
+    const lag = parseFloat(document.querySelector("#staff .st__grid").style.getPropertyValue("--rx-low")) || 0;   // the rows drift on their own now, so one can lag the other
+    const staggered = Math.abs(lowL[0] - (topL[0] - 2 * (w + 17.6) / 3 - lag)) < 2;   // two thirds of a step (plus any lag) to the left of the top card in its column = a third right of the one before
     const track = q("#staff .st__grid"), before = track.scrollLeft;
     q('#staff .st__nav[data-dir="1"]').click();
     await new Promise(r => setTimeout(r, 900));
@@ -652,6 +653,43 @@ check("cards turn over: the front has research area (not passion or email), the 
   })(),
   { info: { frontLabels: ["My research area:"], backLabels: ["I am passionate about:", "My advice to students:"], mailOnBack: true, startsInert: [false, true] }, mid: true, oneFaceAtATime: true,
     after: { flipped: true, inert: [true, false], twin: true, focusOnBack: true, backShown: true, restM11: -1, linkVisible: true }, clickBackTurns: true, sameDirection: true, resetByFilter: true });
+check("each row drifts on its own: with the pointer on the top row only the bottom row keeps moving, and the other way round; pressing a card's flip button keeps its row still through the whole turn (no run-on after the press)",
+  await (async () => {
+    await page.evaluate(() => document.activeElement && document.activeElement.blur());   // an earlier test left focus on a card's button, which holds that card's row
+    await page.mouse.move(2, 2); await page.waitForTimeout(300);
+    const pick = () => page.evaluate(() => {
+      const g = document.querySelector("#staff .st__grid"), gr = g.getBoundingClientRect();
+      const whole = c => { const r = c.getBoundingClientRect(); return r.left > gr.left + 30 && r.right < gr.right - 30; };
+      const all = [...g.querySelectorAll(":scope > .st")];
+      const top = all.filter(c => !c.classList.contains("st--low") && whole(c))[1], low = all.filter(c => c.classList.contains("st--low") && whole(c))[1];
+      top.setAttribute("data-rt", "1"); low.setAttribute("data-rl", "1");
+      const t = top.getBoundingClientRect(), l = low.getBoundingClientRect();
+      return { top: { x: t.left + t.width / 2, y: t.top + 120 }, low: { x: l.left + l.width / 2, y: l.top + 120 } };
+    });
+    const left = sel => page.evaluate(s => document.querySelector(s).getBoundingClientRect().left, sel);
+    const measure = async (where) => {
+      await page.mouse.move(where.x, where.y, { steps: 6 }); await page.waitForTimeout(250);
+      const a = [await left("[data-rt]"), await left("[data-rl]")]; await page.waitForTimeout(1500);
+      const b = [await left("[data-rt]"), await left("[data-rl]")];
+      return [Math.round((b[0] - a[0]) / 5) * 5, Math.round((b[1] - a[1]) / 5) * 5];   // px moved in 1.5s, to the nearest 5
+    };
+    const pos = await pick();
+    const onTop = await measure(pos.top);     // top still, bottom moving left (about -42px at 28px/s)
+    const onLow = await measure(pos.low);     // top moving, bottom still
+    // the flip button: press it, watch the card's row for the next 1.1s
+    await page.mouse.move(pos.top.x, pos.top.y, { steps: 4 }); await page.waitForTimeout(150);
+    const btn = await page.evaluate(() => { const b = document.querySelector("[data-rt] .st__face--front .st__flip").getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
+    await page.mouse.move(btn.x, btn.y, { steps: 3 }); await page.waitForTimeout(100);
+    const before = await left("[data-rt]");
+    await page.mouse.down(); await page.mouse.up();
+    await page.waitForTimeout(1100);
+    const during = await left("[data-rt]");
+    await page.evaluate(() => document.querySelector("[data-rt] .st__face--back .st__flip").click()); await page.waitForTimeout(1100);
+    await page.evaluate(() => { document.querySelector("[data-rt]").removeAttribute("data-rt"); document.querySelector("[data-rl]").removeAttribute("data-rl"); });
+    await page.mouse.move(2, 2);
+    return { stillTop: Math.abs(onTop[0]) <= 5 && onTop[1] <= -30, stillLow: Math.abs(onLow[1]) <= 5 && onLow[0] <= -30, flipRowStill: Math.abs(during - before) < 3 };
+  })(),
+  { stillTop: true, stillLow: true, flipRowStill: true });
 check("the arrows slide the carousel by two card lengths (card + gap), smoothly, in well under half a second",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid"), root = document.querySelector("#staff");

@@ -47,7 +47,7 @@
 #staff .st__grid > .st,
 #staff .st__clones > .st { width: var(--cw); }
 #staff .st__clones { display: contents; }
-#staff .st--low { transform: translateX(calc(-2 / 3 * (var(--cw) + 1.1rem))); }
+#staff .st--low { transform: translateX(calc(-2 / 3 * (var(--cw) + 1.1rem) - var(--rx-low, 0px))); }   /* --rx-low: how far this row lags the other (staff.js; each row drifts on its own) */
 #staff .st__pad { visibility: hidden; }
 #staff .st__pad[hidden] { display: none; }
 
