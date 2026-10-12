@@ -607,7 +607,7 @@ check("every card and both rows are one height — in every state (all staff, Zo
     return { all: [all.same, all.h], zoo: [zoo.same, zoo.h], tut: [tut.same, tut.h], phys: [phys.same, phys.h], again: [again.same, again.h], allMatch: new Set([all.h, zoo.h, tut.h, phys.h, again.h]).size === 1 };
   })(),
   { all: [true, 359.3], zoo: [true, 359.3], tut: [true, 359.3], phys: [true, 359.3], again: [true, 359.3], allMatch: true });
-check("cards turn over: the front has research area (not passion or email), the back has \"I am passionate about:\", \"My advice to students:\" and the email; clicking a card (not a link) or its corner button turns it with the lift-and-flip (about 900ms, back facing at the end), the face turned away is inert, focus follows the button, the looping twin follows, and a filter turns everything back",
+check("cards turn over: the front has research area (not passion or email), the back has \"I am passionate about:\", \"My advice to students:\" and the email; clicking a card (not a link) or its corner button turns it with the lift-and-flip (about 900ms, back facing at the end; turning back carries on in the same direction, so two presses are one full spin), the face turned away is inert, focus follows the button, the looping twin follows, and a filter turns everything back",
   await (async () => {
     await page.mouse.move(2, 2);
     const g = () => document.querySelector("#staff .st__grid");
@@ -624,7 +624,7 @@ check("cards turn over: the front has research area (not passion or email), the 
     const btn = page.locator('#staff .st[data-t="1"] .st__face--front .st__flip');
     await btn.focus(); await page.keyboard.press("Enter");
     await page.waitForTimeout(120);
-    const mid = await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); return { flipping: c._flipping === true, mid: new DOMMatrix(getComputedStyle(c.querySelector(".st__face--front")).transform).m11 }; });
+    const mid = await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); return { flipping: c._flipping === true, mid: new DOMMatrix(getComputedStyle(c.querySelector(".st__face--front")).transform).m11, dir: Math.sign(new DOMMatrix(getComputedStyle(c.querySelector(".st__face--front")).transform).m13) }; });
     const early = await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); return [getComputedStyle(c.querySelector(".st__face--front")).visibility, getComputedStyle(c.querySelector(".st__face--back")).visibility]; });
     await page.waitForTimeout(400);
     const late = await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); return [getComputedStyle(c.querySelector(".st__face--front")).visibility, getComputedStyle(c.querySelector(".st__face--back")).visibility]; });
@@ -639,17 +639,19 @@ check("cards turn over: the front has research area (not passion or email), the 
     });
     // clicking the card body (not a link) turns it back
     const box = await page.locator('#staff .st[data-t="1"] .st__face--back .st__fields').boundingBox();
-    await page.mouse.click(box.x + 20, box.y + 20); await page.waitForTimeout(1000);
+    await page.mouse.click(box.x + 20, box.y + 20); await page.waitForTimeout(120);
+    const dirBack = await page.evaluate(() => Math.sign(new DOMMatrix(getComputedStyle(document.querySelector('#staff .st[data-t="1"] .st__face--front')).transform).m13));
+    await page.waitForTimeout(880);
     const back = await page.evaluate(() => document.querySelector('#staff .st[data-t="1"]').classList.contains("is-flipped"));
     await page.evaluate(() => document.querySelector('#staff .st[data-t="1"] .st__face--front .st__flip').click()); await page.waitForTimeout(1000);
     await page.evaluate(l => [...document.querySelectorAll("#staff .st__f")].find(x => x.textContent === l).click(), "Zoology"); await page.waitForTimeout(200);
     const reset = await page.evaluate(() => [...document.querySelectorAll("#staff .st")].some(c => c.classList.contains("is-flipped")));
     await page.evaluate(l => [...document.querySelectorAll("#staff .st__f")].find(x => x.textContent === l).click(), "Zoology");
     await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); c.removeAttribute("data-t"); });
-    return { info, mid: mid.flipping && mid.mid < 0.99 && mid.mid > -0.99, oneFaceAtATime: JSON.stringify([early, late]) === JSON.stringify([["visible", "hidden"], ["hidden", "visible"]]), after, clickBackTurns: back === false, resetByFilter: reset === false };
+    return { info, mid: mid.flipping && mid.mid < 0.99 && mid.mid > -0.99, oneFaceAtATime: JSON.stringify([early, late]) === JSON.stringify([["visible", "hidden"], ["hidden", "visible"]]), after, clickBackTurns: back === false, sameDirection: mid.dir !== 0 && dirBack === -mid.dir, resetByFilter: reset === false };
   })(),
   { info: { frontLabels: ["My research area:"], backLabels: ["I am passionate about:", "My advice to students:"], mailOnBack: true, startsInert: [false, true] }, mid: true, oneFaceAtATime: true,
-    after: { flipped: true, inert: [true, false], twin: true, focusOnBack: true, backShown: true, restM11: -1, linkVisible: true }, clickBackTurns: true, resetByFilter: true });
+    after: { flipped: true, inert: [true, false], twin: true, focusOnBack: true, backShown: true, restM11: -1, linkVisible: true }, clickBackTurns: true, sameDirection: true, resetByFilter: true });
 check("the arrows slide the carousel by two card lengths (card + gap), smoothly, in well under half a second",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid"), root = document.querySelector("#staff");

@@ -419,11 +419,11 @@
   var EDGE = { o: CROSS, z: lerp(STEPS[1].z, STEPS[2].z, U), s: lerp(STEPS[1].s, STEPS[2].s, U), rx: lerp(STEPS[1].rx, STEPS[2].rx, U), a: 90 };
   var TIMELINE = [STEPS[0], STEPS[1], EDGE, Object.assign({}, EDGE, { o: CROSS + 0.0001 }), STEPS[2], STEPS[3], STEPS[4]];
   /* keyframes for both faces. Going over (on = true) the front is visible until the edge-on moment and the back
-     after it; coming back it is the other way round. The back's angle is always the front's minus 180. */
+     after it; coming back it is the other way round. The turn carries on in the SAME direction coming back (the front's angle goes 180 -> 360, so two presses are one full spin), not back the way it came. The back's angle is always the front's minus 180. */
   function frames(on) {
     var front = [], back = [];
     TIMELINE.forEach(function (st) {
-      var first = st.o <= CROSS, fa = on ? st.a : 180 - st.a;
+      var first = st.o <= CROSS, fa = on ? st.a : 180 + st.a;
       var t = function (ang) { return "translateZ(" + st.z + "px) scale(" + st.s + ") rotateX(" + st.rx + "deg) rotateY(" + ang + "deg)"; };
       var frontVisible = on ? first : !first;
       front.push({ offset: st.o, transform: t(fa), visibility: frontVisible ? "visible" : "hidden" });
