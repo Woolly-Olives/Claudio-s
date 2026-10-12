@@ -25,7 +25,10 @@
   --n: 1;
   --cw: calc((100cqw - (var(--n) - 1) * 1.1rem) / var(--n));
   display: grid;
-  grid-template-rows: repeat(2, minmax(calc(var(--cw) * 1.343), auto));   /* 455px at 338.8px wide; grows if a card's content needs more */
+  /* ONE height for every card and both rows: 1.343 x the card width (455px at 338.8px wide), or the
+     tallest card's content if that is more (--st-h, measured over ALL the cards by staff.js, so a filter
+     never changes it). While it is being measured the rows are left to the content. */
+  grid-template-rows: repeat(2, max(calc(var(--cw) * 1.343), var(--st-h, 0px)));
   grid-auto-flow: column;
   grid-auto-columns: var(--cw);
   min-width: 0;
@@ -202,3 +205,5 @@
 #staff .st__grid--static .st__clones, #staff .st__grid--static .st__pad { display: none; }
 #staff .st__grid--static .st--low { transform: translateX(calc((var(--cw) + 1.1rem) / 3)); }
 #staff .st__carousel--static .st__nav { visibility: hidden; }
+
+#staff .st__grid--measuring { grid-template-rows: repeat(2, auto); }

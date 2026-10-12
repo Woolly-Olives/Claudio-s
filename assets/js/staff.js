@@ -321,10 +321,26 @@
     clones.forEach(function (c) { if (!c.hidden) { run.push(c); } });
     run.forEach(function (c, i) { c.classList.toggle("st--low", i % 2 === 1); });
   }
+  /* every card and both rows share one height. The CSS gives them 1.343 x the card width; if the
+     most crowded card (most module codes, longest name) needs more than that, --st-h carries that
+     height, measured here with every card showing so a filter cannot shrink it. */
+  function measure() {
+    var was = cards.map(function (c) { return c.hidden; });
+    track.classList.add("st__grid--measuring");
+    track.style.removeProperty("--st-h");
+    cards.forEach(function (c) { c.hidden = false; });
+    var tallest = 0;
+    cards.forEach(function (c) { tallest = Math.max(tallest, c.scrollHeight); });
+    cards.forEach(function (c, i) { c.hidden = was[i]; });
+    track.classList.remove("st__grid--measuring");
+    track.style.setProperty("--st-h", Math.ceil(tallest) + "px");
+  }
+  measure();
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function () { measure(); }); }
   var resizeTimer = 0;
   window.addEventListener("resize", function () {
     window.clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(function () { layout(); track.scrollLeft = 0; pos = 0; kick(); }, 120);
+    resizeTimer = window.setTimeout(function () { measure(); layout(); track.scrollLeft = 0; pos = 0; kick(); }, 120);
   });
   layout();
 
@@ -429,6 +445,6 @@
 
   document.addEventListener("biosoc:page", function (event) {
     open = event.detail.id === "connect";
-    if (open) { kick(); }
+    if (open) { measure(); kick(); }
   });
 })();

@@ -593,6 +593,20 @@ check("Connect: the first card lines up with the page title, the fourth ends at 
     g.dispatchEvent(new Event("pointerleave"));
     return out;
   }), { titleAlign: true, rightEdge: true, fourWhole: true, arrowsOutside: true, rowH: 455, ratio: 1.343, emailAtFoot: true });
+check("every card and both rows are one height — in every state (all staff, Zoology, Tutor, Physiology), and the same after a filter is released — and at 1600px that is 455px (1.343 x the card width)",
+  await (async () => {
+    const press = label => page.evaluate(l => [...document.querySelectorAll("#staff .st__f")].find(x => x.textContent === l).click(), label);
+    const read = () => page.evaluate(async () => { await new Promise(r => setTimeout(r, 200));
+      const hs = [...document.querySelectorAll("#staff .st__grid > .st")].filter(c => !c.hidden).map(c => Math.round(c.getBoundingClientRect().height * 10) / 10);
+      return { n: hs.length, same: new Set(hs).size === 1, h: hs[0] }; });
+    const all = await read();
+    await press("Zoology"); const zoo = await read(); await press("Zoology");
+    await press("Tutor"); const tut = await read(); await press("Tutor");
+    await press("Physiology"); const phys = await read(); await press("Physiology");
+    const again = await read();
+    return { all: [all.same, all.h], zoo: [zoo.same, zoo.h], tut: [tut.same, tut.h], phys: [phys.same, phys.h], again: [again.same, again.h], allMatch: new Set([all.h, zoo.h, tut.h, phys.h, again.h]).size === 1 };
+  })(),
+  { all: [true, 455], zoo: [true, 455], tut: [true, 455], phys: [true, 455], again: [true, 455], allMatch: true });
 check("the arrows slide the carousel by two card lengths (card + gap), smoothly, in well under half a second",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid"), root = document.querySelector("#staff");
