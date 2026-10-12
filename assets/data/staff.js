@@ -19,7 +19,8 @@
                                                 // not convene (convened ones
                                                 // are added automatically)
          research: "Plant genomics",            // "My research area:"
-         passion:  "Teaching lab skills",       // "I am passionate about:"
+         passion:  "Teaching lab skills",       // "I am passionate about:" (back of the card)
+         advice:   "Start the report early",    // "My advice to students:" (back of the card)
          photo:    "assets/img/staff/celia-may.jpg"
        }
 

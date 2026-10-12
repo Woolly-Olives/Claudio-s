@@ -127,7 +127,10 @@ fix, change, add or ship it (stated 2026-10-09). "Mock-up" or "preview" likewise
 means a browser-only preview that saves nothing; only "ship" or "implement" (or
 an equivalent) changes the site.
 
-**Commit and push only when told "Ship"** (stated 2026-10-12). Implement, test and
-preview freely, but leave the work uncommitted and unpushed until the user says
-"Ship" — "implement", "add" or "make" are not enough. Saying "Ship" covers
-everything that was just discussed, including edits to these notes.
+**Commit and push only when told "Ship" or "Push"** (stated 2026-10-12; "push"
+added as a synonym the same day). Implement, test and preview freely, but leave
+the work uncommitted and unpushed until the user says one of those — "implement",
+"add" or "make" are not enough. Saying it covers everything that was just
+discussed, including edits to these notes. The stop hook
+(`~/.claude/stop-hook-git-check.sh`) nags about uncommitted changes; it does not
+override this rule.

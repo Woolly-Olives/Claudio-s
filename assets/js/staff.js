@@ -150,6 +150,8 @@
 
   /* ---------- the cards ---------- */
 
+  var FLIP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>';
+
   function field(label, value) {
     return '<div class="st__field">' +
       '<dt class="st__label">' + esc(label) + '</dt>' +
@@ -202,31 +204,47 @@
     return '' +
       '<article class="st" data-tags="' + esc(years.map(function (y) { return "year:" + y; })
         .concat(streams.map(function (x) { return "stream:" + x; }), groups.map(function (g) { return "role:" + g; })).join("|")) + '">' +
-        '<h2 class="st__name">' + esc((person.title ? person.title + " " : "") + person.name) + '</h2>' +
-        '<div class="st__top">' +
-          '<div class="st__photo">' +
-            (extra.photo ? '<img src="' + esc(extra.photo) + '" alt="' + esc(person.name) + '">' : '') +
+        '<div class="st__inner">' +
+        /* FRONT: name, photo, modules, research area */
+        '<div class="st__face st__face--front">' +
+          '<h2 class="st__name">' + esc((person.title ? person.title + " " : "") + person.name) + '</h2>' +
+          '<button type="button" class="st__flip" aria-label="Turn over ' + esc(person.name) + '\'s card" title="Turn over">' + FLIP_ICON + '</button>' +
+          '<div class="st__top">' +
+            '<div class="st__photo">' +
+              (extra.photo ? '<img src="' + esc(extra.photo) + '" alt="' + esc(person.name) + '">' : '') +
+            '</div>' +
+            '<div class="st__mods">' +
+              '<ul class="st__codes">' +
+              (extra.roles || []).map(function (r) { return '<li class="st__code st__code--role">' + esc(r) + '</li>'; }).join("") +
+              chips.map(function (chip) {
+                var paint = paintOf(chip.codes[0]);
+                var conv = chip.codes.some(function (c) { return person.modules.indexOf(c) !== -1; });
+                return '<li class="st__code' + (paint.dark ? ' st__code--dark' : '') + '" style="--mc:' + paint.colour +
+                  '" title="' + esc(chip.codes.map(function (c) { return titleOf[c] || ""; }).join(" / ")) + '">' +
+                  esc(chip.codes.join("/")) + (conv ? ' Convenor' : '') + '</li>';
+              }).join("") + '</ul>' +
+            '</div>' +
           '</div>' +
-          '<div class="st__mods">' +
-            '<ul class="st__codes">' +
-            (extra.roles || []).map(function (r) { return '<li class="st__code st__code--role">' + esc(r) + '</li>'; }).join("") +
-            chips.map(function (chip) {
-              var paint = paintOf(chip.codes[0]);
-              var conv = chip.codes.some(function (c) { return person.modules.indexOf(c) !== -1; });
-              return '<li class="st__code' + (paint.dark ? ' st__code--dark' : '') + '" style="--mc:' + paint.colour +
-                '" title="' + esc(chip.codes.map(function (c) { return titleOf[c] || ""; }).join(" / ")) + '">' +
-                esc(chip.codes.join("/")) + (conv ? ' Convenor' : '') + '</li>';
-            }).join("") + '</ul>' +
+          '<div class="st__bottom">' +
+            '<dl class="st__fields">' +
+              field("My research area:", extra.research) +
+            '</dl>' +
           '</div>' +
         '</div>' +
-        '<div class="st__bottom">' +
-          '<dl class="st__fields">' +
-            field("My research area:", extra.research) +
-            field("I am passionate about:", extra.passion) +
-          '</dl>' +
-          '<p class="st__mail">' + person.emails.map(function (e) {
-            return '<a href="mailto:' + esc(e) + '">' + esc(e) + '</a>';
-          }).join("<br>") + '</p>' +
+        /* BACK: passion, advice, email */
+        '<div class="st__face st__face--back">' +
+          '<div class="st__backname">' + esc((person.title ? person.title + " " : "") + person.name) + '</div>' +
+          '<button type="button" class="st__flip" aria-label="Turn ' + esc(person.name) + '\'s card back" title="Turn back">' + FLIP_ICON + '</button>' +
+          '<div class="st__bottom">' +
+            '<dl class="st__fields">' +
+              field("I am passionate about:", extra.passion) +
+              field("My advice to students:", extra.advice) +
+            '</dl>' +
+            '<p class="st__mail">' + person.emails.map(function (e) {
+              return '<a href="mailto:' + esc(e) + '">' + esc(e) + '</a>';
+            }).join("<br>") + '</p>' +
+          '</div>' +
+        '</div>' +
         '</div>' +
       '</article>';
   }
@@ -372,6 +390,69 @@
     slide(+b.getAttribute("data-dir"));
   });
 
+  /* ---------- turning a card over ----------
+     A card has two faces (front: photo, modules, research; back: "I am
+     passionate about:", "My advice to students:", email). The `is-flipped`
+     class is the resting state (rotateY 180deg); the script plays the "lift
+     and flip" keyframes on top of it: the card rises toward you with a growing
+     shadow, tilts, overshoots and settles (900ms), and the reverse back. The
+     face that is turned away is `inert`, so its links and button are out of the
+     tab order and the reading order. Clicking anywhere on a card that is not a
+     link turns it, and so does its corner button (the keyboard way); focus
+     follows to the other face's button. With reduced motion it simply
+     switches. The looping copy is kept in step, and a filter turns every card
+     back to its front. */
+  var FLIP_MS = 900;
+  var FORWARD = [
+    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(0deg)", offset: 0 },
+    { transform: "translateZ(80px) scale(1.1) rotateX(8deg) rotateY(80deg)", offset: 0.35 },
+    { transform: "translateZ(40px) scale(1.06) rotateX(4deg) rotateY(194deg)", offset: 0.72 },
+    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(176deg)", offset: 0.88 },
+    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(180deg)", offset: 1 }
+  ];
+  var BACKWARD = [
+    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(180deg)", offset: 0 },
+    { transform: "translateZ(80px) scale(1.1) rotateX(8deg) rotateY(100deg)", offset: 0.35 },
+    { transform: "translateZ(40px) scale(1.06) rotateX(4deg) rotateY(-14deg)", offset: 0.72 },
+    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(4deg)", offset: 0.88 },
+    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(0deg)", offset: 1 }
+  ];
+  var SHADOW = [
+    { filter: "drop-shadow(0 4px 6px rgba(0,0,0,0))", offset: 0 },
+    { filter: "drop-shadow(0 34px 30px rgba(0,0,0,.32))", offset: 0.4 },
+    { filter: "drop-shadow(0 4px 6px rgba(0,0,0,0))", offset: 1 }
+  ];
+
+  function setFlipped(card, on) {
+    card.classList.toggle("is-flipped", on);
+    var f = card.querySelector(".st__face--front"), b = card.querySelector(".st__face--back");
+    if (f) { f.inert = on; }
+    if (b) { b.inert = !on; }
+  }
+  setFlipped.init = function () { cards.concat(clones).forEach(function (c) { setFlipped(c, false); }); };
+  setFlipped.init();
+
+  function flip(card, on) {
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var i = cards.indexOf(card), twin = i === -1 ? clones[clones.indexOf(card)] : clones[i];
+    var hadFocus = card.contains(document.activeElement) && document.activeElement.classList.contains("st__flip");
+    setFlipped(card, on);
+    if (twin) { setFlipped(twin, on); }
+    if (hadFocus) { card.querySelector(on ? ".st__face--back .st__flip" : ".st__face--front .st__flip").focus({ preventScroll: true }); }
+    if (reduce || !card.animate) { return; }
+    card._flipping = true;
+    var inner = card.querySelector(".st__inner");
+    var a = inner.animate(on ? FORWARD : BACKWARD, { duration: FLIP_MS, easing: "ease-out" });
+    card.animate(SHADOW, { duration: FLIP_MS, easing: "linear" });
+    a.onfinish = a.oncancel = function () { card._flipping = false; };
+  }
+
+  track.addEventListener("click", function (e) {
+    var card = e.target.closest(".st");
+    if (!card || card._flipping || e.target.closest("a")) { return; }
+    flip(card, !card.classList.contains("is-flipped"));
+  });
+
   root.querySelector(".st__filters").addEventListener("click", function (e) {
     var b = e.target.closest(".st__f");
     if (!b) { return; }
@@ -386,6 +467,7 @@
       if (ok) { shown++; }
     });
     shownCount = shown;
+    setFlipped.init();
     layout();
     pos = 0;
     track.scrollLeft = 0;

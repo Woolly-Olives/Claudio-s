@@ -71,19 +71,62 @@
 #staff .st__nav:hover, #staff .st__nav:focus-visible { border-color: var(--fg-soft); }
 #staff .st__nav svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
+/* A card is a scene (perspective) holding one 3D wrapper with two faces stacked in the same
+   grid cell: the front, and the back turned 180deg and hidden while it faces away. The
+   faces carry the look the card used to have; .st-- classes (low, clone…) still sit on .st. */
 #staff .st {
   container-type: inline-size;
   display: flex;
+  perspective: 1400px;
+  cursor: pointer;
+}
+#staff .st__inner {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+  transform-style: preserve-3d;
+}
+#staff .st.is-flipped .st__inner { transform: rotateY(180deg); }
+#staff .st__face {
+  grid-area: 1 / 1;
+  position: relative;
+  display: flex;
   flex-direction: column;
   gap: 0.9rem;
+  min-width: 0;
   padding: 1rem;
   background: hsl(var(--hue) 30% 50% / 0.08);
   border: 1px solid var(--line);
   border-radius: 14px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
+#staff .st__face--back { transform: rotateY(180deg); background: hsl(var(--hue) 30% 50% / 0.14); }
 
-#staff .st__name {
+/* the turn-over button, in each face's top-right corner (the keyboard way to flip) */
+#staff .st__flip {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  color: var(--fg-soft);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+#staff .st__flip:hover, #staff .st__flip:focus-visible { color: var(--fg); border-color: var(--fg-soft); }
+#staff .st__flip svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+#staff :is(.st__name, .st__backname) {
   margin: 0;
+  padding-right: 2.3rem;          /* room for the turn-over button */
+  color: var(--fg);
+  font-weight: 700;
   font-size: 1.05rem;
   line-height: 1.25;
   letter-spacing: -0.01em;
