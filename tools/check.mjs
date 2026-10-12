@@ -547,7 +547,7 @@ check("Connect filter: one line, no All button, one choice at a time, pressing i
              extraEmpty: extra.join() === "0,0,0", onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: afterRelease === total, dup };
   }), { oneLine: true, allCount: 0, noneLit: true, fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genReplacesNotNarrows: true,
         extraEmpty: true, onePressed: true, y2Ok: true, resetAll: true, dup: false });
-check("Connect: cards are TWO staggered scrolling rows (alternating top / bottom, each bottom card half a card to the left) above the filter buttons; no intro text; the arrows scroll it",
+check("Connect: cards are TWO staggered scrolling rows (alternating top / bottom, each bottom card a third of a card step right of the top card on its left) above the filter buttons; no intro text; the arrows scroll it",
   await page.evaluate(async () => {
     const q = s => document.querySelector(s);
     const all = [...document.querySelectorAll("#staff .st:not(.st--clone)")].filter(c => !c.hidden);
@@ -555,7 +555,7 @@ check("Connect: cards are TWO staggered scrolling rows (alternating top / bottom
     const alternates = all.every((c, i) => c.classList.contains("st--low") === (i % 2 === 1));
     const lowL = all.filter(c => c.classList.contains("st--low")).map(c => c.getBoundingClientRect().left), topL = all.filter(c => !c.classList.contains("st--low")).map(c => c.getBoundingClientRect().left);
     const w = all[0].getBoundingClientRect().width;
-    const staggered = Math.abs(lowL[0] - (topL[0] - (w + 17.6) / 2)) < 2;   // half a card plus half a gap to the left
+    const staggered = Math.abs(lowL[0] - (topL[0] - 2 * (w + 17.6) / 3)) < 2;   // two thirds of a step to the left of the top card in its column = a third right of the one before
     const track = q("#staff .st__grid"), before = track.scrollLeft;
     q('#staff .st__nav[data-dir="1"]').click();
     await new Promise(r => setTimeout(r, 900));
@@ -579,6 +579,20 @@ check("Connect carousel: every card the same width, the top row shows exactly fo
     const names = vis.map(c => c.querySelector(".st__name").textContent.split(" ").pop());
     return { fourFit: fit, drifts: track.scrollLeft > x0, shuffled: names.join() !== [...names].sort().join() };
   }), { fourFit: true, drifts: true, shuffled: true });
+check("Connect: the first card lines up with the page title, the fourth ends at the column's right edge, the arrows sit outside the column in the side padding, rows are 455px at 1600px wide (aspect kept: 1.343 x the card width), and the email sits at the foot of every card (its card's 1rem padding below it)",
+  await page.evaluate(async () => {
+    const g = document.querySelector("#staff .st__grid"); g.dispatchEvent(new Event("pointerenter")); g.scrollLeft = 0; await new Promise(r => setTimeout(r, 250));
+    const col = document.querySelector("#page-connect .page__inner").getBoundingClientRect(), title = document.querySelector("#page-connect .page__title").getBoundingClientRect();
+    const cards = [...g.querySelectorAll(":scope > .st")].filter(c => !c.hidden), top = cards.filter(c => !c.classList.contains("st--low"));
+    const r = c => c.getBoundingClientRect(), gr = g.getBoundingClientRect();
+    const n1 = document.querySelector('#staff .st__nav[data-dir="-1"]').getBoundingClientRect(), n2 = document.querySelector('#staff .st__nav[data-dir="1"]').getBoundingClientRect();
+    const emailAtFoot = cards.slice(0, 12).every(c => { const m = c.querySelector(".st__mail"), cr = r(c); return Math.abs((cr.bottom - 1 - 16) - m.getBoundingClientRect().bottom) < 3; });
+    const ok = x => Math.round(x);
+    const out = { titleAlign: Math.abs(r(top[0]).left - title.left) < 1, rightEdge: Math.abs(r(top[3]).right - col.right) < 1.5, fourWhole: top.filter(c => r(c).right <= gr.right + 1).length === 4,
+      arrowsOutside: n1.right < col.left && n2.left > col.right && n1.left > 0 && n2.right < innerWidth, rowH: ok(r(top[0]).height), ratio: Math.round(r(top[0]).height / r(top[0]).width * 1000) / 1000, emailAtFoot };
+    g.dispatchEvent(new Event("pointerleave"));
+    return out;
+  }), { titleAlign: true, rightEdge: true, fourWhole: true, arrowsOutside: true, rowH: 455, ratio: 1.343, emailAtFoot: true });
 check("the arrows slide the carousel by two card lengths (card + gap), smoothly, in well under half a second",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid"), root = document.querySelector("#staff");
@@ -592,7 +606,7 @@ check("the arrows slide the carousel by two card lengths (card + gap), smoothly,
     await new Promise(r => setTimeout(r, 450)); const dLeft = (y0 - track.scrollLeft) / step;
     return { right: Math.round(dRight * 10) / 10 >= 1.9 && dRight < 2.6, midway: mid > x0 + 20 && mid < x1 - 20, left: Math.abs(dLeft - 2) < 0.4 };   // the drift adds a few px
   }), { right: true, midway: true, left: true });
-check("a filter that leaves 7 or fewer staff (all visible at once): no second copy, no pad, no drift, no arrows; top row filled first; bottom row half a card to the right; 8 or more brings the loop back",
+check("a filter that leaves 7 or fewer staff (all visible at once): no second copy, no pad, no drift, no arrows; top row filled first; bottom row a third of a card to the right; 8 or more brings the loop back",
   await (async () => {
     await page.mouse.move(2, 2);
     const press = label => page.evaluate(l => [...document.querySelectorAll("#staff .st__f")].find(x => x.textContent === l).click(), label);
@@ -607,7 +621,7 @@ check("a filter that leaves 7 or fewer staff (all visible at once): no second co
         arrows: getComputedStyle(document.querySelector("#staff .st__nav")).visibility,
         inside: vis.every(c => { const r = c.getBoundingClientRect(); return r.left >= tr.left - 1 && r.right <= tr.right + 1; }),
         topRowFirst: rects(top).every(r => Math.abs(r.top - rects(top)[0].top) < 1) && (!low.length || rects(low)[0].top > rects(top)[0].top),
-        lowRight: !low.length || Math.abs(rects(low)[0].left - rects(top)[0].left - 0.5 * (rects(top)[1].left - rects(top)[0].left)) < 2 };
+        lowRight: !low.length || Math.abs(rects(low)[0].left - rects(top)[0].left - (rects(top)[1] ? (rects(top)[1].left - rects(top)[0].left) : 356) / 3) < 2 };
     });
     await press("Tutor"); const tutor = await read(); await press("Tutor");
     await press("Zoology"); const zoo = await read(); await press("Zoology");
@@ -1063,6 +1077,7 @@ check("every segment's badge sits on the same radius as Library's, regardless of
     return Math.max(...radii) - Math.min(...radii);
   }).then((spread) => spread < 2),
   true);
+await page.mouse.move(2, 2); await page.waitForTimeout(200);   // the readout shows whichever link the pointer is over, so keep it off them
 check("the arc's default line is now the hub's old hover note",
   await page.evaluate(() => document.querySelector("#links-arc .arc__readout__note").textContent),
   "Here are the most useful links for university in one place!");

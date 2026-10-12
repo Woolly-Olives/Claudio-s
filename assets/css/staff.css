@@ -11,36 +11,46 @@
 
 #staff { display: block; }
 
-#staff .st__carousel { display: flex; align-items: stretch; gap: 0.5rem; margin: 0 0 1.2rem; }
+/* The carousel is as wide as the Connect column (so the first card lines up with the page
+   title and the last with the column's right edge); the two arrow buttons sit OUTSIDE it, in
+   the page's side padding. It is a size container so the cards can be sized from its width:
+   --n cards across, each (width - gaps) / n, whatever the window. */
+#staff .st__carousel { position: relative; container-type: inline-size; container-name: stc; margin: 0 0 1.2rem; }
 
 /* the track: TWO rows, scrolled sideways, filled column by column so cards
-   alternate top / bottom; the bottom ones (.st--low, set in staff.js) sit half a
-   card to the left, so the bottom row is staggered and starts flush with the edge */
+   alternate top / bottom; the bottom ones (.st--low, set in staff.js) are pulled two thirds of
+   a card step to the left, so each sits a third of a step to the right of the top card on its
+   left, and the first one is mostly cut off at the left edge (that is the stagger) */
 #staff .st__grid {
+  --n: 1;
+  --cw: calc((100cqw - (var(--n) - 1) * 1.1rem) / var(--n));
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-rows: repeat(2, minmax(calc(var(--cw) * 1.343), auto));   /* 455px at 338.8px wide; grows if a card's content needs more */
   grid-auto-flow: column;
-  grid-auto-columns: min(19rem, 100%);
-  flex: 1;
+  grid-auto-columns: var(--cw);
   min-width: 0;
   gap: 1.1rem;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 2px 11rem 2px 2px;     /* the room at the right is the half card the bottom row gave up at the left */
+  padding: 2px 0;
 }
+@container stc (min-width: 520px)  { #staff .st__grid { --n: 2; } }
+@container stc (min-width: 800px)  { #staff .st__grid { --n: 3; } }
+@container stc (min-width: 1100px) { #staff .st__grid { --n: 4; } }
 #staff .st__grid::-webkit-scrollbar { display: none; }
-/* every card is the same fixed width (19rem), however long the name; how many
+/* every card is the same width (--cw, from the carousel width), however long the name; how many
    show at once depends on the room — the Connect page is wider than the others */
 #staff .st__grid > .st,
-#staff .st__clones > .st { width: min(19rem, 100%); }
+#staff .st__clones > .st { width: var(--cw); }
 #staff .st__clones { display: contents; }
-#staff .st--low { transform: translateX(calc(-0.5 * (min(19rem, 100%) + 1.1rem))); }
+#staff .st--low { transform: translateX(calc(-2 / 3 * (var(--cw) + 1.1rem))); }
 #staff .st__pad { visibility: hidden; }
 #staff .st__pad[hidden] { display: none; }
 
 #staff .st__nav {
-  flex: none;
-  align-self: center;
+  position: absolute;
+  top: 50%;
+  margin-top: -1.2rem;
   display: grid;
   place-items: center;
   width: 2.4rem;
@@ -52,6 +62,8 @@
   border-radius: 50%;
   cursor: pointer;
 }
+#staff .st__nav[data-dir="-1"] { right: calc(100% + 0.6rem); }
+#staff .st__nav[data-dir="1"]  { left: calc(100% + 0.6rem); }
 #staff .st__nav:hover, #staff .st__nav:focus-visible { border-color: var(--fg-soft); }
 #staff .st__nav svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -134,6 +146,7 @@
   justify-content: space-between;
   gap: 0.8rem;
   min-height: calc(50cqw - 0.4rem);   /* as tall as the photo above is */
+  flex: 1;                            /* take the card's spare height, so space-between puts the email at the foot (the card's own 1rem padding is its bottom margin) */
 }
 
 #staff .st__fields { display: flex; flex-direction: column; gap: 0.8rem; margin: 0; }
@@ -177,16 +190,15 @@
 #staff .st__count { margin: 0 0 0.8rem; min-height: 1.2em; font-size: 0.85rem; color: var(--fg-soft); }
 #staff .st[hidden] { display: none; }
 
-/* the Connect column is as wide as the carousel: four 19rem cards (4 x 19 + three
-   1.1rem gaps, plus 4px for the track's own padding) and a button and its gap at
-   each end, so the top row shows exactly four whole cards. Narrower screens just
-   show fewer (and the 7-or-fewer rule in staff.js follows the real count). */
-#page-connect .page__inner { width: min(100% - 2.5rem, calc(4 * 19rem + 3 * 1.1rem + 2 * 2.9rem + 4px)); }
+/* the Connect column: 88rem (1408px) at most, but never so wide that the arrow buttons — 2.4rem
+   plus 0.6rem from the cards — would fall off the window (3.5rem each side). At 1920px that is a 256px
+   margin each side, 80px above the title. */
+#page-connect .page__inner { width: min(100% - 7rem, 88rem); padding-top: 80px; }
 
 /* few enough to see at once (staff.js decides): no second copy, no pad, no scrolling, no arrows —
    the buttons stay in place, just invisible, so the cards do not move sideways. In this mode the
-   bottom row is pushed half a card to the RIGHT (nothing scrolls, so nothing is cut off). */
-#staff .st__grid--static { overflow-x: hidden; padding-right: 2px; }
+   bottom row is pushed a third of a card to the RIGHT (nothing scrolls, so nothing is cut off). */
+#staff .st__grid--static { overflow-x: hidden; }
 #staff .st__grid--static .st__clones, #staff .st__grid--static .st__pad { display: none; }
-#staff .st__grid--static .st--low { transform: translateX(calc(0.5 * (min(19rem, 100%) + 1.1rem))); }
+#staff .st__grid--static .st--low { transform: translateX(calc((var(--cw) + 1.1rem) / 3)); }
 #staff .st__carousel--static .st__nav { visibility: hidden; }

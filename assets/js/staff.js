@@ -296,7 +296,7 @@
     var gap = parseFloat(getComputedStyle(track).columnGap) || GAP_PX;
     return c.getBoundingClientRect().width + gap;
   }
-  function perRow() { return Math.max(1, Math.floor((track.clientWidth + (parseFloat(getComputedStyle(track).columnGap) || GAP_PX)) / stepPx())); }
+  function perRow() { return Math.max(1, Math.floor((track.clientWidth + (parseFloat(getComputedStyle(track).columnGap) || GAP_PX)) / stepPx() + 0.01)); }
   var isStatic = false;
   function layout() {
     var vis = cards.filter(function (c) { return !c.hidden; });
