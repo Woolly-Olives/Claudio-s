@@ -71,22 +71,22 @@
 #staff .st__nav:hover, #staff .st__nav:focus-visible { border-color: var(--fg-soft); }
 #staff .st__nav svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* A card is a scene (perspective) holding one 3D wrapper with two faces stacked in the same
-   grid cell: the front, and the back turned 180deg and hidden while it faces away. The
-   faces carry the look the card used to have; .st-- classes (low, clone…) still sit on .st. */
+/* A card holds one wrapper (.st__inner, which carries the perspective) with two faces stacked in the
+   same grid cell: the front, and the back. Each face is turned on its OWN (staff.js animates both),
+   and the one facing away is hidden with `visibility` — NOT with preserve-3d and
+   backface-visibility, which Firefox did not honour (the front showed through the back there).
+   The faces carry the look the card used to have; .st-- classes (low, clone…) still sit on .st. */
 #staff .st {
   container-type: inline-size;
   display: flex;
-  perspective: 1400px;
   cursor: pointer;
 }
 #staff .st__inner {
   flex: 1;
   display: grid;
   min-width: 0;
-  transform-style: preserve-3d;
+  perspective: 1400px;
 }
-#staff .st.is-flipped .st__inner { transform: rotateY(180deg); }
 #staff .st__face {
   grid-area: 1 / 1;
   position: relative;
@@ -98,10 +98,12 @@
   background: hsl(var(--hue) 30% 50% / 0.08);
   border: 1px solid var(--line);
   border-radius: 14px;
-  backface-visibility: hidden;
+  backface-visibility: hidden;          /* belt and braces only; `visibility` below is what hides a face */
   -webkit-backface-visibility: hidden;
 }
-#staff .st__face--back { transform: rotateY(180deg); background: hsl(var(--hue) 30% 50% / 0.14); }
+#staff .st__face--back { visibility: hidden; transform: rotateY(-180deg); background: hsl(var(--hue) 30% 50% / 0.14); }
+#staff .st.is-flipped .st__face--front { visibility: hidden; transform: rotateY(180deg); }
+#staff .st.is-flipped .st__face--back { visibility: visible; transform: none; }
 
 /* the turn-over button, in each face's top-right corner (the keyboard way to flip) */
 #staff .st__flip {

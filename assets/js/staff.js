@@ -403,20 +403,34 @@
      switches. The looping copy is kept in step, and a filter turns every card
      back to its front. */
   var FLIP_MS = 900;
-  var FORWARD = [
-    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(0deg)", offset: 0 },
-    { transform: "translateZ(80px) scale(1.1) rotateX(8deg) rotateY(80deg)", offset: 0.35 },
-    { transform: "translateZ(40px) scale(1.06) rotateX(4deg) rotateY(194deg)", offset: 0.72 },
-    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(176deg)", offset: 0.88 },
-    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(180deg)", offset: 1 }
+  /* the lift-and-flip as a table: at each offset, how far the card has risen (z, px), its scale,
+     its tilt (rx, deg) and the angle of the FRONT face going forward (a, deg; passes 90 at offset
+     CROSS, which is when the face that was turned away appears and the other disappears) */
+  var STEPS = [
+    { o: 0,    z: 0,  s: 1,    rx: 0, a: 0 },
+    { o: 0.35, z: 80, s: 1.1,  rx: 8, a: 80 },
+    { o: 0.72, z: 40, s: 1.06, rx: 4, a: 194 },
+    { o: 0.88, z: 0,  s: 1,    rx: 0, a: 176 },
+    { o: 1,    z: 0,  s: 1,    rx: 0, a: 180 }
   ];
-  var BACKWARD = [
-    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(180deg)", offset: 0 },
-    { transform: "translateZ(80px) scale(1.1) rotateX(8deg) rotateY(100deg)", offset: 0.35 },
-    { transform: "translateZ(40px) scale(1.06) rotateX(4deg) rotateY(-14deg)", offset: 0.72 },
-    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(4deg)", offset: 0.88 },
-    { transform: "translateZ(0) scale(1) rotateX(0) rotateY(0deg)", offset: 1 }
-  ];
+  var CROSS = 0.3825;
+  function lerp(x, y, u) { return x + (y - x) * u; }
+  var U = (CROSS - STEPS[1].o) / (STEPS[2].o - STEPS[1].o);
+  var EDGE = { o: CROSS, z: lerp(STEPS[1].z, STEPS[2].z, U), s: lerp(STEPS[1].s, STEPS[2].s, U), rx: lerp(STEPS[1].rx, STEPS[2].rx, U), a: 90 };
+  var TIMELINE = [STEPS[0], STEPS[1], EDGE, Object.assign({}, EDGE, { o: CROSS + 0.0001 }), STEPS[2], STEPS[3], STEPS[4]];
+  /* keyframes for both faces. Going over (on = true) the front is visible until the edge-on moment and the back
+     after it; coming back it is the other way round. The back's angle is always the front's minus 180. */
+  function frames(on) {
+    var front = [], back = [];
+    TIMELINE.forEach(function (st) {
+      var first = st.o <= CROSS, fa = on ? st.a : 180 - st.a;
+      var t = function (ang) { return "translateZ(" + st.z + "px) scale(" + st.s + ") rotateX(" + st.rx + "deg) rotateY(" + ang + "deg)"; };
+      var frontVisible = on ? first : !first;
+      front.push({ offset: st.o, transform: t(fa), visibility: frontVisible ? "visible" : "hidden" });
+      back.push({ offset: st.o, transform: t(fa - 180), visibility: frontVisible ? "hidden" : "visible" });
+    });
+    return { front: front, back: back };
+  }
   var SHADOW = [
     { filter: "drop-shadow(0 4px 6px rgba(0,0,0,0))", offset: 0 },
     { filter: "drop-shadow(0 34px 30px rgba(0,0,0,.32))", offset: 0.4 },
@@ -438,13 +452,16 @@
     var hadFocus = card.contains(document.activeElement) && document.activeElement.classList.contains("st__flip");
     setFlipped(card, on);
     if (twin) { setFlipped(twin, on); }
-    if (hadFocus) { card.querySelector(on ? ".st__face--back .st__flip" : ".st__face--front .st__flip").focus({ preventScroll: true }); }
-    if (reduce || !card.animate) { return; }
+    // focus follows to the other face's button — once the turn is over, because while it runs the
+    // face that is turning away is `visibility: hidden` and a focused element there loses focus
+    function refocus() { if (hadFocus) { card.querySelector(on ? ".st__face--back .st__flip" : ".st__face--front .st__flip").focus({ preventScroll: true }); } }
+    if (reduce || !card.animate) { refocus(); return; }
     card._flipping = true;
-    var inner = card.querySelector(".st__inner");
-    var a = inner.animate(on ? FORWARD : BACKWARD, { duration: FLIP_MS, easing: "ease-out" });
+    var kf = frames(on);
+    var a = card.querySelector(".st__face--front").animate(kf.front, { duration: FLIP_MS, easing: "ease-out" });
+    card.querySelector(".st__face--back").animate(kf.back, { duration: FLIP_MS, easing: "ease-out" });
     card.animate(SHADOW, { duration: FLIP_MS, easing: "linear" });
-    a.onfinish = a.oncancel = function () { card._flipping = false; };
+    a.onfinish = a.oncancel = function () { card._flipping = false; refocus(); };
   }
 
   track.addEventListener("click", function (e) {

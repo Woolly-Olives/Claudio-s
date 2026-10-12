@@ -624,13 +624,17 @@ check("cards turn over: the front has research area (not passion or email), the 
     const btn = page.locator('#staff .st[data-t="1"] .st__face--front .st__flip');
     await btn.focus(); await page.keyboard.press("Enter");
     await page.waitForTimeout(120);
-    const mid = await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); return { flipping: c._flipping === true, mid: new DOMMatrix(getComputedStyle(c.querySelector(".st__inner")).transform).m11 }; });
-    await page.waitForTimeout(950);
+    const mid = await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); return { flipping: c._flipping === true, mid: new DOMMatrix(getComputedStyle(c.querySelector(".st__face--front")).transform).m11 }; });
+    const early = await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); return [getComputedStyle(c.querySelector(".st__face--front")).visibility, getComputedStyle(c.querySelector(".st__face--back")).visibility]; });
+    await page.waitForTimeout(400);
+    const late = await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); return [getComputedStyle(c.querySelector(".st__face--front")).visibility, getComputedStyle(c.querySelector(".st__face--back")).visibility]; });
+    await page.waitForTimeout(550);
     const after = await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'), grid = c.parentElement;
       const i = [...grid.querySelectorAll(":scope > .st")].indexOf(c), twin = grid.querySelectorAll(".st__clones > .st")[i];
       const backLink = c.querySelector(".st__face--back .st__mail a").getBoundingClientRect();
       return { flipped: c.classList.contains("is-flipped"), inert: [c.querySelector(".st__face--front").inert, c.querySelector(".st__face--back").inert], twin: twin.classList.contains("is-flipped"),
-        focusOnBack: document.activeElement === c.querySelector(".st__face--back .st__flip"), restM11: Math.round(new DOMMatrix(getComputedStyle(c.querySelector(".st__inner")).transform).m11),
+        focusOnBack: document.activeElement === c.querySelector(".st__face--back .st__flip"), backShown: getComputedStyle(c.querySelector(".st__face--back")).visibility === "visible" && getComputedStyle(c.querySelector(".st__face--front")).visibility === "hidden" && new DOMMatrix(getComputedStyle(c.querySelector(".st__face--back")).transform).m11 === 1,
+        restM11: Math.round(new DOMMatrix(getComputedStyle(c.querySelector(".st__face--front")).transform).m11),
         linkVisible: document.elementFromPoint(backLink.left + 5, backLink.top + backLink.height / 2) === c.querySelector(".st__face--back .st__mail a") };
     });
     // clicking the card body (not a link) turns it back
@@ -642,10 +646,10 @@ check("cards turn over: the front has research area (not passion or email), the 
     const reset = await page.evaluate(() => [...document.querySelectorAll("#staff .st")].some(c => c.classList.contains("is-flipped")));
     await page.evaluate(l => [...document.querySelectorAll("#staff .st__f")].find(x => x.textContent === l).click(), "Zoology");
     await page.evaluate(() => { const c = document.querySelector('#staff .st[data-t="1"]'); c.removeAttribute("data-t"); });
-    return { info, mid: mid.flipping && mid.mid < 0.99 && mid.mid > -0.99, after, clickBackTurns: back === false, resetByFilter: reset === false };
+    return { info, mid: mid.flipping && mid.mid < 0.99 && mid.mid > -0.99, oneFaceAtATime: JSON.stringify([early, late]) === JSON.stringify([["visible", "hidden"], ["hidden", "visible"]]), after, clickBackTurns: back === false, resetByFilter: reset === false };
   })(),
-  { info: { frontLabels: ["My research area:"], backLabels: ["I am passionate about:", "My advice to students:"], mailOnBack: true, startsInert: [false, true] }, mid: true,
-    after: { flipped: true, inert: [true, false], twin: true, focusOnBack: true, restM11: -1, linkVisible: true }, clickBackTurns: true, resetByFilter: true });
+  { info: { frontLabels: ["My research area:"], backLabels: ["I am passionate about:", "My advice to students:"], mailOnBack: true, startsInert: [false, true] }, mid: true, oneFaceAtATime: true,
+    after: { flipped: true, inert: [true, false], twin: true, focusOnBack: true, backShown: true, restM11: -1, linkVisible: true }, clickBackTurns: true, resetByFilter: true });
 check("the arrows slide the carousel by two card lengths (card + gap), smoothly, in well under half a second",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid"), root = document.querySelector("#staff");
