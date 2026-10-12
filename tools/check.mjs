@@ -222,6 +222,35 @@ check("back button returns to the wheel", await (async () => {
   return page.evaluate(() => ({ hash: location.hash, anyOpen: document.body.classList.contains("is-page-open") }));
 })(), { hash: "", anyOpen: false });
 
+console.log("\nthe outer ring (subsections, on hover)");
+{
+  await page.goto(SITE); await page.waitForTimeout(900);
+  check("seven rings built; only Study Resources and Events have two subsections, every other section one; names as listed",
+    await page.evaluate(() => [...document.querySelectorAll(".wheel__ring .ring")].map(g => [...g.querySelectorAll(".ring__text")].map(t => t.textContent).join(" | "))),
+    ["Start here", "Guides | Assessment schedule", "Module map", "Term 1 Assessment Calendar", "Staff cards", "Next four weeks | On Instagram", "Newsletter"]);
+  check("dividers: a section with one subsection has two (one at each side), with two subsections three",
+    await page.evaluate(() => [...document.querySelectorAll(".wheel__ring .ring")].map(g => g.querySelectorAll(".ring__line").length)), [2, 3, 2, 2, 2, 3, 2]);
+  check("invisible until hovered: no ring shows at rest; hovering a slice shows only that slice's ring, outside the wheel, and it is transparent (no filled segment)",
+    await (async () => {
+      const rest = await page.evaluate(() => [...document.querySelectorAll(".wheel__ring .ring")].every(g => getComputedStyle(g).opacity === "0"));
+      const r = await page.evaluate(() => { const w = document.getElementById("wheel-svg").getBoundingClientRect(); return { cx: w.left + w.width / 2, cy: w.top + w.height / 2, R: w.width * 0.48 }; });
+      await page.mouse.move(r.cx + 0.62 * r.R * Math.sin(Math.PI / 7 * 2 * 1), r.cy - 0.62 * r.R * Math.cos(Math.PI / 7 * 2 * 1), { steps: 5 });
+      await page.waitForTimeout(500);
+      const o = await page.evaluate(() => {
+        const gs = [...document.querySelectorAll(".wheel__ring .ring")], on = gs.map(g => g.classList.contains("is-shown"));
+        const hit = gs[1].querySelector(".ring__hit"), b = hit.getBoundingClientRect(), w = document.getElementById("wheel-svg").getBoundingClientRect();
+        return { on: on.join(), transparent: getComputedStyle(hit).fill === "rgba(0, 0, 0, 0)", outside: Math.hypot(b.left + b.width / 2 - (w.left + w.width / 2), b.top + b.height / 2 - (w.top + w.height / 2)) > w.width * 0.48 };
+      });
+      await page.mouse.move(2, 2); await page.waitForTimeout(500);
+      const gone = await page.evaluate(() => [...document.querySelectorAll(".wheel__ring .ring")].every(g => getComputedStyle(g).opacity === "0"));
+      return { rest, on: o.on, transparent: o.transparent, outside: o.outside, goneAgain: gone };
+    })(), { rest: true, on: "false,true,false,false,false,false,false", transparent: true, outside: true, goneAgain: true });
+  check("a ring segment is a link that opens its section",
+    await page.evaluate(() => [...document.querySelectorAll(".wheel__ring .ring")].map(g => g.querySelector("a.ring__seg").getAttribute("href"))),
+    ["#essential-links", "#study-resources", "#customise-your-degree", "#create-your-calendar", "#connect", "#events", "#join-biosoc"]);
+  check("rings are not shown while a section page is open",
+    await (async () => { await page.evaluate(() => { location.hash = "#events"; }); await page.waitForTimeout(900); const d = await page.evaluate(() => getComputedStyle(document.querySelector(".wheel__ring")).display); await page.evaluate(() => { location.hash = ""; }); await page.waitForTimeout(700); return d; })(), "none");
+}
 console.log("\nthe Sand Visualiser page");
 const ink = () => page.evaluate(() => { const c = document.querySelector("#sand-viz canvas"), d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) { if (d[i] > 0) { n++; } } return n; });
 check("a plain link in the burger menu; nothing is drawn until the page is opened (biosoc:page gate)",
@@ -468,24 +497,29 @@ check("Connect filter: one line, no All button, one choice at a time, pressing i
              extraEmpty: extra.join() === "0,0,0", onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: afterRelease === total, dup };
   }), { oneLine: true, allCount: 0, noneLit: true, fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genReplacesNotNarrows: true,
         extraEmpty: true, onePressed: true, y2Ok: true, resetAll: true, dup: false });
-check("Connect: cards are ONE scrolling row above the filter buttons; no intro text; the arrows scroll it",
+check("Connect: cards are TWO staggered scrolling rows (alternating top / bottom, each bottom card half a card to the left) above the filter buttons; no intro text; the arrows scroll it",
   await page.evaluate(async () => {
     const q = s => document.querySelector(s);
-    const tops = new Set([...document.querySelectorAll("#staff .st:not(.st--clone)")].map(c => Math.round(c.getBoundingClientRect().top)));
+    const all = [...document.querySelectorAll("#staff .st:not(.st--clone)")].filter(c => !c.hidden);
+    const tops = new Set(all.map(c => Math.round(c.getBoundingClientRect().top)));
+    const alternates = all.every((c, i) => c.classList.contains("st--low") === (i % 2 === 1));
+    const lowL = all.filter(c => c.classList.contains("st--low")).map(c => c.getBoundingClientRect().left), topL = all.filter(c => !c.classList.contains("st--low")).map(c => c.getBoundingClientRect().left);
+    const w = all[0].getBoundingClientRect().width;
+    const staggered = Math.abs(lowL[0] - (topL[0] - (w + 17.6) / 2)) < 2;   // half a card plus half a gap to the left
     const track = q("#staff .st__grid"), before = track.scrollLeft;
     q('#staff .st__nav[data-dir="1"]').click();
     await new Promise(r => setTimeout(r, 900));
-    return { oneRow: tops.size === 1, scrollable: track.scrollWidth > track.clientWidth,
+    return { twoRows: tops.size === 2, alternates, staggered, scrollable: track.scrollWidth > track.clientWidth,
              carouselAboveButtons: q("#staff .st__carousel").getBoundingClientRect().bottom <= q("#staff .st__filters").getBoundingClientRect().top,
              noLede: !q("#page-connect .page__lede"), nextScrolls: track.scrollLeft > before };
-  }), { oneRow: true, scrollable: true, carouselAboveButtons: true, noLede: true, nextScrolls: true });
+  }), { twoRows: true, alternates: true, staggered: true, scrollable: true, carouselAboveButtons: true, noLede: true, nextScrolls: true });
 await page.mouse.move(2, 2);   // the drift pauses under the pointer, so keep it off the cards
 check("Connect carousel: every card the same width, three whole and a half of the fourth showing; they drift right to left on their own; the order is shuffled (not alphabetical)",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid");
     track.scrollLeft = 0;
     await new Promise(r => setTimeout(r, 200));
-    const vis = [...track.querySelectorAll(":scope > .st")].filter(c => !c.hidden);
+    const vis = [...track.querySelectorAll(":scope > .st")].filter(c => !c.hidden && !c.classList.contains("st--low"));   // the top row
     const tr = track.getBoundingClientRect();
     const widths = new Set(vis.map(c => Math.round(c.getBoundingClientRect().width)));
     const whole = vis.filter(c => c.getBoundingClientRect().right <= tr.right + 1).length;
@@ -496,6 +530,22 @@ check("Connect carousel: every card the same width, three whole and a half of th
     const names = vis.map(c => c.querySelector(".st__name").textContent.split(" ").pop());
     return { fourFit: fit, drifts: track.scrollLeft > x0, shuffled: names.join() !== [...names].sort().join() };
   }), { fourFit: true, drifts: true, shuffled: true });
+check("with an odd number of cards showing (a filter), the second copy still starts on the top row, so the loop has no seam",
+  await page.evaluate(async () => {
+    const root = document.querySelector("#staff"), btns = [...root.querySelectorAll(".st__f")];
+    let found = null;
+    for (const b of btns) {
+      b.click(); await new Promise(r => setTimeout(r, 60));
+      const vis = [...root.querySelectorAll(".st:not(.st--clone)")].filter(c => !c.hidden);
+      if (vis.length % 2 === 1 && vis.length > 1) { found = vis.length; break; }
+      if (b.getAttribute("aria-pressed") === "true") { b.click(); }
+    }
+    const firstClone = [...root.querySelectorAll(".st--clone")].filter(c => !c.hidden)[0];
+    const pad = root.querySelector(".st__pad");
+    const ok = found !== null && !!firstClone && !firstClone.classList.contains("st--low") && !pad.hidden;
+    const on = root.querySelector('.st__f[aria-pressed="true"]'); if (on) { on.click(); }
+    return { odd: found !== null, noSeam: ok };
+  }), { odd: true, noSeam: true });
 check("photo is top-left, modules top-right, the questions and email below — photo square, half the card's width, bottom half at least as tall",
   await page.evaluate(() => {
     const c = document.querySelector("#staff .st:not(.st--clone)"), r = s => c.querySelector(s).getBoundingClientRect();

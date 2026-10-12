@@ -23,6 +23,8 @@
   --slice-sat:         92%;   /* fallback only — every slice sets its own --sat now, see app.js */
   --slice-ink:         #0b1a14;   /* the dark-ink label option, on whichever slices read better in it — see .slice-label--dark */
   --label-l:           80%;
+  --ring-line:         28%;   /* how far the outer ring's lines sit from their slice's lightness */
+  --ring-text:         46%;
   --page-tint:         0.2;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -54,6 +56,8 @@
     color-scheme: light;
 
     --label-l:           30%;
+    --ring-line:         -4%;
+    --ring-text:         -14%;
     --page-tint:         0.14;
   }
 }
@@ -71,6 +75,8 @@
   color-scheme: light;
 
   --label-l:           30%;
+  --ring-line:         -4%;
+  --ring-text:         -14%;
   --page-tint:         0.14;
 }
 
@@ -355,6 +361,27 @@ body.is-page-open .stage {
   height: 100%;
   overflow: visible;
 }
+
+/* The outer ring (assets/js/app.js, SUBS): invisible until its slice is
+   hovered or focused, then grown out from the centre. Only the dividing
+   lines and the curved names are drawn; the segments' fill is transparent
+   but still catches the pointer. */
+.wheel__ring { pointer-events: none; }
+body.is-page-open .wheel__ring { display: none; }
+.ring { opacity: 0; transform: scale(0.84); transform-origin: 50px 50px; transition: opacity 180ms ease, transform 320ms var(--ease); }
+.ring.is-shown { opacity: 1; transform: none; }
+.ring__line {
+  stroke: hsl(var(--hue) var(--sat) calc(var(--sl) + var(--ring-line)));
+  stroke-width: 0.4; stroke-linecap: round;
+}
+.ring__seg { cursor: pointer; pointer-events: none; }
+.ring.is-shown .ring__seg { pointer-events: auto; }
+.ring__hit { fill: transparent; }
+.ring__text {
+  fill: hsl(var(--hue) var(--sat) calc(var(--sl) + var(--ring-text)));
+  font-weight: 700; pointer-events: none;
+}
+.ring__seg:hover .ring__hit { fill: hsl(var(--hue) var(--sat) calc(var(--sl) + var(--ring-line)) / 0.16); }
 
 /* A slice is an <a> wrapping <path>; the <a> is the hit area. */
 .slice { cursor: pointer; }
@@ -1131,7 +1158,7 @@ body.is-page-open .stage {
   }
   .page.is-open { opacity: 1; }
   .page::before { display: none; }
-  .stage, .page__head, .page__body, .slice__path, .slice-label, .resource-card {
+  .stage, .page__head, .page__body, .slice__path, .slice-label, .resource-card, .ring {
     transition-duration: 1ms;
     transition-delay: 0s;
   }

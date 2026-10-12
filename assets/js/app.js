@@ -223,6 +223,131 @@
     link.addEventListener("keydown", onSliceKey);
   });
 
+  /* ---------- the outer ring: a section's subsections, on hover ----------
+   * Hovering (or focusing) a slice grows a ring round it, outside the
+   * wheel and invisible until then: the section's subsections, named on
+   * the arc, with a divider at each side of the slice and one between
+   * any two subsections. Only real subsections are listed — Study
+   * Resources (Guides, Assessment schedule) and Events (Next four weeks,
+   * On Instagram) have two, every other section one. Three of those
+   * names ("Module map", "Staff cards", "Newsletter") are OURS: those
+   * pages have no subheading of their own. A segment is a plain link to
+   * its section; it does not yet scroll to the subsection. */
+  var SUBS = {
+    "essential-links": ["Start here"],
+    "study-resources": ["Guides", "Assessment schedule"],
+    "customise-your-degree": ["Module map"],
+    "create-your-calendar": ["Term 1 Assessment Calendar"],
+    "connect": ["Staff cards"],
+    "events": ["Next four weeks", "On Instagram"],
+    "join-biosoc": ["Newsletter"]
+  };
+  var RING_GAP = 1.2, RING_W = 8.4, RING_FS = 2.1;
+  var ringSvg = document.createElementNS(NS, "svg");
+  ringSvg.setAttribute("class", "wheel__svg wheel__ring");
+  ringSvg.setAttribute("viewBox", "0 0 100 100");
+  ringSvg.setAttribute("aria-hidden", "true");
+  svg.parentNode.insertBefore(ringSvg, svg.nextSibling);
+  var rings = {};
+  var ringTimer = null;
+  var ringFits = [];
+
+  function ringPath(r0, r1, a0, a1) {
+    var p1 = polar(r1, a0), p2 = polar(r1, a1), p3 = polar(r0, a1), p4 = polar(r0, a0);
+    return ["M", p1.x, p1.y, "A", r1, r1, 0, 0, 1, p2.x, p2.y, "L", p3.x, p3.y, "A", r0, r0, 0, 0, 0, p4.x, p4.y, "Z"].join(" ");
+  }
+
+  SECTIONS.forEach(function (section, i) {
+    var names = SUBS[section.id] || [];
+    var mid = START + i * step, a0 = mid - step / 2, n = names.length;
+    var r0 = R_OUTER + RING_GAP, r1 = r0 + RING_W, rm = (r0 + r1) / 2;
+    var g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "ring");
+    g.style.setProperty("--hue", section.hue);
+    g.style.setProperty("--sat", section.sat + "%");
+    g.style.setProperty("--sl", section.light + "%");
+    function divider(deg) {
+      var p = polar(r0, deg), q = polar(r1, deg);
+      var line = document.createElementNS(NS, "line");
+      line.setAttribute("class", "ring__line");
+      line.setAttribute("x1", p.x); line.setAttribute("y1", p.y);
+      line.setAttribute("x2", q.x); line.setAttribute("y2", q.y);
+      g.appendChild(line);
+    }
+    names.forEach(function (name, k) {
+      var s0 = a0 + k * step / n, s1 = a0 + (k + 1) * step / n;
+      var link = document.createElementNS(NS, "a");
+      link.setAttribute("href", "#" + section.id);
+      link.setAttribute("tabindex", "-1");
+      link.setAttribute("class", "ring__seg");
+      var hit = document.createElementNS(NS, "path");
+      hit.setAttribute("class", "ring__hit");
+      hit.setAttribute("d", ringPath(r0, r1, s0, s1));
+      link.appendChild(hit);
+      /* text along the arc, flipped on the lower half so it never reads upside down */
+      var m = (s0 + s1) / 2, lower = Math.sin(m * Math.PI / 180) > 0;
+      var base = rm + (lower ? 1 : -1) * RING_FS * 0.33;
+      var from = polar(base, lower ? s1 : s0), to = polar(base, lower ? s0 : s1);
+      var pid = "ring-" + section.id + "-" + k;
+      var arc = document.createElementNS(NS, "path");
+      arc.setAttribute("id", pid);
+      arc.setAttribute("fill", "none");
+      arc.setAttribute("d", ["M", from.x, from.y, "A", base, base, 0, 0, lower ? 0 : 1, to.x, to.y].join(" "));
+      link.appendChild(arc);
+      var text = document.createElementNS(NS, "text");
+      text.setAttribute("class", "ring__text");
+      text.setAttribute("text-anchor", "middle");
+      var tp = document.createElementNS(NS, "textPath");
+      tp.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#" + pid);
+      tp.setAttribute("href", "#" + pid);
+      tp.setAttribute("startOffset", "50%");
+      tp.textContent = name;
+      text.appendChild(tp);
+      text.style.fontSize = RING_FS + "px";
+      link.appendChild(text);
+      link.addEventListener("click", function () { pushedHistory = true; });
+      link.addEventListener("mouseenter", function () { window.clearTimeout(ringTimer); });
+      link.addEventListener("mouseleave", hideRings);
+      g.appendChild(link);
+      ringFits.push({ text: text, room: Math.abs(s1 - s0) * Math.PI / 180 * rm - 3 });
+    });
+    divider(a0);
+    for (var k = 1; k < n; k++) { divider(a0 + k * step / n); }
+    divider(a0 + step);
+    ringSvg.appendChild(g);
+    rings[section.id] = g;
+  });
+
+  /* shrink any name that would run off the end of its arc; again once the
+     fonts have loaded, because the first measure may be in the fallback face */
+  function fitRingText() {
+    ringFits.forEach(function (f) {
+      var size = RING_FS, guard = 0;
+      f.text.style.fontSize = size + "px";
+      while (f.text.getComputedTextLength() > f.room && size > 1.3 && guard++ < 60) { size -= 0.05; f.text.style.fontSize = size.toFixed(2) + "px"; }
+    });
+  }
+  fitRingText();
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(fitRingText); }
+
+  function hideRings() {
+    window.clearTimeout(ringTimer);
+    ringTimer = window.setTimeout(function () {
+      Object.keys(rings).forEach(function (id) { rings[id].classList.remove("is-shown"); });
+    }, 160);
+  }
+  function showRing(id) {
+    window.clearTimeout(ringTimer);
+    Object.keys(rings).forEach(function (other) { rings[other].classList.toggle("is-shown", other === id); });
+  }
+  SECTIONS.forEach(function (section) {
+    var link = slices[section.id].link;
+    link.addEventListener("mouseenter", function () { showRing(section.id); });
+    link.addEventListener("mouseleave", hideRings);
+    link.addEventListener("focus", function () { showRing(section.id); });
+    link.addEventListener("blur", hideRings);
+  });
+
   /** Label nudge is in px, so it tracks the wheel at any size. */
   function sizeLabelPush() {
     var px = wheel.getBoundingClientRect().width / 100 * PUSH;

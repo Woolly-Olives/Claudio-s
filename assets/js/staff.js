@@ -241,7 +241,7 @@
     .concat(STREAMS.map(function (st) { return ["stream:" + st.id, st.label || st.id, st.colour]; }))
     .concat(ROLE_FILTERS.map(function (r) { return ["role:" + r, r]; }));
 
-  /* a one-row carousel of cards on top, the filter buttons below it */
+  /* a two-row (staggered) carousel of cards on top, the filter buttons below it */
   root.innerHTML =
     '<div class="st__carousel">' +
       '<button type="button" class="st__nav" data-dir="-1" aria-label="Previous staff">' +
@@ -269,6 +269,31 @@
 
   var shownCount = cards.length, pos = 0;
 
+  /* ---------- two rows, staggered ----------
+     The track is a two-row grid filled column by column, so the cards
+     alternate top, bottom, top, bottom… and every bottom card is pulled half a
+     card to the left (.st--low, staff.css), which puts it under the gap between
+     two top cards and makes the bottom row start flush with the left edge — its
+     first card is half cut off there. Which cards are "low" is worked out here
+     from what is actually showing, because a filter hides some. For the loop to
+     be seamless the count in one copy must be even (otherwise the second copy
+     would start on the other row), so an odd count gets an invisible pad. */
+  var pad = document.createElement("div");
+  pad.className = "st__pad";
+  pad.setAttribute("aria-hidden", "true");
+  clonesBox.parentNode.insertBefore(pad, clonesBox);
+  function layout() {
+    var vis = cards.filter(function (c) { return !c.hidden; });
+    var odd = vis.length % 2 === 1;
+    pad.hidden = !odd;
+    var run = vis.slice();
+    if (odd) { run.push(pad); }
+    clones.forEach(function (c) { if (!c.hidden) { run.push(c); } });
+    cards.concat(clones).forEach(function (c) { c.classList.remove("st--low"); });
+    run.forEach(function (c, i) { c.classList.toggle("st--low", i % 2 === 1); });
+  }
+  layout();
+
   root.querySelector(".st__carousel").addEventListener("click", function (e) {
     var b = e.target.closest(".st__nav");
     if (!b) { return; }
@@ -291,6 +316,7 @@
       if (ok) { shown++; }
     });
     shownCount = shown;
+    layout();
     pos = 0;
     track.scrollLeft = 0;
     count.textContent = !val ? "" :
