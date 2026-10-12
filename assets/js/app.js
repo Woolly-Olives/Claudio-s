@@ -266,6 +266,9 @@
     g.style.setProperty("--hue", section.hue);
     g.style.setProperty("--sat", section.sat + "%");
     g.style.setProperty("--sl", section.light + "%");
+    /* the slice nudges outward on hover (--push-x/y); the ring moves with it so its dividers stay level with the slice's edges */
+    g.style.setProperty("--push-x", slices[section.id].link.style.getPropertyValue("--push-x"));
+    g.style.setProperty("--push-y", slices[section.id].link.style.getPropertyValue("--push-y"));
     function divider(deg) {
       var p = polar(r0, deg), q = polar(r1, deg);
       var line = document.createElementNS(NS, "line");
@@ -306,8 +309,18 @@
       text.style.fontSize = RING_FS + "px";
       link.appendChild(text);
       link.addEventListener("click", function () { pushedHistory = true; });
-      link.addEventListener("mouseenter", function () { window.clearTimeout(ringTimer); });
-      link.addEventListener("mouseleave", hideRings);
+      /* while the pointer is on a ring segment, its slice keeps its hover look */
+      link.addEventListener("mouseenter", function () {
+        window.clearTimeout(ringTimer);
+        slices[section.id].link.classList.add("is-hover");
+        slices[section.id].label.classList.add("is-hot");
+      });
+      link.addEventListener("mouseleave", function () {
+        var sl = slices[section.id];
+        sl.link.classList.remove("is-hover");
+        if (!sl.link.matches(":hover")) { sl.label.classList.remove("is-hot"); }
+        hideRings();
+      });
       g.appendChild(link);
       ringFits.push({ text: text, room: Math.abs(s1 - s0) * Math.PI / 180 * rm - 3 });
     });

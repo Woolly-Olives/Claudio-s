@@ -235,6 +235,19 @@ console.log("\nthe noticeboard");
         posterShown: poster.querySelector("img").naturalWidth > 100, repsLink: reps.href === "https://www.leicesterunion.com/voice/yourvoice/reps/" && reps.textContent === "Vote for your Course Reps now!",
         deadline: /BS1030 deadline/.test(b.textContent) && /approximate/.test(b.textContent) };
     }), { rightOfWheel: true, levelWithWheel: true, posterLink: true, posterShown: true, repsLink: true, deadline: true });
+  check("at 1500px wide the board is its normal size (about 320px); it has no room to be larger",
+    await bp.evaluate(() => Math.round(document.getElementById("board").getBoundingClientRect().width / 10) * 10), 320);
+  await bp.setViewportSize({ width: 1920, height: 1000 }); await bp.waitForTimeout(300);
+  check("on a wide, tall screen the board is 1.3x larger in both directions (same proportions), still level with the wheel, 5rem from it, and fully on screen",
+    await bp.evaluate(() => {
+      const b = document.getElementById("board"), w = document.getElementById("wheel-svg").getBoundingClientRect(), r = b.getBoundingClientRect();
+      const gap = r.left - w.right, ratio = r.width / b.offsetWidth, ratioH = r.height / b.offsetHeight;
+      return { w: Math.round(ratio * 100) / 100, h: Math.round(ratioH * 100) / 100, onScreen: r.right < innerWidth - 8, gapOk: gap > 60 && gap < 100,
+        level: Math.abs((r.top + r.bottom) / 2 - (w.top + w.bottom) / 2) < 4 };
+    }), { w: 1.3, h: 1.3, onScreen: true, gapOk: true, level: true });
+  await bp.setViewportSize({ width: 1700, height: 900 }); await bp.waitForTimeout(300);
+  check("at the 1700px threshold the larger board still fits (no horizontal overflow)",
+    await bp.evaluate(() => document.getElementById("board").getBoundingClientRect().right < innerWidth), true);
   await bp.setViewportSize({ width: 1300, height: 800 }); await bp.waitForTimeout(300);
   check("on a narrower window, where there is no room beside the wheel, it is not shown",
     await bp.evaluate(() => getComputedStyle(document.getElementById("board")).display), "none");
@@ -263,6 +276,25 @@ console.log("\nthe outer ring (subsections, on hover)");
       const gone = await page.evaluate(() => [...document.querySelectorAll(".wheel__ring .ring")].every(g => getComputedStyle(g).opacity === "0"));
       return { rest, on: o.on, transparent: o.transparent, outside: o.outside, goneAgain: gone };
     })(), { rest: true, on: "false,true,false,false,false,false,false", transparent: true, outside: true, goneAgain: true });
+  check("hovering a ring segment keeps its slice in the hover state (lit, pushed out, label hot) and the ring moves with the slice; leaving clears both",
+    await (async () => {
+      const w0 = await page.evaluate(() => { const w = document.getElementById("wheel-svg").getBoundingClientRect(); return { cx: w.left + w.width / 2, cy: w.top + w.height / 2, R: w.width * 0.48 }; });
+      await page.mouse.move(w0.cx + 0.62 * w0.R * Math.sin(Math.PI / 7 * 2), w0.cy - 0.62 * w0.R * Math.cos(Math.PI / 7 * 2), { steps: 5 });
+      await page.waitForTimeout(700);   // ring has finished sliding out with the slice
+      const seg = await page.evaluate(() => { const b = document.querySelectorAll(".wheel__ring .ring")[1].querySelector(".ring__hit").getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
+      const read = () => page.evaluate(() => {
+        const sl = document.querySelectorAll("a.slice")[1], path = sl.querySelector(".slice__path"), g = document.querySelectorAll(".wheel__ring .ring")[1];
+        const lab = document.querySelectorAll(".slice-label")[1];
+        const m = new DOMMatrix(getComputedStyle(path).transform), n = new DOMMatrix(getComputedStyle(g).transform);
+        return { hover: sl.classList.contains("is-hover"), hot: lab.classList.contains("is-hot"), shown: g.classList.contains("is-shown"),
+          pushed: Math.hypot(m.e, m.f) > 0.5, ringMoved: Math.abs(m.e - n.e) < 0.05 && Math.abs(m.f - n.f) < 0.05 };
+      });
+      await page.mouse.move(seg.x, seg.y, { steps: 12 }); await page.waitForTimeout(700);
+      const on = await read();
+      await page.mouse.move(2, 2); await page.waitForTimeout(700);
+      const off = await read();
+      return { on, off: { hover: off.hover, hot: off.hot, shown: off.shown } };
+    })(), { on: { hover: true, hot: true, shown: true, pushed: true, ringMoved: true }, off: { hover: false, hot: false, shown: false } });
   check("a ring segment is a link that opens its section",
     await page.evaluate(() => [...document.querySelectorAll(".wheel__ring .ring")].map(g => g.querySelector("a.ring__seg").getAttribute("href"))),
     ["#essential-links", "#study-resources", "#customise-your-degree", "#create-your-calendar", "#connect", "#events", "#join-biosoc"]);

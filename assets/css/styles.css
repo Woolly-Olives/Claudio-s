@@ -368,8 +368,8 @@ body.is-page-open .stage {
    but still catches the pointer. */
 .wheel__ring { pointer-events: none; }
 body.is-page-open .wheel__ring { display: none; }
-.ring { opacity: 0; transform: scale(0.84); transform-origin: 50px 50px; transition: opacity 180ms ease, transform 320ms var(--ease); }
-.ring.is-shown { opacity: 1; transform: none; }
+.ring { opacity: 0; transform: scale(0.84); transform-origin: 50px 50px; transition: opacity 180ms ease, transform 420ms var(--ease); }   /* 420ms: the same as the slice's own nudge */
+.ring.is-shown { opacity: 1; transform: translate(var(--push-x, 0px), var(--push-y, 0px)); }
 .ring__line {
   stroke: hsl(var(--hue) var(--sat) calc(var(--sl) + var(--ring-line)));
   stroke-width: 0.4; stroke-linecap: round;
@@ -404,6 +404,7 @@ body.is-page-open .wheel__ring { display: none; }
 
 .slice:hover .slice__path,
 .slice:focus-visible .slice__path,
+.slice.is-hover .slice__path,   /* held while the pointer is on its outer-ring segment (app.js) */
 .slice.is-active .slice__path {
   fill: hsl(var(--hue) var(--sat, var(--slice-sat)) calc(var(--sl) + 6%));
   stroke: hsl(var(--hue) var(--sat, var(--slice-sat)) calc(var(--sl) - 9%));

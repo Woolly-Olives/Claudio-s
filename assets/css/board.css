@@ -16,6 +16,7 @@
   background: #a8754a radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1.5px) 0 0 / 6px 6px;
   border: 9px solid #6e4a2b; border-radius: 6px;
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.45), 0 10px 30px rgba(0, 0, 0, 0.35);
+  transform-origin: 0 50%;
 }
 .board:empty { display: none; }
 
@@ -45,6 +46,13 @@
 .bd__note--pink { background: #ffd1dc; transform: rotate(2.5deg); font-weight: 800; font-size: 0.9rem; transition: transform 200ms var(--ease); }
 a.bd__note:hover, a.bd__note:focus-visible { transform: rotate(0deg) scale(1.04); }
 .bd__poster:focus-visible, a.bd__note:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+/* On a wide, tall screen the whole board (text and all) is drawn 1.3x larger, same proportions;
+   the scale does not change the layout box, so the left edge stays 5rem from the circle.
+   It needs about 1700px: 1.3 x 20rem + the 5rem gap + a margin beside the wheel. */
+@media (min-width: 1700px) and (min-height: 780px) {
+  .board { transform: translateY(-50%) scale(1.3); }
+}
 
 /* the same reason the mini calendar hides, plus the board's own width: below this there is no room beside the wheel */
 @media (max-width: 1359px) {
