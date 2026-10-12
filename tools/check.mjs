@@ -564,7 +564,7 @@ check("Connect: cards are TWO staggered scrolling rows (alternating top / bottom
              noLede: !q("#page-connect .page__lede"), nextScrolls: track.scrollLeft > before };
   }), { twoRows: true, alternates: true, staggered: true, scrollable: true, carouselAboveButtons: true, noLede: true, nextScrolls: true });
 await page.mouse.move(2, 2);   // the drift pauses under the pointer, so keep it off the cards
-check("Connect carousel: every card the same width, three whole and a half of the fourth showing; they drift right to left on their own; the order is shuffled (not alphabetical)",
+check("Connect carousel: every card the same width, the top row shows exactly four whole cards; they drift right to left on their own; the order is shuffled (not alphabetical)",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid");
     track.scrollLeft = 0;
@@ -572,14 +572,51 @@ check("Connect carousel: every card the same width, three whole and a half of th
     const vis = [...track.querySelectorAll(":scope > .st")].filter(c => !c.hidden && !c.classList.contains("st--low"));   // the top row
     const tr = track.getBoundingClientRect();
     const widths = new Set(vis.map(c => Math.round(c.getBoundingClientRect().width)));
-    const whole = vis.filter(c => c.getBoundingClientRect().right <= tr.right + 1).length;
-    const partial = vis.filter(c => { const r = c.getBoundingClientRect(); return r.left < tr.right - 1 && r.right > tr.right + 1; })[0];
-    const fit = widths.size === 1 && whole === 3 && !!partial && Math.abs((tr.right - partial.getBoundingClientRect().left) / partial.getBoundingClientRect().width - 0.5) < 0.05;
+    const w = vis[0].getBoundingClientRect().width, gap = parseFloat(getComputedStyle(track).columnGap);   // (position is not tested: the drift has already moved the track a few px)
+    const fit = widths.size === 1 && tr.width >= 4 * w + 3 * gap && tr.width < 4 * w + 3 * gap + 10;
     const x0 = track.scrollLeft;
     await new Promise(r => setTimeout(r, 1800));
     const names = vis.map(c => c.querySelector(".st__name").textContent.split(" ").pop());
     return { fourFit: fit, drifts: track.scrollLeft > x0, shuffled: names.join() !== [...names].sort().join() };
   }), { fourFit: true, drifts: true, shuffled: true });
+check("the arrows slide the carousel by two card lengths (card + gap), smoothly, in well under half a second",
+  await page.evaluate(async () => {
+    const track = document.querySelector("#staff .st__grid"), root = document.querySelector("#staff");
+    const cs = track.querySelector(":scope > .st"), step = cs.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap);
+    track.scrollLeft = 3 * step; await new Promise(r => setTimeout(r, 100));
+    const x0 = track.scrollLeft; document.querySelector('#staff .st__nav[data-dir="1"]').click();
+    await new Promise(r => setTimeout(r, 120)); const mid = track.scrollLeft;
+    await new Promise(r => setTimeout(r, 330)); const x1 = track.scrollLeft;
+    const dRight = (x1 - x0) / step;
+    const y0 = track.scrollLeft; document.querySelector('#staff .st__nav[data-dir="-1"]').click();
+    await new Promise(r => setTimeout(r, 450)); const dLeft = (y0 - track.scrollLeft) / step;
+    return { right: Math.round(dRight * 10) / 10 >= 1.9 && dRight < 2.6, midway: mid > x0 + 20 && mid < x1 - 20, left: Math.abs(dLeft - 2) < 0.4 };   // the drift adds a few px
+  }), { right: true, midway: true, left: true });
+check("a filter that leaves 7 or fewer staff (all visible at once): no second copy, no pad, no drift, no arrows; top row filled first; bottom row half a card to the right; 8 or more brings the loop back",
+  await (async () => {
+    await page.mouse.move(2, 2);
+    const press = label => page.evaluate(l => [...document.querySelectorAll("#staff .st__f")].find(x => x.textContent === l).click(), label);
+    const read = () => page.evaluate(async () => {
+      const track = document.querySelector("#staff .st__grid"); await new Promise(r => setTimeout(r, 150));
+      const vis = [...track.querySelectorAll(":scope > .st")].filter(c => !c.hidden), tr = track.getBoundingClientRect();
+      const top = vis.filter(c => !c.classList.contains("st--low")), low = vis.filter(c => c.classList.contains("st--low"));
+      const x0 = track.scrollLeft; await new Promise(r => setTimeout(r, 900));
+      const rects = c => c.map(x => x.getBoundingClientRect());
+      return { n: vis.length, top: top.length, low: low.length,
+        clones: getComputedStyle(document.querySelector("#staff .st__clones")).display, still: track.scrollLeft === x0,
+        arrows: getComputedStyle(document.querySelector("#staff .st__nav")).visibility,
+        inside: vis.every(c => { const r = c.getBoundingClientRect(); return r.left >= tr.left - 1 && r.right <= tr.right + 1; }),
+        topRowFirst: rects(top).every(r => Math.abs(r.top - rects(top)[0].top) < 1) && (!low.length || rects(low)[0].top > rects(top)[0].top),
+        lowRight: !low.length || Math.abs(rects(low)[0].left - rects(top)[0].left - 0.5 * (rects(top)[1].left - rects(top)[0].left)) < 2 };
+    });
+    await press("Tutor"); const tutor = await read(); await press("Tutor");
+    await press("Zoology"); const zoo = await read(); await press("Zoology");
+    await press("Physiology"); const phys = await read(); await press("Physiology");
+    return { tutor, zoo, phys: { n: phys.n, clones: phys.clones, arrows: phys.arrows } };
+  })(),
+  { tutor: { n: 2, top: 2, low: 0, clones: "none", still: true, arrows: "hidden", inside: true, topRowFirst: true, lowRight: true },
+    zoo: { n: 5, top: 4, low: 1, clones: "none", still: true, arrows: "hidden", inside: true, topRowFirst: true, lowRight: true },
+    phys: { n: 9, clones: "contents", arrows: "visible" } });
 check("with an odd number of cards showing (a filter), the second copy still starts on the top row, so the loop has no seam",
   await page.evaluate(async () => {
     const root = document.querySelector("#staff"), btns = [...root.querySelectorAll(".st__f")];

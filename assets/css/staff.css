@@ -177,7 +177,16 @@
 #staff .st__count { margin: 0 0 0.8rem; min-height: 1.2em; font-size: 0.85rem; color: var(--fg-soft); }
 #staff .st[hidden] { display: none; }
 
-/* the Connect column is as wide as the carousel: three and a half 19rem cards
-   (3.5 x 19 + three 1.1rem gaps) plus a button and its gap at each end, so the
-   fourth card is always cut off by half. Narrower screens just show less. */
-#page-connect .page__inner { width: min(100% - 2.5rem, calc(3.5 * 19rem + 3 * 1.1rem + 2 * 2.9rem)); }
+/* the Connect column is as wide as the carousel: four 19rem cards (4 x 19 + three
+   1.1rem gaps, plus 4px for the track's own padding) and a button and its gap at
+   each end, so the top row shows exactly four whole cards. Narrower screens just
+   show fewer (and the 7-or-fewer rule in staff.js follows the real count). */
+#page-connect .page__inner { width: min(100% - 2.5rem, calc(4 * 19rem + 3 * 1.1rem + 2 * 2.9rem + 4px)); }
+
+/* few enough to see at once (staff.js decides): no second copy, no pad, no scrolling, no arrows —
+   the buttons stay in place, just invisible, so the cards do not move sideways. In this mode the
+   bottom row is pushed half a card to the RIGHT (nothing scrolls, so nothing is cut off). */
+#staff .st__grid--static { overflow-x: hidden; padding-right: 2px; }
+#staff .st__grid--static .st__clones, #staff .st__grid--static .st__pad { display: none; }
+#staff .st__grid--static .st--low { transform: translateX(calc(0.5 * (min(19rem, 100%) + 1.1rem))); }
+#staff .st__carousel--static .st__nav { visibility: hidden; }

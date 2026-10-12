@@ -282,24 +282,78 @@
   pad.className = "st__pad";
   pad.setAttribute("aria-hidden", "true");
   clonesBox.parentNode.insertBefore(pad, clonesBox);
+  /* ---------- few enough to see at once: no loop, no drift ----------
+     A card step is one card plus the gap; the track shows perRow of them. A
+     filter that leaves perRow x 2 - 1 cards or fewer (7 when four fit) puts
+     every card on screen at once, so the second copy, the invisible pad, the
+     drift and the arrows are all switched off (.st--static) and the cards are
+     laid out by hand: the top row first, then the bottom row — pushed half a
+     card to the RIGHT here, since nothing scrolls and a half card cut off at
+     the left edge would just look broken. */
+  var GAP_PX = 17.6;
+  function stepPx() {
+    var c = cards.filter(function (x) { return !x.hidden; })[0] || cards[0];
+    var gap = parseFloat(getComputedStyle(track).columnGap) || GAP_PX;
+    return c.getBoundingClientRect().width + gap;
+  }
+  function perRow() { return Math.max(1, Math.floor((track.clientWidth + (parseFloat(getComputedStyle(track).columnGap) || GAP_PX)) / stepPx())); }
+  var isStatic = false;
   function layout() {
     var vis = cards.filter(function (c) { return !c.hidden; });
+    var n = perRow();
+    isStatic = vis.length > 0 && vis.length <= 2 * n - 1;
+    track.classList.toggle("st__grid--static", isStatic);
+    root.querySelector(".st__carousel").classList.toggle("st__carousel--static", isStatic);
+    cards.concat(clones).forEach(function (c) { c.classList.remove("st--low"); c.style.gridRow = ""; c.style.gridColumn = ""; });
+    if (isStatic) {
+      pad.hidden = true;
+      vis.forEach(function (c, i) {
+        c.style.gridRow = i < n ? "1" : "2";
+        c.style.gridColumn = String(i % n + 1);
+        if (i >= n) { c.classList.add("st--low"); }
+      });
+      return;
+    }
     var odd = vis.length % 2 === 1;
     pad.hidden = !odd;
     var run = vis.slice();
     if (odd) { run.push(pad); }
     clones.forEach(function (c) { if (!c.hidden) { run.push(c); } });
-    cards.concat(clones).forEach(function (c) { c.classList.remove("st--low"); });
     run.forEach(function (c, i) { c.classList.toggle("st--low", i % 2 === 1); });
   }
+  var resizeTimer = 0;
+  window.addEventListener("resize", function () {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(function () { layout(); track.scrollLeft = 0; pos = 0; kick(); }, 120);
+  });
   layout();
 
+  /* ---------- the arrows: two card lengths, smooth but quick ----------
+     Done by script (not scrollBy's own smooth scroll, whose speed the browser
+     picks) so it takes the same 280ms everywhere. The drift stands still while
+     it runs and picks up from wherever the track ended. A left press at the
+     very start first jumps to the identical spot in the second copy. */
+  var SLIDE_MS = 280, sliding = 0;
+  function slide(dir) {
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var w = loopWidth(), delta = dir * 2 * stepPx();
+    if (sliding) { window.cancelAnimationFrame(sliding); sliding = 0; }
+    if (w && track.scrollLeft + delta < 0) { track.scrollLeft += w; }
+    var from = track.scrollLeft, t0 = 0;
+    if (reduce) { track.scrollLeft = from + delta; pos = track.scrollLeft; setTo = pos; sliding = 0; kick(); return; }
+    function step(now) {
+      if (!t0) { t0 = now; }
+      var k = Math.min(1, (now - t0) / SLIDE_MS), e = 1 - Math.pow(1 - k, 3);     // ease-out
+      track.scrollLeft = from + delta * e;
+      if (k < 1) { sliding = window.requestAnimationFrame(step); }
+      else { sliding = 0; pos = track.scrollLeft; setTo = pos; kick(); }
+    }
+    sliding = window.requestAnimationFrame(step);
+  }
   root.querySelector(".st__carousel").addEventListener("click", function (e) {
     var b = e.target.closest(".st__nav");
-    if (!b) { return; }
-    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (+b.getAttribute("data-dir") < 0 && track.scrollLeft < 1 && !fits()) { track.scrollLeft = loopWidth(); }
-    track.scrollBy({ left: +b.getAttribute("data-dir") * track.clientWidth * 0.85, behavior: reduce ? "auto" : "smooth" });
+    if (!b || isStatic) { return; }
+    slide(+b.getAttribute("data-dir"));
   });
 
   root.querySelector(".st__filters").addEventListener("click", function (e) {
@@ -342,7 +396,7 @@
   }
 
   function fits() { return loopWidth() <= track.clientWidth + 1; }
-  function wanted() { return open && !held && !(still && still.matches) && !fits(); }
+  function wanted() { return open && !held && !sliding && !isStatic && !(still && still.matches) && !fits(); }
 
   function frame(now) {
     raf = 0;
@@ -365,7 +419,6 @@
   track.addEventListener("pointerleave", hold(false));
   track.addEventListener("focusin", hold(true));
   track.addEventListener("focusout", hold(false));
-  root.querySelector(".st__carousel").addEventListener("click", function () { pos = track.scrollLeft; });
 
   /* a user who scrolls past either end wraps round instead of hitting a wall */
   track.addEventListener("scroll", function () {
