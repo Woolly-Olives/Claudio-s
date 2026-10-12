@@ -16,6 +16,7 @@
 <link rel="stylesheet" href="assets/css/advice.css">
 <link rel="stylesheet" href="assets/css/timetable.css">
 <link rel="stylesheet" href="assets/css/minical.css">
+<link rel="stylesheet" href="assets/css/board.css">
 <link rel="stylesheet" href="assets/css/staff.css">
 <link rel="stylesheet" href="assets/css/assess.css">
 <link rel="stylesheet" href="assets/css/sand.css">
@@ -89,6 +90,11 @@ try {
        only a day with an event stands out. Hidden on narrow screens,
        where the wheel leaves no room beside it. -->
   <aside class="minical" id="minical" aria-label="Upcoming events, this month and the next three"></aside>
+
+  <!-- The noticeboard, right of the wheel (assets/js/board.js, content in
+       assets/data/board.js): a poster that links to its Instagram post, a
+       deadline note and a Course Reps note. Hidden below 1360px wide. -->
+  <aside class="board" id="board" aria-label="Noticeboard"></aside>
 
   <div class="wheel" id="wheel">
     <svg class="wheel__svg" id="wheel-svg" viewBox="0 0 100 100" role="navigation" aria-label="BioSoc sections"></svg>
@@ -963,6 +969,7 @@ try {
 </section>
 
 <script src="assets/data/links.js"></script>
+<script src="assets/data/board.js"></script>
 <script src="assets/data/curriculum.js"></script>
 <script src="assets/data/instagram.js"></script>
 <script src="assets/data/instagram-posts.js"></script>
@@ -980,6 +987,7 @@ try {
 <script src="assets/js/sway.js"></script>
 <script src="assets/js/events.js"></script>
 <script src="assets/js/minical.js"></script>
+<script src="assets/js/board.js"></script>
 <script src="assets/js/staff.js"></script>
 <script src="assets/js/assess.js"></script>
 <script src="assets/js/sand.js"></script>

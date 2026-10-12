@@ -222,6 +222,24 @@ check("back button returns to the wheel", await (async () => {
   return page.evaluate(() => ({ hash: location.hash, anyOpen: document.body.classList.contains("is-page-open") }));
 })(), { hash: "", anyOpen: false });
 
+console.log("\nthe noticeboard");
+{
+  const bp = await browser.newPage({ viewport: { width: 1500, height: 900 } });
+  await bp.goto(SITE); await bp.waitForTimeout(900);
+  check("a noticeboard right of the wheel: the poster links (new tab) to the Instagram post, a Course Reps note links to the Union page, and a deadline note is there",
+    await bp.evaluate(() => {
+      const b = document.getElementById("board"), w = document.getElementById("wheel-svg").getBoundingClientRect(), r = b.getBoundingClientRect();
+      const poster = b.querySelector("a.bd__poster"), reps = b.querySelector("a.bd__note--pink");
+      return { rightOfWheel: r.left > w.right + 40 && r.right < innerWidth, levelWithWheel: Math.abs((r.top + r.bottom) / 2 - (w.top + w.bottom) / 2) < 4,
+        posterLink: poster.href === "https://www.instagram.com/biosoc.leics/p/DdQJotoI255/" && poster.target === "_blank" && /noopener/.test(poster.rel),
+        posterShown: poster.querySelector("img").naturalWidth > 100, repsLink: reps.href === "https://www.leicesterunion.com/voice/yourvoice/reps/" && reps.textContent === "Vote for your Course Reps now!",
+        deadline: /BS1030 deadline/.test(b.textContent) && /approximate/.test(b.textContent) };
+    }), { rightOfWheel: true, levelWithWheel: true, posterLink: true, posterShown: true, repsLink: true, deadline: true });
+  await bp.setViewportSize({ width: 1300, height: 800 }); await bp.waitForTimeout(300);
+  check("on a narrower window, where there is no room beside the wheel, it is not shown",
+    await bp.evaluate(() => getComputedStyle(document.getElementById("board")).display), "none");
+  await bp.close();
+}
 console.log("\nthe outer ring (subsections, on hover)");
 {
   await page.goto(SITE); await page.waitForTimeout(900);
