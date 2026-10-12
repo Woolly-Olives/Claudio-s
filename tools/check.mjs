@@ -564,7 +564,7 @@ check("Connect: cards are TWO staggered scrolling rows (alternating top / bottom
              noLede: !q("#page-connect .page__lede"), nextScrolls: track.scrollLeft > before };
   }), { twoRows: true, alternates: true, staggered: true, scrollable: true, carouselAboveButtons: true, noLede: true, nextScrolls: true });
 await page.mouse.move(2, 2);   // the drift pauses under the pointer, so keep it off the cards
-check("Connect carousel: every card the same width, the top row shows exactly four whole cards; they drift right to left on their own; the order is shuffled (not alphabetical)",
+check("Connect carousel: every card the same width, the top row shows exactly five whole cards; they drift right to left on their own; the order is shuffled (not alphabetical)",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid");
     track.scrollLeft = 0;
@@ -573,13 +573,13 @@ check("Connect carousel: every card the same width, the top row shows exactly fo
     const tr = track.getBoundingClientRect();
     const widths = new Set(vis.map(c => Math.round(c.getBoundingClientRect().width)));
     const w = vis[0].getBoundingClientRect().width, gap = parseFloat(getComputedStyle(track).columnGap);   // (position is not tested: the drift has already moved the track a few px)
-    const fit = widths.size === 1 && tr.width >= 4 * w + 3 * gap && tr.width < 4 * w + 3 * gap + 10;
+    const fit = widths.size === 1 && tr.width >= 5 * w + 4 * gap && tr.width < 5 * w + 4 * gap + 10;
     const x0 = track.scrollLeft;
     await new Promise(r => setTimeout(r, 1800));
     const names = vis.map(c => c.querySelector(".st__name").textContent.split(" ").pop());
     return { fourFit: fit, drifts: track.scrollLeft > x0, shuffled: names.join() !== [...names].sort().join() };
   }), { fourFit: true, drifts: true, shuffled: true });
-check("Connect: the first card lines up with the page title, the fourth ends at the column's right edge, the arrows sit outside the column in the side padding, rows are 455px at 1600px wide (aspect kept: 1.343 x the card width), and the email sits at the foot of every card (its card's 1rem padding below it)",
+check("Connect: the first card lines up with the page title, the fifth ends at the column's right edge, the arrows sit outside the column in the side padding, rows are 359px at 1600px wide (aspect kept: 1.343 x the 267.5px card width; both rows fit a 1000px-tall window), and the email sits at the foot of every card (its card's 1rem padding below it)",
   await page.evaluate(async () => {
     const g = document.querySelector("#staff .st__grid"); g.dispatchEvent(new Event("pointerenter")); g.scrollLeft = 0; await new Promise(r => setTimeout(r, 250));
     const col = document.querySelector("#page-connect .page__inner").getBoundingClientRect(), title = document.querySelector("#page-connect .page__title").getBoundingClientRect();
@@ -588,12 +588,12 @@ check("Connect: the first card lines up with the page title, the fourth ends at 
     const n1 = document.querySelector('#staff .st__nav[data-dir="-1"]').getBoundingClientRect(), n2 = document.querySelector('#staff .st__nav[data-dir="1"]').getBoundingClientRect();
     const emailAtFoot = cards.slice(0, 12).every(c => { const m = c.querySelector(".st__mail"), cr = r(c); return Math.abs((cr.bottom - 1 - 16) - m.getBoundingClientRect().bottom) < 3; });
     const ok = x => Math.round(x);
-    const out = { titleAlign: Math.abs(r(top[0]).left - title.left) < 1, rightEdge: Math.abs(r(top[3]).right - col.right) < 1.5, fourWhole: top.filter(c => r(c).right <= gr.right + 1).length === 4,
+    const out = { titleAlign: Math.abs(r(top[0]).left - title.left) < 1, rightEdge: Math.abs(r(top[4]).right - col.right) < 1.5, fiveWhole: top.filter(c => r(c).right <= gr.right + 1).length === 5,
       arrowsOutside: n1.right < col.left && n2.left > col.right && n1.left > 0 && n2.right < innerWidth, rowH: ok(r(top[0]).height), ratio: Math.round(r(top[0]).height / r(top[0]).width * 1000) / 1000, emailAtFoot };
     g.dispatchEvent(new Event("pointerleave"));
     return out;
-  }), { titleAlign: true, rightEdge: true, fourWhole: true, arrowsOutside: true, rowH: 455, ratio: 1.343, emailAtFoot: true });
-check("every card and both rows are one height — in every state (all staff, Zoology, Tutor, Physiology), and the same after a filter is released — and at 1600px that is 455px (1.343 x the card width)",
+  }), { titleAlign: true, rightEdge: true, fiveWhole: true, arrowsOutside: true, rowH: 359, ratio: 1.343, emailAtFoot: true });
+check("every card and both rows are one height — in every state (all staff, Zoology, Tutor, Physiology), and the same after a filter is released — and at 1600px that is 359.3px (1.343 x the card width)",
   await (async () => {
     const press = label => page.evaluate(l => [...document.querySelectorAll("#staff .st__f")].find(x => x.textContent === l).click(), label);
     const read = () => page.evaluate(async () => { await new Promise(r => setTimeout(r, 200));
@@ -606,7 +606,7 @@ check("every card and both rows are one height — in every state (all staff, Zo
     const again = await read();
     return { all: [all.same, all.h], zoo: [zoo.same, zoo.h], tut: [tut.same, tut.h], phys: [phys.same, phys.h], again: [again.same, again.h], allMatch: new Set([all.h, zoo.h, tut.h, phys.h, again.h]).size === 1 };
   })(),
-  { all: [true, 455], zoo: [true, 455], tut: [true, 455], phys: [true, 455], again: [true, 455], allMatch: true });
+  { all: [true, 359.3], zoo: [true, 359.3], tut: [true, 359.3], phys: [true, 359.3], again: [true, 359.3], allMatch: true });
 check("the arrows slide the carousel by two card lengths (card + gap), smoothly, in well under half a second",
   await page.evaluate(async () => {
     const track = document.querySelector("#staff .st__grid"), root = document.querySelector("#staff");
@@ -620,7 +620,7 @@ check("the arrows slide the carousel by two card lengths (card + gap), smoothly,
     await new Promise(r => setTimeout(r, 450)); const dLeft = (y0 - track.scrollLeft) / step;
     return { right: Math.round(dRight * 10) / 10 >= 1.9 && dRight < 2.6, midway: mid > x0 + 20 && mid < x1 - 20, left: Math.abs(dLeft - 2) < 0.4 };   // the drift adds a few px
   }), { right: true, midway: true, left: true });
-check("a filter that leaves 7 or fewer staff (all visible at once): no second copy, no pad, no drift, no arrows; top row filled first; bottom row a third of a card to the right; 8 or more brings the loop back",
+check("a filter that leaves 9 or fewer staff (five across: all visible at once): no second copy, no pad, no drift, no arrows; top row filled first; bottom row a third of a card to the right; 10 or more brings the loop back",
   await (async () => {
     await page.mouse.move(2, 2);
     const press = label => page.evaluate(l => [...document.querySelectorAll("#staff .st__f")].find(x => x.textContent === l).click(), label);
@@ -639,20 +639,24 @@ check("a filter that leaves 7 or fewer staff (all visible at once): no second co
     });
     await press("Tutor"); const tutor = await read(); await press("Tutor");
     await press("Zoology"); const zoo = await read(); await press("Zoology");
+    await press("Neuroscience"); const neuro = await read(); await press("Neuroscience");
     await press("Physiology"); const phys = await read(); await press("Physiology");
-    return { tutor, zoo, phys: { n: phys.n, clones: phys.clones, arrows: phys.arrows } };
+    await press("Genetics"); const gen = await read(); await press("Genetics");
+    return { tutor, zoo, neuro, phys, gen: { n: gen.n, clones: gen.clones, arrows: gen.arrows } };
   })(),
   { tutor: { n: 2, top: 2, low: 0, clones: "none", still: true, arrows: "hidden", inside: true, topRowFirst: true, lowRight: true },
-    zoo: { n: 5, top: 4, low: 1, clones: "none", still: true, arrows: "hidden", inside: true, topRowFirst: true, lowRight: true },
-    phys: { n: 9, clones: "contents", arrows: "visible" } });
-check("with an odd number of cards showing (a filter), the second copy still starts on the top row, so the loop has no seam",
+    zoo: { n: 5, top: 5, low: 0, clones: "none", still: true, arrows: "hidden", inside: true, topRowFirst: true, lowRight: true },
+    neuro: { n: 6, top: 5, low: 1, clones: "none", still: true, arrows: "hidden", inside: true, topRowFirst: true, lowRight: true },
+    phys: { n: 9, top: 5, low: 4, clones: "none", still: true, arrows: "hidden", inside: true, topRowFirst: true, lowRight: true },
+    gen: { n: 10, clones: "contents", arrows: "visible" } });
+check("with an odd number of cards showing in loop mode (a filter leaving 10 or more), the second copy still starts on the top row, so the loop has no seam",
   await page.evaluate(async () => {
     const root = document.querySelector("#staff"), btns = [...root.querySelectorAll(".st__f")];
     let found = null;
     for (const b of btns) {
       b.click(); await new Promise(r => setTimeout(r, 60));
       const vis = [...root.querySelectorAll(".st:not(.st--clone)")].filter(c => !c.hidden);
-      if (vis.length % 2 === 1 && vis.length > 1) { found = vis.length; break; }
+      if (vis.length % 2 === 1 && vis.length >= 10) { found = vis.length; break; }
       if (b.getAttribute("aria-pressed") === "true") { b.click(); }
     }
     const firstClone = [...root.querySelectorAll(".st--clone")].filter(c => !c.hidden)[0];

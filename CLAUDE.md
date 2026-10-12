@@ -126,3 +126,8 @@ you caused. Say what the fix would be and wait for an explicit instruction to
 fix, change, add or ship it (stated 2026-10-09). "Mock-up" or "preview" likewise
 means a browser-only preview that saves nothing; only "ship" or "implement" (or
 an equivalent) changes the site.
+
+**Commit and push only when told "Ship"** (stated 2026-10-12). Implement, test and
+preview freely, but leave the work uncommitted and unpushed until the user says
+"Ship" — "implement", "add" or "make" are not enough. Saying "Ship" covers
+everything that was just discussed, including edits to these notes.
