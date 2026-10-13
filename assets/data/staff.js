@@ -13,9 +13,14 @@
          roles:    ["Senior Tutor"],              // shown as red chips before the codes;
                                                 // filter groups: any "...Tutor" -> Tutor,
                                                 // "Careers..." -> Careers, "BIOsEDI", "EDI Lead...",
-                                                // "Programme Director", "Head of School" and
+                                                // "...Programme Director", "Head of School" and
                                                 // "Director of Education" -> Leadership
-         roleNotes: { "Programme Director": "Degree contact for: ..." },   // hover text on a role chip
+         convenes: ["BS1030"],                  // modules they convene that the handbooks' lists do not
+                                                // carry (Year 1): shown as "BS1030 Convenor"
+         prefix:   "(Retired)",                 // a grey note before the name
+         emails:   ["ss115@le.ac.uk"],          // a second mailbox, added to the handbooks' one; an
+                                                // address that differs only in the domain
+                                                // (le.ac.uk / leicester.ac.uk) is shown once
          name:     "Alison Snape", title: "Professor", emails: ["ams131@le.ac.uk"],
                                                 // ONLY for someone who convenes no module (so is not
                                                 // in the handbooks' lists): these three make a card
@@ -40,23 +45,31 @@
 window.BIOSOC_STAFF = {
   profiles: {
     /* Roles and degree contacts: from the School's contacts list the user supplied (screenshot, 2026-10-13).
-       Emails for people who already have a card are left as the handbooks give them; the contacts list differs
-       for four of them (see docs/HANDOVER.md) and nothing has been changed until someone says which is right. */
-    "alison snape":   { name: "Alison Snape", title: "Professor", emails: ["ams131@le.ac.uk"], roles: ["Head of School"] },
-    "sue shackleton": { roles: ["Director of Education"] },
-    "nina storey":    { roles: ["Senior Tutor", "AccessAbility Tutor"] },
+       Year 1 teaching teams: the user's own list (2026-10-13). Nobody has given an email for the four people
+       added from it (Schwabe, Chaplin, Mahen, Holmes), so their cards have none. */
+    "alison snape":   { name: "Alison Snape", title: "Professor", emails: ["ams131@le.ac.uk"], roles: ["Head of School"], teaches: ["BS1030"] },
+    "sue shackleton": { roles: ["Director of Education"], emails: ["ss115@le.ac.uk"], teaches: ["BS1030", "ADBS001"] },
+    "nina storey":    { roles: ["Senior Tutor", "AccessAbility Tutor"], emails: ["nina.storey@leicester.ac.uk"] },
     "emily allen":    { roles: ["Senior Tutor"] },
     "alix blockley":  { roles: ["Careers Lead"], years: ["FY"] },
     "saba imanzadeh": { roles: ["BIOsEDI"] },
-    "kath clark":     { name: "Kath Clark", title: "Dr", emails: ["kc57@le.ac.uk"], roles: ["EDI Lead", "Programme Director"], years: ["4"],
-                        roleNotes: { "Programme Director": "Degree contact for: Year 4 (MBiolSci)" } },
-    "swidbert ott":   { roles: ["Programme Director"],
-                        roleNotes: { "Programme Director": "Degree contact for: Biological Sciences; Biological Sciences (Genetics); Biological Sciences (Zoology); Medical Genetics" } },
-    "olga makarova":  { roles: ["Programme Director"],
-                        roleNotes: { "Programme Director": "Degree contact for: Biological Sciences (Biochemistry); Medical Biochemistry" } },
-    "jo purves":      { roles: ["Programme Director"],
-                        roleNotes: { "Programme Director": "Degree contact for: Biological Sciences (Microbiology); Medical Microbiology" } },
-    "volko straub":   { roles: ["Programme Director"],
-                        roleNotes: { "Programme Director": "Degree contact for: Biological Sciences (Neuroscience); Biological Sciences (Physiology & Pharmacology); Medical Physiology" } }
+    "kath clark":     { name: "Kath Clark", title: "Dr", emails: ["kc57@le.ac.uk"], years: ["4"],
+                        roles: ["EDI Lead", "Year 4 (MBiolSci) Programme Director"] },
+    "swidbert ott":   { roles: ["Genetics + Zoology + Biological Sciences Programme Director"] },
+    "olga makarova":  { roles: ["Biochemistry Programme Director"], teaches: ["BS1030"] },
+    "jo purves":      { roles: ["Microbiology Programme Director"], teaches: ["BS1040"] },
+    "volko straub":   { roles: ["Physiology + Neuroscience Programme Director"], teaches: ["BS1040"] },
+
+    /* Year 1: BS1030 and BS1040 each have one convenor; everyone else listed teaches on the module */
+    "mark leyland":   { prefix: "(Retired)", convenes: ["BS1030"] },
+    "helen o\u2019hare": { convenes: ["BS1040"] },
+    "john schwabe":   { name: "John Schwabe", title: "Dr", teaches: ["BS1030"] },
+    "amanda chaplin": { name: "Amanda Chaplin", title: "Dr", teaches: ["BS1030"] },
+    "eamonn mallon":  { teaches: ["BS1040"] },
+    "rob mahen":      { name: "Rob Mahen", title: "Dr", teaches: ["BS1040"] },
+    "sarah gretton":  { teaches: ["BS1040"] },
+    "chris holmes":   { name: "Chris Holmes", title: "Dr", teaches: ["BS1040"] },
+    "martha clokie":  { teaches: ["BS1040"] },
+    "primrose freestone": { teaches: ["BS1040"] }
   }
 };

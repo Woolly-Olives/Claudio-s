@@ -106,6 +106,9 @@
 #staff .st.is-flipped .st__face--back { visibility: visible; transform: none; }
 
 /* the turn-over button, in each face's top-right corner (the keyboard way to flip) */
+/* a grey note before a name, e.g. (Retired) */
+#staff .st__tag { color: var(--fg-soft); font-weight: 600; }
+
 #staff .st__flip {
   position: absolute;
   top: 0.7rem;

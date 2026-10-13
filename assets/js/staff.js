@@ -134,6 +134,10 @@
     person.name = forms[0];
     person.key = person.name.toLowerCase();
     person.title = person.titles.indexOf("Professor") !== -1 ? "Professor" : (person.titles[0] || "");
+    /* modules a person convenes that the handbooks' lists do not carry (the Year 1 ones): `convenes` in staff.js */
+    ((EXTRA[person.key] && EXTRA[person.key].convenes) || []).forEach(function (c) {
+      if (person.modules.indexOf(c) === -1) { person.modules.push(c); }
+    });
     person.modules.sort();
   });
 
@@ -142,7 +146,7 @@
   Object.keys(EXTRA).forEach(function (key) {
     var e = EXTRA[key];
     if (!e || !e.name || people.some(function (p) { return p.key === key; })) { return; }
-    people.push({ name: e.name, key: key, title: e.title || "", titles: [], forms: {}, modules: [],
+    people.push({ name: e.name, key: key, title: e.title || "", titles: [], forms: {}, modules: (e.convenes || []).slice().sort(),
       emails: (e.emails || []).map(function (m) { return String(m).toLowerCase(); }).filter(function (m) { return EMAIL.test(m); }) });
   });
 
@@ -180,8 +184,23 @@
   var ROLE_FILTERS = ["Tutor", "Careers", "BIOsEDI", "EDI Lead", "Programme Director", "Leadership"];
   var YEAR_FILTERS = [["1", "Year 1"], ["2", "Year 2"], ["3", "Year 3"], ["FY", "Foundation Year"], ["MSc", "MSc"], ["PhD", "PhD"], ["4", "MBiolSci/Year 4"]];
 
+  /* emails that differ only in the domain (le.ac.uk / leicester.ac.uk) are one address: show one, the le.ac.uk
+     spelling if either is. Different mailboxes (ns140@ and nina.storey@) are all shown. */
+  function canonMail(e) { return e.toLowerCase().replace(/@leicester\.ac\.uk$/, "@le.ac.uk"); }
+  function allEmails(person, extra) {
+    var out = [], seen = {};
+    (person.emails || []).concat((extra.emails || []).map(function (m) { return String(m).toLowerCase(); }).filter(function (m) { return EMAIL.test(m); })).forEach(function (m) {
+      var c = canonMail(m);
+      if (seen[c] === undefined) { seen[c] = out.length; out.push(m); }
+      else if (/@le\.ac\.uk$/.test(m)) { out[seen[c]] = m; }
+    });
+    return out;
+  }
+
   function card(person) {
     var extra = EXTRA[person.key] || {};
+    var tag = extra.prefix ? '<span class="st__tag">' + esc(extra.prefix) + '</span> ' : '';
+    var emails = allEmails(person, extra);
 
     /* every module they teach on: the ones they convene (from the
        handbooks' lists, so always known) plus any listed by hand in
@@ -218,7 +237,7 @@
         '<div class="st__inner">' +
         /* FRONT: name, photo, modules, research area */
         '<div class="st__face st__face--front">' +
-          '<h2 class="st__name">' + esc((person.title ? person.title + " " : "") + person.name) + '</h2>' +
+          '<h2 class="st__name">' + tag + esc((person.title ? person.title + " " : "") + person.name) + '</h2>' +
           '<button type="button" class="st__flip" aria-label="Turn over ' + esc(person.name) + '\'s card" title="Turn over">' + FLIP_ICON + '</button>' +
           '<div class="st__top">' +
             '<div class="st__photo">' +
@@ -226,10 +245,7 @@
             '</div>' +
             '<div class="st__mods">' +
               '<ul class="st__codes">' +
-              (extra.roles || []).map(function (r) {
-                var note = extra.roleNotes && extra.roleNotes[r];
-                return '<li class="st__code st__code--role"' + (note ? ' title="' + esc(note) + '"' : '') + '>' + esc(r) + '</li>';
-              }).join("") +
+              (extra.roles || []).map(function (r) { return '<li class="st__code st__code--role">' + esc(r) + '</li>'; }).join("") +
               chips.map(function (chip) {
                 var paint = paintOf(chip.codes[0]);
                 var conv = chip.codes.some(function (c) { return person.modules.indexOf(c) !== -1; });
@@ -247,14 +263,14 @@
         '</div>' +
         /* BACK: passion, advice, email */
         '<div class="st__face st__face--back">' +
-          '<div class="st__backname">' + esc((person.title ? person.title + " " : "") + person.name) + '</div>' +
+          '<div class="st__backname">' + tag + esc((person.title ? person.title + " " : "") + person.name) + '</div>' +
           '<button type="button" class="st__flip" aria-label="Turn ' + esc(person.name) + '\'s card back" title="Turn back">' + FLIP_ICON + '</button>' +
           '<div class="st__bottom">' +
             '<dl class="st__fields">' +
               field("I am passionate about:", extra.passion) +
               field("My advice to students:", extra.advice) +
             '</dl>' +
-            '<p class="st__mail">' + person.emails.map(function (e) {
+            '<p class="st__mail">' + emails.map(function (e) {
               return '<a href="mailto:' + esc(e) + '">' + esc(e) + '</a>';
             }).join("<br>") + '</p>' +
           '</div>' +
