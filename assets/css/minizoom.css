@@ -1,0 +1,63 @@
+/* =============================================================
+   Mini calendar — zoom to full screen (assets/js/minizoom.js).
+   The copy of the calendar reuses the mini calendar's own classes
+   (.mc, .mc__month, .mc__day…) from minical.css, sized by --s, which
+   the script sets so that its seven columns fill the window. Colours
+   are tokens or the event hues, so all three theme states work.
+   ============================================================= */
+
+/* the expand button, just above the strip, at its right-hand end */
+.mc__open {
+  position: absolute;
+  top: -2.4rem;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  color: var(--fg-soft);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.mc__open:hover, .mc__open:focus-visible { color: var(--fg); border-color: var(--fg-soft); }
+.mc__open svg, .mz__close svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.minical { cursor: zoom-in; }
+.minical .mc__day--ev { cursor: pointer; }
+
+.mz { position: fixed; inset: 0; z-index: 200; overflow: hidden; }
+.mz__bg { position: absolute; inset: 0; background: var(--bg); opacity: 0; }
+.mz__cal { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; }
+.mz .mc__day, .mz .mc__gap { container-type: size; position: relative; overflow: hidden; pointer-events: none; }
+.mz .mc__day { cursor: default; }
+
+.mz__n {
+  position: absolute; left: 7%; top: 6%;
+  font-weight: 700; font-size: min(15cqh, 15cqw); line-height: 1;
+  color: var(--fg); opacity: var(--zo, 0);
+}
+.mz__t {
+  position: absolute; left: 7%; right: 5%; bottom: 7%;
+  font-weight: 700; font-size: min(8cqh, 8cqw); line-height: 1.15;
+  color: #10201a; opacity: var(--zo, 0); overflow: hidden;
+}
+.mz .mc__day--ev .mz__n { color: #10201a; }
+
+.mz__head {
+  position: absolute; left: 40px; right: 40px; top: 14px;
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  font: 700 13px/1 inherit; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--fg-soft); opacity: 0; pointer-events: none;
+}
+.mz__head span { padding-left: 10px; }
+
+.mz__close {
+  position: absolute; top: 8px; right: 12px;
+  display: grid; place-items: center; width: 2.2rem; height: 2.2rem; padding: 0;
+  color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 50%;
+  cursor: pointer; opacity: 0;
+}
+.mz__close:hover, .mz__close:focus-visible { border-color: var(--fg-soft); }
+.mz__close:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }

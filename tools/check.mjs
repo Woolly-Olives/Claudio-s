@@ -680,7 +680,7 @@ check("cards turn over: the front has research area (not passion or email), the 
     const g = () => document.querySelector("#staff .st__grid");
     const info = await page.evaluate(async () => {
       const grid = document.querySelector("#staff .st__grid"); grid.dispatchEvent(new Event("pointerenter"));
-      grid.scrollLeft = 0; const card = [...grid.querySelectorAll(":scope > .st")].filter(c => !c.hidden && !c.classList.contains("st--low"))[1];   // a whole top-row card
+      grid.scrollLeft = 0; const card = [...grid.querySelectorAll(":scope > .st")].filter(c => !c.hidden && !c.classList.contains("st--low") && c.querySelector(".st__mail a"))[1];   // a whole top-row card that has an email (the order is random and some people have none)
       const labels = f => [...card.querySelectorAll(f + " .st__label")].filter(l => !l.closest(".st__backmods")).map(l => l.textContent);
       const out = { frontLabels: labels(".st__face--front"), backLabels: labels(".st__face--back"),
         mailOnBack: !!card.querySelector(".st__face--back .st__mail a[href^='mailto:']") && !card.querySelector(".st__face--front .st__mail"),
@@ -1633,6 +1633,60 @@ check("hovering a placeholder week names it and gives its whole range",
     await calPage.waitForTimeout(150);
     return calPage.evaluate(() => document.getElementById("mc-tip").textContent);
   })(), "PlaceholderReading weekMon 9 Nov – Sun 15 Nov · All day");
+/* the zoom (assets/js/minizoom.js): a plain scale of the mini calendar up to the window's width, on this week, with every
+   week that does not fully fit hidden */
+await calPage.mouse.move(5, 5);
+const miniRect = await calPage.evaluate(() => { const r = document.querySelector("#minical .mc").getBoundingClientRect(); return { w: r.width, h: r.height }; });
+await calPage.click("#minical .mc__open");
+await calPage.waitForTimeout(1300);
+check("the calendar zooms to full screen: a dialog; the copy has the mini calendar's proportions and its width fills the window; today's row is at the top, under a Mon-Sun header; only whole weeks that fit are left (at least two); dates and event names are shown; the close button has focus",
+  await calPage.evaluate((mini) => {
+    const ov = document.querySelector(".mz"), clone = ov.querySelector(".mc"), r = clone.getBoundingClientRect(), H = innerHeight;
+    const days = [...ov.querySelectorAll(".mc__day")], visible = days.filter(d => getComputedStyle(d).opacity !== "0");
+    const today = ov.querySelector(".is-today"), tr = today.getBoundingClientRect();
+    const rows = new Set(visible.map(d => Math.round(d.getBoundingClientRect().top)));
+    const events = visible.filter(d => d.classList.contains("mc__day--ev"));
+    return { dialog: ov.getAttribute("role") === "dialog" && ov.getAttribute("aria-modal") === "true",
+      proportions: Math.abs(r.width / r.height - mini.w / mini.h) < 0.01 * (mini.w / mini.h),
+      fillsWidth: Math.abs(r.width - (innerWidth - 80)) < 3,
+      todayShown: getComputedStyle(today).opacity !== "0" && tr.top >= 40 && tr.top < 60,
+      todayIsFirstRow: visible.every(d => d.getBoundingClientRect().top >= tr.top - 1),
+      allWhole: visible.every(d => { const q = d.getBoundingClientRect(); return q.top >= 43 && q.bottom <= H - 39 && q.left >= 0 && q.right <= innerWidth; }),
+      twoOrMoreWeeks: rows.size >= 2,
+      header: ov.querySelectorAll(".mz__head span").length === 7 && +getComputedStyle(ov.querySelector(".mz__head")).opacity === 1,
+      dates: visible.every(d => +getComputedStyle(d.querySelector(".mz__n")).opacity === 1 && /^\d+$/.test(d.querySelector(".mz__n").textContent)),
+      names: events.every(d => d.querySelector(".mz__t") && d.querySelector(".mz__t").textContent.length > 0),
+      miniHidden: getComputedStyle(document.getElementById("minical")).visibility === "hidden",
+      focus: document.activeElement === ov.querySelector(".mz__close") };
+  }, miniRect),
+  { dialog: true, proportions: true, fillsWidth: true, todayShown: true, todayIsFirstRow: true, allWhole: true, twoOrMoreWeeks: true, header: true, dates: true, names: true, miniHidden: true, focus: true });
+await calPage.keyboard.press("Tab");
+await calPage.keyboard.press("Escape");
+await calPage.waitForTimeout(1000);
+check("Escape zooms back out and closes it; the real calendar is back and the expand button has focus; a click on a plain day opens it again, and the close button closes it; a click on an event day opens its box, not the zoom",
+  await (async () => {
+    const closed = await calPage.evaluate(() => ({ gone: !document.querySelector(".mz"), shown: getComputedStyle(document.getElementById("minical")).visibility !== "hidden", focus: document.activeElement && document.activeElement.classList.contains("mc__open") }));
+    await calPage.click("#minical .mc__month:first-child .mc__day:not(.mc__day--ev)"); await calPage.waitForTimeout(300);
+    const reopened = await calPage.evaluate(() => !!document.querySelector(".mz"));
+    await calPage.click(".mz__close"); await calPage.waitForTimeout(1000);
+    const closed2 = await calPage.evaluate(() => !document.querySelector(".mz"));
+    await calPage.click("#minical button.mc__day--ev"); await calPage.waitForTimeout(300);
+    const evBox = await calPage.evaluate(() => ({ zoom: !!document.querySelector(".mz"), tip: !!document.querySelector(".mc-tip.is-open, .mc-tip[data-open], .mc-tip:not([hidden])") }));
+    await calPage.mouse.move(5, 5);
+    return { closed, reopened, closed2, noZoomOnEvent: !evBox.zoom };
+  })(),
+  { closed: { gone: true, shown: true, focus: true }, reopened: true, closed2: true, noZoomOnEvent: true });
+const calm2 = await browser.newPage({ viewport: { width: 1600, height: 950 }, reducedMotion: "reduce" });
+await calm2.clock.setFixedTime(dayBefore);
+await calm2.goto(SITE); await calm2.waitForTimeout(600);
+await calm2.click("#minical .mc__open");
+check("with reduced motion the zoom is there at once, with no animation, and closes at once",
+  await (async () => {
+    const at = await calm2.evaluate(() => { const o = document.querySelector(".mz"); return !!o && +getComputedStyle(o.querySelector(".mz__head")).opacity === 1; });
+    await calm2.keyboard.press("Escape"); await calm2.waitForTimeout(100);
+    return { at, gone: await calm2.evaluate(() => !document.querySelector(".mz")) };
+  })(), { at: true, gone: true });
+await calm2.close();
 await calPage.mouse.move(5, 5);
 await calPage.setViewportSize({ width: 900, height: 700 });
 await calPage.waitForTimeout(200);
