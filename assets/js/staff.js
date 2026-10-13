@@ -3,7 +3,7 @@
 
    Each card lists the modules a person teaches on, coloured as they
    are in Customise Your Degree, with "Convenor" after the code of any
-   they convene; a role (Head Tutor, Careers Lead…) goes above the
+   they convene; a role (Senior Tutor, Careers Lead…) goes above the
    codes. The convenor lists are the only teaching data the project has,
    so only convened modules appear until others are added by hand in
    assets/data/staff.js (`teaches`).
@@ -137,6 +137,15 @@
     person.modules.sort();
   });
 
+  /* people who are in assets/data/staff.js but convene no module (the Head of School, say): a profile with a
+     `name` (and `emails`) makes a card of its own, unless that person is already here under the same name */
+  Object.keys(EXTRA).forEach(function (key) {
+    var e = EXTRA[key];
+    if (!e || !e.name || people.some(function (p) { return p.key === key; })) { return; }
+    people.push({ name: e.name, key: key, title: e.title || "", titles: [], forms: {}, modules: [],
+      emails: (e.emails || []).map(function (m) { return String(m).toLowerCase(); }).filter(function (m) { return EMAIL.test(m); }) });
+  });
+
   people.sort(function (a, b) {
     var sa = a.name.split(" ").pop(), sb = b.name.split(" ").pop();
     return sa.localeCompare(sb) || a.name.localeCompare(b.name);
@@ -164,9 +173,11 @@
 
   /* the filter a role belongs to: every kind of tutor is a "Tutor" */
   function roleGroup(r) {
-    return /tutor/i.test(r) ? "Tutor" : /careers/i.test(r) ? "Careers" : /biosedi/i.test(r) ? "BIOsEDI" : r;
+    return /tutor/i.test(r) ? "Tutor" : /careers/i.test(r) ? "Careers" : /biosedi/i.test(r) ? "BIOsEDI"
+      : /^edi lead/i.test(r) ? "EDI Lead" : /programme director/i.test(r) ? "Programme Director"
+      : /head of school|director of education/i.test(r) ? "Leadership" : r;
   }
-  var ROLE_FILTERS = ["Tutor", "Careers", "BIOsEDI"];
+  var ROLE_FILTERS = ["Tutor", "Careers", "BIOsEDI", "EDI Lead", "Programme Director", "Leadership"];
   var YEAR_FILTERS = [["1", "Year 1"], ["2", "Year 2"], ["3", "Year 3"], ["FY", "Foundation Year"], ["MSc", "MSc"], ["PhD", "PhD"], ["4", "MBiolSci/Year 4"]];
 
   function card(person) {
@@ -215,7 +226,10 @@
             '</div>' +
             '<div class="st__mods">' +
               '<ul class="st__codes">' +
-              (extra.roles || []).map(function (r) { return '<li class="st__code st__code--role">' + esc(r) + '</li>'; }).join("") +
+              (extra.roles || []).map(function (r) {
+                var note = extra.roleNotes && extra.roleNotes[r];
+                return '<li class="st__code st__code--role"' + (note ? ' title="' + esc(note) + '"' : '') + '>' + esc(r) + '</li>';
+              }).join("") +
               chips.map(function (chip) {
                 var paint = paintOf(chip.codes[0]);
                 var conv = chip.codes.some(function (c) { return person.modules.indexOf(c) !== -1; });

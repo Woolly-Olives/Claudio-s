@@ -150,7 +150,7 @@ nothing to separately clean up.
 ## Staff cards (Connect)
 
 One card per person who convenes a module: name on top; a blank, square photo
-box top-left; top-right, any role (Head Tutor, Careers Lead) then the module
+box top-left; top-right, any role (Senior Tutor, Careers Lead) then the module
 codes, each coloured as in Customise Your Degree, with "Convenor" after the code
 of any they convene; then "My research area:", "I am passionate about:" and
 their email, with no rules between them. Built by

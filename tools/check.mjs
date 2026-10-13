@@ -521,8 +521,28 @@ check("roles are red chips in the module-code style, first in the row; Convenor 
              sameFont: getComputedStyle(r0).fontSize === getComputedStyle(chip).fontSize && getComputedStyle(r0).fontWeight === getComputedStyle(chip).fontWeight,
              noSeparateConvenor: !document.querySelector("#staff .st__conv"),
              noLoneBS2032: joined.every(t => t.startsWith("BS2032/BS2033")) && joined.length >= 1 };
-  }), { blockley: ["Careers Lead"], storey: ["Head Tutor"], allen: ["Head Tutor"], saba: ["BIOsEDI"], roleCount: 4,
+  }), { blockley: ["Careers Lead"], storey: ["Senior Tutor", "AccessAbility Tutor"], allen: ["Senior Tutor"], saba: ["BIOsEDI"], roleCount: 13,
         red: true, firstInRow: true, sameFont: true, noSeparateConvenor: true, noLoneBS2032: true });
+check("school contacts (from the School's contacts list): the Head of School and the EDI Lead / Year 4 degree contact have cards of their own (no modules, only a role chip, the listed email); the roles are on the right people; Programme Director chips carry the degrees as hover text; the new filters find them",
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("#staff .st:not(.st--clone)")];
+    const named = n => cards.find(c => c.querySelector(".st__name").textContent === n);
+    const roles = n => [...named(n).querySelectorAll(".st__code--role")].map(r => r.textContent);
+    const mods = n => [...named(n).querySelectorAll(".st__code:not(.st__code--role)")].length;
+    const mail = n => [...named(n).querySelectorAll(".st__mail a")].map(a => a.textContent);
+    const btns = [...document.querySelectorAll("#staff .st__f")];
+    const who = v => { const b = btns.find(x => x.dataset.val === v); b.click(); const r = cards.filter(c => !c.hidden).map(c => c.querySelector(".st__name").textContent).sort(); b.click(); return r; };
+    const pd = named("Dr Swidbert Ott").querySelector(".st__code--role").getAttribute("title");
+    return { cards: cards.length,
+      snape: [roles("Professor Alison Snape"), mods("Professor Alison Snape"), mail("Professor Alison Snape")],
+      clark: [roles("Dr Kath Clark"), mods("Dr Kath Clark"), mail("Dr Kath Clark")],
+      director: roles("Dr Sue Shackleton"),
+      programme: cards.filter(c => [...c.querySelectorAll(".st__code--role")].some(r => r.textContent === "Programme Director")).map(c => c.querySelector(".st__name").textContent).sort(),
+      ottNote: /Genetics/.test(pd) && /Zoology/.test(pd) && /Medical Genetics/.test(pd),
+      leadership: who("role:Leadership"), edi: who("role:EDI Lead"), pdFilter: who("role:Programme Director").length };
+  }), { cards: 59, snape: [["Head of School"], 0, ["ams131@le.ac.uk"]], clark: [["EDI Lead", "Programme Director"], 0, ["kc57@le.ac.uk"]], director: ["Director of Education"],
+        programme: ["Dr Jo Purves", "Dr Kath Clark", "Dr Olga Makarova", "Dr Swidbert Ott", "Dr Volko Straub"], ottNote: true,
+        leadership: ["Dr Sue Shackleton", "Professor Alison Snape"], edi: ["Dr Kath Clark"], pdFilter: 5 });
 check("Connect filter: one line, no All button, one choice at a time, pressing it again shows everyone (never narrowing); BS2032/BS2033 never repeated on a card",
   await page.evaluate(() => {
     const vis = () => [...document.querySelectorAll("#staff .st:not(.st--clone)")].filter(c => !c.hidden).map(c => c.querySelector(".st__name").textContent);
@@ -536,7 +556,8 @@ check("Connect filter: one line, no All button, one choice at a time, pressing i
     click("stream:genetics"); const gen = vis();
     const pressed = btns.filter(b => b.getAttribute("aria-pressed") === "true").length;
     click("year:2"); const y2 = vis(); const y2Pressed = btns.filter(b => b.getAttribute("aria-pressed") === "true").length;
-    const extra = ["year:MSc", "year:PhD", "year:4"].map(v => { click(v); return vis().length; });
+    const extra = ["year:MSc", "year:PhD"].map(v => { click(v); return vis().length; });
+    click("year:4"); const y4 = vis();
     click(""); const afterRelease = vis().length; const noneLit = btns.every(b => b.getAttribute("aria-pressed") === "false");
     const dup = [...document.querySelectorAll("#staff .st:not(.st--clone)")].some(c => {
       const t = [...c.querySelectorAll(".st__code")].map(l => l.textContent).join(" ");
@@ -544,9 +565,9 @@ check("Connect filter: one line, no All button, one choice at a time, pressing i
     });
     return { oneLine: tops.size === 1, allCount: btns.filter(b => b.textContent === "All").length, noneLit,
              fy, tutor: tutor.length, edi, genReplacesNotNarrows: gen.length > 0 && !gen.every(n => edi.includes(n)),
-             extraEmpty: extra.join() === "0,0,0", onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: afterRelease === total, dup };
+             extraEmpty: extra.join() === "0,0", y4, onePressed: pressed === 1, y2Ok: y2.length > 0 && y2.length < total, resetAll: afterRelease === total, dup };
   }), { oneLine: true, allCount: 0, noneLit: true, fy: ["Dr Alix Blockley"], tutor: 2, edi: ["Dr Saba Imanzadeh"], genReplacesNotNarrows: true,
-        extraEmpty: true, onePressed: true, y2Ok: true, resetAll: true, dup: false });
+        extraEmpty: true, y4: ["Dr Kath Clark"], onePressed: true, y2Ok: true, resetAll: true, dup: false });
 check("Connect: cards are TWO staggered scrolling rows (alternating top / bottom, each bottom card a third of a card step right of the top card on its left) above the filter buttons; no intro text; the arrows scroll it",
   await page.evaluate(async () => {
     const q = s => document.querySelector(s);
