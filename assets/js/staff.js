@@ -201,6 +201,7 @@
     var extra = EXTRA[person.key] || {};
     var tag = extra.prefix ? '<span class="st__tag">' + esc(extra.prefix) + '</span> ' : '';
     var emails = allEmails(person, extra);
+    var chipsHtml = '';           // the module codes: on the front, or on the back when the front is too full (st--spill)
 
     /* every module they teach on: the ones they convene (from the
        handbooks' lists, so always known) plus any listed by hand in
@@ -231,6 +232,14 @@
       chips.push({ joined: j, codes: j ? j.filter(function (x) { return codes.indexOf(x) !== -1; }) : [c] });
     });
 
+    chipsHtml = chips.map(function (chip) {
+      var paint = paintOf(chip.codes[0]);
+      var conv = chip.codes.some(function (c) { return person.modules.indexOf(c) !== -1; });
+      return '<li class="st__code' + (paint.dark ? ' st__code--dark' : '') + '" style="--mc:' + paint.colour +
+        '" title="' + esc(chip.codes.map(function (c) { return titleOf[c] || ""; }).join(" / ")) + '">' +
+        esc(chip.codes.join("/")) + (conv ? ' Convenor' : '') + '</li>';
+    }).join("");
+
     return '' +
       '<article class="st" data-tags="' + esc(years.map(function (y) { return "year:" + y; })
         .concat(streams.map(function (x) { return "stream:" + x; }), groups.map(function (g) { return "role:" + g; })).join("|")) + '">' +
@@ -246,13 +255,7 @@
             '<div class="st__mods">' +
               '<ul class="st__codes">' +
               (extra.roles || []).map(function (r) { return '<li class="st__code st__code--role">' + esc(r) + '</li>'; }).join("") +
-              chips.map(function (chip) {
-                var paint = paintOf(chip.codes[0]);
-                var conv = chip.codes.some(function (c) { return person.modules.indexOf(c) !== -1; });
-                return '<li class="st__code' + (paint.dark ? ' st__code--dark' : '') + '" style="--mc:' + paint.colour +
-                  '" title="' + esc(chip.codes.map(function (c) { return titleOf[c] || ""; }).join(" / ")) + '">' +
-                  esc(chip.codes.join("/")) + (conv ? ' Convenor' : '') + '</li>';
-              }).join("") + '</ul>' +
+              chipsHtml + '</ul>' +
             '</div>' +
           '</div>' +
           '<div class="st__bottom">' +
@@ -265,6 +268,10 @@
         '<div class="st__face st__face--back">' +
           '<div class="st__backname">' + tag + esc((person.title ? person.title + " " : "") + person.name) + '</div>' +
           '<button type="button" class="st__flip" aria-label="Turn ' + esc(person.name) + '\'s card back" title="Turn back">' + FLIP_ICON + '</button>' +
+          '<div class="st__backmods">' +
+            '<div class="st__label">Modules</div>' +
+            '<ul class="st__codes"></ul>' +
+          '</div>' +
           '<div class="st__bottom">' +
             '<dl class="st__fields">' +
               field("I am passionate about:", extra.passion) +
@@ -369,26 +376,37 @@
     clones.forEach(function (c) { if (!c.hidden) { run.push(c); } });
     run.forEach(function (c, i) { c.classList.toggle("st--low", i % 2 === 1); });
   }
-  /* every card and both rows share one height. The CSS gives them 1.343 x the card width; if the
-     most crowded card (most module codes, longest name) needs more than that, --st-h carries that
-     height, measured here with every card showing so a filter cannot shrink it. */
-  function measure() {
-    var was = cards.map(function (c) { return c.hidden; });
-    track.classList.add("st__grid--measuring");
-    track.style.removeProperty("--st-h");
-    cards.forEach(function (c) { c.hidden = false; });
-    var tallest = 0;
-    cards.forEach(function (c) { tallest = Math.max(tallest, c.scrollHeight); });
-    cards.forEach(function (c, i) { c.hidden = was[i]; });
-    track.classList.remove("st__grid--measuring");
-    track.style.setProperty("--st-h", Math.ceil(tallest) + "px");
+  /* Every card is the same size, always: 1.343 x its width tall (359px at 267.5px wide), both rows alike, whatever is on
+     it. A card whose FRONT would not fit that height gets class st--spill: its module codes leave the front and show
+     on the back instead (roles, photo and research area stay). Measured with every card showing, so a filter never
+     changes who spills. The card size is never changed to make room. */
+  function setSpill(c, on) {
+    var front = c.querySelector(".st__face--front .st__codes"), back = c.querySelector(".st__backmods .st__codes");
+    if (!front || !back) { return; }
+    if (on) {
+      [].slice.call(front.querySelectorAll(".st__code:not(.st__code--role)")).forEach(function (li) { back.appendChild(li); });
+    } else {
+      [].slice.call(back.querySelectorAll(".st__code")).forEach(function (li) { front.appendChild(li); });
+    }
+    c.classList.toggle("st--spill", on);
   }
-  measure();
-  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function () { measure(); }); }
+  function fitCards() {
+    if (!track.clientWidth) { return; }                  // Connect is not laid out yet; it is run again when it opens
+    var was = cards.map(function (c) { return c.hidden; });
+    cards.forEach(function (c) { c.hidden = false; });
+    cards.forEach(function (c, i) {
+      setSpill(c, false); setSpill(clones[i], false);
+      var f = c.querySelector(".st__face--front");
+      if (f && f.scrollHeight > f.clientHeight + 1) { setSpill(c, true); setSpill(clones[i], true); }
+    });
+    cards.forEach(function (c, i) { c.hidden = was[i]; });
+  }
+  fitCards();
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function () { fitCards(); }); }
   var resizeTimer = 0;
   window.addEventListener("resize", function () {
     window.clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(function () { measure(); layout(); resetRows(); kick(); }, 120);
+    resizeTimer = window.setTimeout(function () { fitCards(); layout(); resetRows(); kick(); }, 120);
   });
   layout();
 
@@ -626,6 +644,6 @@
 
   document.addEventListener("biosoc:page", function (event) {
     open = event.detail.id === "connect";
-    if (open) { measure(); kick(); }
+    if (open) { fitCards(); kick(); }
   });
 })();
