@@ -134,6 +134,10 @@
     person.name = forms[0];
     person.key = person.name.toLowerCase();
     person.title = person.titles.indexOf("Professor") !== -1 ? "Professor" : (person.titles[0] || "");
+    /* a profile can correct how an existing person's name is spelled (`name`) or their title (`title`); the key stays */
+    var fix = EXTRA[person.key];
+    if (fix && fix.name) { person.name = fix.name; }
+    if (fix && fix.title) { person.title = fix.title; }
     /* modules a person convenes that the handbooks' lists do not carry (the Year 1 ones): `convenes` in staff.js */
     ((EXTRA[person.key] && EXTRA[person.key].convenes) || []).forEach(function (c) {
       if (person.modules.indexOf(c) === -1) { person.modules.push(c); }
@@ -179,7 +183,7 @@
   function roleGroup(r) {
     return /tutor/i.test(r) ? "Tutor" : /careers/i.test(r) ? "Careers" : /biosedi/i.test(r) ? "BIOsEDI"
       : /^edi lead/i.test(r) ? "EDI Lead" : /programme director/i.test(r) ? "Programme Director"
-      : /head of school|director of education/i.test(r) ? "Leadership" : r;
+      : /head of school|director of education|deputy head of school|head of division/i.test(r) ? "Leadership" : r;
   }
   var ROLE_FILTERS = ["Tutor", "Careers", "BIOsEDI", "EDI Lead", "Programme Director", "Leadership"];
   var YEAR_FILTERS = [["1", "Year 1"], ["2", "Year 2"], ["3", "Year 3"], ["FY", "Foundation Year"], ["MSc", "MSc"], ["PhD", "PhD"], ["4", "MBiolSci/Year 4"]];

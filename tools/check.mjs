@@ -478,9 +478,10 @@ check("every card has a name, a photo box, module codes, both questions and an e
     return {
       many: cards.length > 20,
       allComplete: cards.every(c => c.querySelector("h2.st__name").textContent.length > 3 &&
-        c.querySelector(".st__photo") && c.querySelectorAll(".st__codes li").length >= 1 &&
+        c.querySelector(".st__photo") && c.querySelector(".st__codes") &&   // the 19 people added from the staff directory have no module codes or roles, so an empty list is allowed
+
         labels(c).indexOf("My research area:") !== -1 && labels(c).indexOf("I am passionate about:") !== -1 &&
-        (c.querySelector('.st__mail a[href^="mailto:"]') || /Schwabe|Chaplin|Mahen|Holmes|Rosato|Neelam Dave|Beleza|Hollie Marshall|Luke Baker|Cuthbertson|Drea|Higgins|Heslop-Harrison|Veryan Codd/.test(c.querySelector("h2.st__name").textContent))),   // nobody has given an email for those people
+        (c.querySelector('.st__mail a[href^="mailto:"]') || /Neelam Dave|Chris Holmes|Luke Baker|Veryan Codd/.test(c.querySelector("h2.st__name").textContent))),   // nobody has given an email for those people
     };
   }), { many: true, allComplete: true });
 check("the same person is never on two cards (Swidbert Ott was entered under three spellings, one email)",
@@ -521,7 +522,7 @@ check("roles are red chips in the module-code style, first in the row; Convenor 
              sameFont: getComputedStyle(r0).fontSize === getComputedStyle(chip).fontSize && getComputedStyle(r0).fontWeight === getComputedStyle(chip).fontWeight,
              noSeparateConvenor: !document.querySelector("#staff .st__conv"),
              noLoneBS2032: joined.every(t => t.startsWith("BS2032/BS2033")) && joined.length >= 1 };
-  }), { blockley: ["Careers Lead"], storey: ["Senior Tutor", "AccessAbility Tutor"], allen: ["Senior Tutor"], saba: ["BIOsEDI"], roleCount: 13,
+  }), { blockley: ["Careers Lead"], storey: ["Senior Tutor", "AccessAbility Tutor"], allen: ["Senior Tutor"], saba: ["BIOsEDI"], roleCount: 20,
         red: true, firstInRow: true, sameFont: true, noSeparateConvenor: true, noLoneBS2032: true });
 check("school contacts (from the School's contacts list): the Head of School and the EDI Lead / Year 4 degree contact have cards of their own (no modules, only a role chip, the listed email); the roles are on the right people; each Programme Director chip names its own degrees (no hover text); the new filters find them",
   await page.evaluate(() => {
@@ -540,9 +541,9 @@ check("school contacts (from the School's contacts list): the Head of School and
       programme: cards.filter(c => [...c.querySelectorAll(".st__code--role")].some(r => /Programme Director$/.test(r.textContent))).map(c => c.querySelector(".st__name").textContent).sort(),
       pdRoles: [pd, roles("Dr Olga Makarova"), roles("Dr Jo Purves"), roles("Dr Volko Straub")],
       leadership: who("role:Leadership"), edi: who("role:EDI Lead"), pdFilter: who("role:Programme Director").length };
-  }), { cards: 73, snape: [["Head of School"], 1, ["ams131@le.ac.uk"]], clark: [["EDI Lead", "Year 4 (MBiolSci) Programme Director"], 0, ["kc57@le.ac.uk"]], director: ["Director of Education"],
+  }), { cards: 93, snape: [["Head of School"], 1, ["ams131@le.ac.uk", "alison.snape@le.ac.uk"]], clark: [["Deputy Head of School (Citizenship/EDI)", "EDI Lead", "Year 4 (MBiolSci) Programme Director"], 0, ["kc57@le.ac.uk"]], director: ["Director of Education", "Deputy Head of School (Education)"],
         programme: ["Dr Jo Purves", "Dr Kath Clark", "Dr Olga Makarova", "Dr Swidbert Ott", "Dr Volko Straub"], pdRoles: [["Genetics + Zoology + Biological Sciences Programme Director"], ["Biochemistry Programme Director"], ["Microbiology Programme Director"], ["Physiology + Neuroscience Programme Director"]],
-        leadership: ["Dr Sue Shackleton", "Professor Alison Snape"], edi: ["Dr Kath Clark"], pdFilter: 5 });
+        leadership: ["Dr Kath Clark", "Dr Sue Shackleton", "Dr Will Norton", "Professor Alison Snape", "Professor Christopher Bayliss", "Professor Cyril Dominguez", "Professor Eamonn Mallon", "Professor Thomas Schalch"], edi: ["Dr Kath Clark"], pdFilter: 5 });
 check("emails: different mailboxes are all shown, domain variations once (le.ac.uk wins); \"(Retired)\" in grey before Mark Leyland's name; Year 1: BS1030 and BS1040 have one convenor each (Leyland, O'Hare), the rest of the lists teach (no Convenor), Sue Shackleton also has Tutorials (ADBS001), and the Year 1 filter finds all of its teams",
   await page.evaluate(() => {
     const cards = [...document.querySelectorAll("#staff .st:not(.st--clone)")];
@@ -552,13 +553,25 @@ check("emails: different mailboxes are all shown, domain variations once (le.ac.
     const tag = named("Mark Leyland").querySelector(".st__name .st__tag");
     const btns = [...document.querySelectorAll("#staff .st__f")], y1 = btns.find(b => b.dataset.val === "year:1");
     y1.click(); const year1 = cards.filter(c => !c.hidden).map(c => c.querySelector(".st__name").textContent.replace("(Retired) ", "")).sort(); y1.click();
-    return { shackleton: mail("Dr Sue Shackleton"), storey: mail("Dr Nina Storey"), allen: mail("Dr Emily Allen"), purves: mail("Dr Jo Purves"), makarova: mail("Dr Olga Makarova"), talbot: mail("Dr Chris Talbot"),
+    return { shackleton: mail("Dr Sue Shackleton"), storey: mail("Dr Nina Storey"), allen: mail("Dr Emily Allen"), purves: mail("Dr Jo Purves"), makarova: mail("Dr Olga Makarova"), talbot: mail("Professor Chris Talbot"),
       retired: [tag && tag.textContent, tag && getComputedStyle(tag).color !== getComputedStyle(named("Mark Leyland").querySelector(".st__name")).color, named("Mark Leyland").querySelector(".st__name").textContent.startsWith("(Retired) Dr Mark")],
-      leyland: chips("Mark Leyland"), ohare: chips("Dr Helen O\u2019Hare"), schwabe: chips("Dr John Schwabe"), mallon: chips("Professor Eamonn Mallon"), shackChips: chips("Dr Sue Shackleton"), mahenMail: mail("Dr Rob Mahen"),
+      leyland: chips("Mark Leyland"), ohare: chips("Dr Helen O\u2019Hare"), schwabe: chips("Professor John Schwabe"), mallon: chips("Professor Eamonn Mallon"), shackChips: chips("Dr Sue Shackleton"), mahenMail: mail("Dr Rob Mahen"),
       year1 };
-  }), { shackleton: ["sue.shackleton@le.ac.uk", "ss115@le.ac.uk"], storey: ["ns140@le.ac.uk", "nina.storey@leicester.ac.uk"], allen: ["ew150@le.ac.uk"], purves: ["jp437@le.ac.uk"], makarova: ["om13@le.ac.uk"], talbot: ["cjt15@le.ac.uk", "cjt14@le.ac.uk"],
-        retired: ["(Retired)", true, true], leyland: ["BS1030 Convenor", "BS2093 Convenor"], ohare: ["BS1040 Convenor", "MB2020 Convenor"], schwabe: ["BS1030"], mallon: ["BS1040", "BS1070", "BS2004 Convenor"], shackChips: ["ADBS001", "BS1030", "MB2050 Convenor", "MB3001 Convenor"], mahenMail: [],
-        year1: ["Dr Alix Blockley", "Dr Amanda Chaplin", "Dr Catherine Vial", "Dr Chris Holmes", "Dr Emily Allen", "Dr Frank Proudlock", "Dr Helen O’Hare", "Dr Hollie Marshall", "Dr James Higgins", "Dr Jo Purves", "Dr John Schwabe", "Dr Jonathan McDearmid", "Dr Jonathan Willets", "Dr Leah Cuthbertson", "Dr Luke Baker", "Dr Mark Leyland", "Dr Moya Burns", "Dr Neelam Dave", "Dr Nina Storey", "Dr Olga Makarova", "Dr Primrose Freestone", "Dr Rob Hammond", "Dr Rob Mahen", "Dr Sandra Beleza", "Dr Sinéad Drea", "Dr Stuart Desjardins", "Dr Sue Shackleton", "Dr Veryan Codd", "Dr Volko Straub", "Dr Will Norton", "Professor Alison Snape", "Professor David Twell", "Professor Eamonn Mallon", "Professor John Challiss", "Professor Mark Jobling", "Professor Martha Clokie", "Professor Pat Heslop-Harrison", "Professor Rosato", "Professor Sarah Gretton"] });
+  }), { shackleton: ["sue.shackleton@le.ac.uk", "ss115@le.ac.uk"], storey: ["ns140@le.ac.uk", "nina.storey@leicester.ac.uk"], allen: ["ew150@le.ac.uk", "ea150@le.ac.uk"], purves: ["jp437@le.ac.uk"], makarova: ["om13@le.ac.uk"], talbot: ["cjt15@le.ac.uk", "cjt14@le.ac.uk"],
+        retired: ["(Retired)", true, true], leyland: ["BS1030 Convenor", "BS2093 Convenor"], ohare: ["BS1040 Convenor", "MB2020 Convenor"], schwabe: ["BS1030"], mallon: ["BS1040", "BS1070", "BS2004 Convenor"], shackChips: ["ADBS001", "BS1030", "MB2050 Convenor", "MB3001 Convenor"], mahenMail: ["rm722@le.ac.uk"],
+        year1: ["Dr Alix Blockley", "Dr Amanda Chaplin", "Dr Catherine Vial", "Dr Chris Holmes", "Dr Emily Allen", "Dr Frank Proudlock", "Dr Helen O’Hare", "Dr Hollie Marshall", "Dr Jo Purves", "Dr Jonathan McDearmid", "Dr Jonathon Willets", "Dr Leah Cuthbertson", "Dr Luke Baker", "Dr Mark Leyland", "Dr Moya Burns", "Dr Neelam Dave", "Dr Nina Storey", "Dr Olga Makarova", "Dr Primrose Freestone", "Dr Rob Hammond", "Dr Rob Mahen", "Dr Sandra Beleza", "Dr Sarah Gretton", "Dr Sinéad Drea", "Dr Stuart Desjardins", "Dr Sue Shackleton", "Dr Veryan Codd", "Dr Volko Straub", "Dr Will Norton", "Professor Alison Snape", "Professor David Twell", "Professor Eamonn Mallon", "Professor Ezio Rosato", "Professor James Higgins", "Professor John Challiss", "Professor John Schwabe", "Professor Mark Jobling", "Professor Martha Clokie", "Professor Pat Heslop-Harrison"] });
+check("staff directory update (2026-10-16): leadership positions only (Head of Division, Deputy Head of School) \u2014 no Lecturer/Professor/Fellow chips; extra mailboxes shown; new people added; Rosato and Morrissey renamed",
+  await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("#staff .st:not(.st--clone)")];
+    const named = n => cards.find(c => c.querySelector(".st__name").textContent.endsWith(n));
+    const roles = n => [...named(n).querySelectorAll(".st__code--role")].map(c => c.textContent.replace(/\s+/g, " ").trim());
+    const mail = n => [...named(n).querySelectorAll(".st__mail a")].map(a => a.textContent);
+    const allRoles = cards.flatMap(c => [...c.querySelectorAll(".st__code--role")].map(r => r.textContent.replace(/\s+/g, " ").trim()));
+    return { bayliss: roles("Christopher Bayliss"), norton: roles("Will Norton"), mallon: roles("Eamonn Mallon"), schalch: roles("Thomas Schalch"), dominguez: roles("Cyril Dominguez"),
+      noPlain: allRoles.filter(r => /^(lecturer|professor|fellow|researcher|reader|senior lecturer)/i.test(r)).length,
+      tang: !!named("Dr Anna Tang"), tangMail: mail("Dr Anna Tang").length, morrissey: !!named("Julie Morrissey"), mahen: mail("Dr Rob Mahen"), rosato: !!named("Professor Ezio Rosato") };
+  }), { bayliss: ["Head of Division (Microbiology and Infection)"], norton: ["Head of Division (Biosciences Education)"], mallon: ["Head of Division (Genetics and Genome Biology)"], schalch: ["Head of Division (Molecular and Cell Biology)"], dominguez: ["Deputy Head of School (Research)"],
+    noPlain: 0, tang: true, tangMail: 1, morrissey: true, mahen: ["rm722@le.ac.uk"], rosato: true });
 check("Year 1 convenors: BS1030 Leyland, BS1040 O'Hare, BS1050 Rosato and Neelam Dave, BS1060 Alix Blockley and Volko Straub, BS1070 Sin\u00e9ad Drea, MB1080 Veryan Codd, and nobody else; the new teams carry their module codes",
   await page.evaluate(() => {
     const cards = [...document.querySelectorAll("#staff .st:not(.st--clone)")];
@@ -568,7 +581,7 @@ check("Year 1 convenors: BS1030 Leyland, BS1040 O'Hare, BS1050 Rosato and Neelam
                    cards.filter(c => [...c.querySelectorAll(".st__code")].some(l => l.textContent.trim().startsWith(code))).length];
     }
     return out;
-  }), { BS1030: [["Dr Mark Leyland"], 6], BS1040: [["Dr Helen O\u2019Hare"], 9], BS1050: [["Dr Neelam Dave", "Professor Rosato"], 6], BS1060: [["Dr Alix Blockley", "Dr Volko Straub"], 10],
+  }), { BS1030: [["Dr Mark Leyland"], 6], BS1040: [["Dr Helen O\u2019Hare"], 9], BS1050: [["Dr Neelam Dave", "Professor Ezio Rosato"], 6], BS1060: [["Dr Alix Blockley", "Dr Volko Straub"], 10],
         BS1070: [["Dr Sin\u00e9ad Drea"], 10], MB1080: [["Dr Veryan Codd"], 1] });
 check("the card size never changes for content: no face of any card overflows (the front, or the back after a card's module codes have moved there); a card whose front was too full has its module codes on the back and none on the front; every other card keeps them on the front",
   await page.evaluate(() => {
