@@ -55,7 +55,7 @@
 }
 
 :is(#assess-cal, #ac-print) .ac__d {
-  position: relative; display: flex; flex-direction: column; height: 9rem; min-height: 0; padding: 3px;   /* NOT overflow:hidden — the month's name spills into the next day */
+  position: relative; display: flex; flex-direction: column; aspect-ratio: 1; min-height: 9rem; padding: 3px;   /* square (user, 2026-10-20), but never under 9rem, so a narrow day keeps its room. NOT overflow:hidden — the month's name spills into the next day */
   border-radius: 14px; background: color-mix(in srgb, var(--fg) 5%, transparent);
 }
 :is(#assess-cal, #ac-print) .ac__d--alt { background: color-mix(in srgb, var(--fg) 9%, transparent); }
@@ -94,6 +94,7 @@
 
 /* two on a day share it equally; three or more (and the "+N more" days) are titles only,
    centred, one line each — all in the fixed 9rem the day has */
+#ac-print .ac__d { aspect-ratio: auto; height: 9rem; min-height: 0; }   /* the A4 printout keeps its fixed days: eleven square ones would not fit one page */
 :is(#assess-cal, #ac-print) .ac__d--two .ac__c,
 :is(#assess-cal, #ac-print) .ac__d--many .ac__c { flex: 1 1 0; height: auto; margin-top: 2px; line-height: 1.15; }
 :is(#assess-cal, #ac-print) .ac__d--two .ac__c { padding: 0.15rem 0.45rem; font-size: clamp(0.64rem, 1.45cqw, 0.9rem); }

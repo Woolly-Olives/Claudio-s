@@ -1025,16 +1025,17 @@ check("a box shows only the assessment's name (no weighting underneath; that is 
              centred: tops.every(b => off(b).vmid < 3.5), onTheLeft: tops.every(b => off(b).left < 14),
              weightInCard: (() => { const pop = document.getElementById("ac-pop"), b = tops[0]; b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })); const t = pop.textContent; b.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })); return /Weight10% together/.test(t); })() };
   }), { noSmall: true, onlyName: true, centred: true, onTheLeft: true, weightInCard: true });
-check("days are a fixed 144px (9rem) tall — equal in every week, and not forced square (narrow days stay as tall); boxes and the info card have 8px corners; nothing overflows its day",
+check("days are square (as tall as they are wide) but never under 144px (9rem) tall, so narrow days stay as tall; equal in every week; boxes and the info card have 8px corners; nothing overflows its day",
   await page.evaluate(async () => {
     const cal = document.getElementById("assess-cal");
     const days = () => [...cal.querySelectorAll(".ac__d")];
     const heights = () => [...new Set(days().map(d => Math.round(d.getBoundingClientRect().height)))];
     const overflow = () => days().filter(d => [...d.children].some(c => !c.classList.contains("ac__ml") && c.getBoundingClientRect().bottom > d.getBoundingClientRect().bottom + 0.5)).length;
-    const out = { tall: heights().join() };
+    const wid = () => [...new Set(days().map(d => Math.round(d.getBoundingClientRect().width)))].join();
+    const out = { tall: heights().join(), wide: wid() };
     cal.querySelector('.ac__y[data-y="2"]').click();
     ["BS2009", "BS2059", "BS2093", "BS2013", "MB2050", "MB2051"].forEach(c => { const i = [...cal.querySelectorAll(".ac__dd input")].find(x => x.value === c); i.checked = true; i.dispatchEvent(new Event("change", { bubbles: true })); });
-    out.crowdedTall = heights().join(); out.noOverflow = overflow();
+    out.crowdedTall = heights().join(); out.wideNow = wid(); out.noOverflow = overflow();
     const b = cal.querySelector(".ac__c");
     out.radius = getComputedStyle(b).borderTopLeftRadius;
     b.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
@@ -1043,7 +1044,7 @@ check("days are a fixed 144px (9rem) tall — equal in every week, and not force
     [...cal.querySelectorAll(".ac__sel-x")].forEach(x => x.click());
     cal.querySelector('.ac__y[data-y="1"]').click();
     return out;
-  }), { tall: "144", crowdedTall: "144", noOverflow: 0, radius: "8px", cardRadius: "8px" });
+  }), { tall: "199", wide: "199", crowdedTall: "199", wideNow: "199", noOverflow: 0, radius: "8px", cardRadius: "8px" });
 {
   const shared = await browser.newPage({ viewport: { width: 1500, height: 1200 } });
   await shared.goto(SITE + "?year=2&modules=BS2013,mb2050,BOGUS,BS2200#create-your-calendar");

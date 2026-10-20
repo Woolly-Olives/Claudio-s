@@ -45,8 +45,8 @@ something breaks that it would not have caught. Work on branch
   The Term 1 Assessment Calendar (`assess.js`, `assessments.js`) lives there. Its
   dates are all APPROXIMATE (2024/25 moved on to 2026/27, plus the user's own
   Year 2/3 deadlines) and are labelled so; do not invent any date the user has not
-  supplied, and do not drop the approximate labels. Days are a fixed 9rem tall,
-  deliberately not square — see `docs/HANDOVER.md`.
+  supplied, and do not drop the approximate labels. Days are square
+  (`aspect-ratio: 1`, at least 9rem tall; changed 2026-10-20) — see `docs/HANDOVER.md`.
 - **Colour is three-state now, not two**: system dark, system light, or
   forced by `[data-theme]` from the light/dark toggle (`assets/js/theme.js`,
   top right). A component that hardcodes a colour instead of `var(--token)`
