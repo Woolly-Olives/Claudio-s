@@ -9,9 +9,9 @@
    ============================================================= */
 window.BIOSOC_BOARD = {
   poster: {
-    img:  "assets/img/poster-brainrot-biologists.png",
-    alt:  "BioSoc poster: Brainrot Biologists, Sir Bob Burgess 0.02, 24 September 2026, 18:00 to 20:00. Opens the Instagram post.",
-    href: "https://www.instagram.com/biosoc.leics/p/DdQJotoI255/"
+    img:  "assets/img/poster-project-exodus.webp",
+    alt:  "BioSoc x AstroSoc x MathSoc poster: Project Exodus, a murder mystery, Wednesday 28 October, 18:00 to 21:00, Sir Bob Burgess 0.03. Opens the Instagram post.",
+    href: "https://www.instagram.com/biosoc.leics/p/DetxZn2Nti0/"
   },
   /* the next deadline of this module, read from assessments.js (so it moves on by itself) */
   deadlineModule: "BS1030",
