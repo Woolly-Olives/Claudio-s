@@ -24,7 +24,7 @@
 
 /* the map needs more width than the reading column — not scoped, it is
    a modifier on the page shell itself */
-.page__inner--wide { width: min(100% - 2rem, 88rem); }
+.page__inner--wide { width: min(100% - 7rem, 88rem); }
 
 #module-map .mm__sample {
   margin: 0 0 1.1rem;

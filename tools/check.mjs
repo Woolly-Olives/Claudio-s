@@ -572,6 +572,15 @@ check("staff directory update (2026-10-16): leadership positions only (Head of D
       tang: !!named("Dr Anna Tang"), tangMail: mail("Dr Anna Tang").length, morrissey: !!named("Julie Morrissey"), mahen: mail("Dr Rob Mahen"), rosato: !!named("Professor Ezio Rosato") };
   }), { bayliss: ["Head of Division (Microbiology and Infection)"], norton: ["Head of Division (Biosciences Education)"], mallon: ["Head of Division (Genetics and Genome Biology)"], schalch: ["Head of Division (Molecular and Cell Biology)"], dominguez: ["Deputy Head of School (Research)"],
     noPlain: 0, tang: true, tangMail: 1, morrissey: true, mahen: ["rm722@le.ac.uk"], rosato: true });
+check("page widths: every page takes Connect's column (window minus 112px, at most 1408px) except Essential Links, which keeps the narrow one (window minus 40px, at most 1024px)",
+  await page.evaluate(async () => {
+    const out = {};
+    for (const id of ["essential-links", "study-resources", "create-your-calendar", "events", "customise-your-degree", "timetable", "connect"]) {
+      const w = document.querySelector("#page-" + id + " .page__inner").getBoundingClientRect().width;
+      out[id] = Math.round(w);
+    }
+    return out;
+  }), { "essential-links": 1024, "study-resources": 1408, "create-your-calendar": 1408, events: 1408, "customise-your-degree": 1408, timetable: 1408, connect: 1408 });
 check("Year 1 convenors: BS1030 Leyland, BS1040 O'Hare, BS1050 Rosato and Neelam Dave, BS1060 Alix Blockley and Volko Straub, BS1070 Sin\u00e9ad Drea, MB1080 Veryan Codd, and nobody else; the new teams carry their module codes",
   await page.evaluate(() => {
     const cards = [...document.querySelectorAll("#staff .st:not(.st--clone)")];

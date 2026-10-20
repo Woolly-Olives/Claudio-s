@@ -1779,3 +1779,7 @@ From five screenshots of the University's staff directory (not in the repo). `as
 ### Board poster replaced (shipped 2026-10-20, at explicit "Push")
 
 The poster is now Project Exodus (BioSoc x AstroSoc x MathSoc, Wed 28 October, 18:00-21:00, Sir Bob Burgess 0.03), `assets/img/poster-project-exodus.webp`, linking to https://www.instagram.com/biosoc.leics/p/DetxZn2Nti0/. The Brainrot Biologists image was removed. The image is the user's screenshot (766x947), not fetched from Instagram.
+
+### Page widths unified (shipped 2026-10-20, at explicit "Push")
+
+Every page now uses Connect's column: `width: min(100% - 7rem, 88rem)` (56px side margin up to 1,520px wide, then centred; 256px each side at 1920). Set in `.page__inner` and `.page__inner--wide` (`styles.css`, `modulemap.css`); the width rule was removed from `#page-connect` in `staff.css` (its 80px top padding stays). **Essential Links is the one exception** and keeps `min(100% - 2.5rem, 64rem)` via `#page-essential-links .page__inner`. Vertical padding was not changed. The suite was not asked to check the screenshots of every page; the width test covers seven pages.

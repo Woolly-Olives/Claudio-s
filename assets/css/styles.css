@@ -585,10 +585,14 @@ body.is-page-open .wheel__ring { display: none; }
 }
 
 .page__inner {
-  width: min(100% - 2.5rem, 64rem);
+  width: min(100% - 7rem, 88rem);
   margin-inline: auto;
   padding: clamp(5.5rem, 12vh, 8rem) 0 6rem;
 }
+
+.page__inner--wide { width: min(100% - 7rem, 88rem); }
+/* Essential Links alone keeps the narrow column (user, 2026-10-20: every other page takes Connect's width) */
+#page-essential-links .page__inner { width: min(100% - 2.5rem, 64rem); }
 
 .page__chrome {
   position: absolute;

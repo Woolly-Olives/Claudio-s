@@ -246,7 +246,7 @@
 /* the Connect column: 88rem (1408px) at most, but never so wide that the arrow buttons — 2.4rem
    plus 0.6rem from the cards — would fall off the window (3.5rem each side). At 1920px that is a 256px
    margin each side, 80px above the title. */
-#page-connect .page__inner { width: min(100% - 7rem, 88rem); padding-top: 80px; }
+#page-connect .page__inner { padding-top: 80px; }
 
 /* few enough to see at once (staff.js decides): no second copy, no pad, no scrolling, no arrows —
    the buttons stay in place, just invisible, so the cards do not move sideways. In this mode the
