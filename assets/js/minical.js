@@ -64,9 +64,32 @@
     return e;
   });
 
+  /*
+   * BIOSOC EVENTS the user supplied by hand (2026-10-29), not yet in the
+   * Outlook calendar that events.js is generated from. Edit them here;
+   * delete one once the real event reaches events.js, or it will show
+   * twice. Same shape as an event there. `timeless: true` means no time
+   * was given, so the box shows the date alone (never "All day").
+   * The times and rooms of Brainrot Biologists and Project Exodus are
+   * from their posters.
+   */
+  var BIOSOC_EVENTS = [
+    { title: "Freshers Fair", start: "2026-09-23T00:00:00+01:00", end: "2026-09-24T00:00:00+01:00", timeless: true },
+    { title: "Brainrot Biologists", start: "2026-09-24T18:00:00+01:00", end: "2026-09-24T20:00:00+01:00", where: "Sir Bob Burgess 0.02" },
+    { title: "1st Class Biologist", start: "2026-10-07T00:00:00+01:00", end: "2026-10-08T00:00:00+01:00", timeless: true },
+    { title: "Biologists on the Run x BioBrunch", start: "2026-10-17T00:00:00+01:00", end: "2026-10-18T00:00:00+01:00", timeless: true },
+    { title: "Project Exodus: A Murder Mystery", start: "2026-10-28T18:00:00+00:00", end: "2026-10-28T21:00:00+00:00", where: "Sir Bob Burgess 0.03" }
+  ].map(function (e) {
+    e.tag = "biosoc";
+    e.tagLabel = "BioSoc";
+    e.allDay = !!e.timeless;
+    e.note = e.note || "";
+    return e;
+  });
+
   var byDay = {};
 
-  (((DATA && DATA.events) || []).concat(PLACEHOLDERS)).forEach(function (e) {
+  (((DATA && DATA.events) || []).concat(BIOSOC_EVENTS, PLACEHOLDERS)).forEach(function (e) {
     var first = dayNumber(e.start);
     var last = dayNumber(e.end);
     /* an event that ends exactly at midnight (every all-day event does,
@@ -90,6 +113,7 @@
 
   function dateLine(e) {
     var line = shortDate(e.firstDay) + (e.lastDay > e.firstDay ? " – " + shortDate(e.lastDay) : "");
+    if (e.timeless) { return line; }
     if (e.allDay) { return line + " · All day"; }
     return line + " · " + e.start.slice(11, 16) + " – " + e.end.slice(11, 16);
   }
@@ -151,6 +175,9 @@
   }
 
   root.innerHTML = '<div class="mc">' + [0, 1, 2, 3].map(month).join("") + '</div>';
+
+  /* the zoom (minizoom.js) builds more months, before and after these four, so a drag can move through them */
+  window.BIOSOC_MINICAL = { month: month };
 
   /* ---------- the box ---------- */
 

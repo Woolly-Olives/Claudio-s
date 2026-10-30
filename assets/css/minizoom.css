@@ -27,7 +27,10 @@
 .minical { cursor: zoom-in; }
 .minical .mc__day--ev { cursor: pointer; }
 
-.mz { position: fixed; inset: 0; z-index: 200; overflow: hidden; }
+.mz { position: fixed; inset: 0; z-index: 200; overflow: hidden; touch-action: none; cursor: grab; }
+.mz.is-drag { cursor: grabbing; user-select: none; }
+.mz.is-free .mc__day, .mz.is-free .mc__gap, .mz.is-free .mc__name { transition: opacity 250ms ease; }
+.mz .mc__month:nth-child(4) { opacity: 1; }   /* the mini calendar fades its fourth month; the copy has many more and must not */
 .mz__bg { position: absolute; inset: 0; background: var(--bg); opacity: 0; }
 .mz__cal { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; }
 .mz .mc__day, .mz .mc__gap { container-type: size; position: relative; overflow: hidden; pointer-events: none; }
@@ -54,6 +57,7 @@
 .mz__head span { padding-left: 10px; }
 
 .mz__close {
+  cursor: pointer;
   position: absolute; top: 8px; right: 12px;
   display: grid; place-items: center; width: 2.2rem; height: 2.2rem; padding: 0;
   color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 50%;

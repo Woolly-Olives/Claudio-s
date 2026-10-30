@@ -1651,6 +1651,22 @@ check("weekends are no lighter than weekdays",
     const plain = [...document.querySelectorAll("#minical .mc__month:first-child .mc__day:not(.is-today):not(.is-past):not(.mc__day--ev)")];
     return new Set(plain.map(d => getComputedStyle(d).backgroundColor)).size;
   }), 1);
+check("BioSoc events are Study Resources' green (hsl 89 43% 43%): Oct 7, 17 and 28 in the first month; the box names Project Exodus with its time and room, and a timeless one shows its date alone",
+  await (async () => {
+    const out = await calPage.evaluate(() => {
+      const probe = document.createElement("i"); probe.style.background = "hsl(89 43% 43%)"; document.body.appendChild(probe);
+      const want = getComputedStyle(probe).backgroundColor; probe.remove();
+      const days = [...document.querySelectorAll("#minical .mc__day--biosoc")];
+      return { count: days.length, green: days.filter(d => !d.classList.contains("is-today")).every(d => getComputedStyle(d).backgroundColor === want), keys: days.map(d => d.dataset.k).join() };
+    });
+    await calPage.locator("#minical button.mc__day--biosoc").nth(2).hover();
+    await calPage.waitForTimeout(150);
+    out.exodus = await calPage.evaluate(() => document.getElementById("mc-tip").textContent);
+    await calPage.locator("#minical button.mc__day--biosoc").nth(0).hover();
+    await calPage.waitForTimeout(150);
+    out.first = await calPage.evaluate(() => document.getElementById("mc-tip").textContent);
+    return out;
+  })(), { count: 3, green: true, keys: "2026-10-07,2026-10-17,2026-10-28", exodus: "BioSocProject Exodus: A Murder MysteryWed 28 Oct · 18:00 – 21:00Sir Bob Burgess 0.03", first: "BioSoc1st Class BiologistWed 7 Oct" });
 check("hovering a placeholder week names it and gives its whole range",
   await (async () => {
     await calPage.locator("#minical button.mc__day--placeholder").nth(1).hover();
@@ -1663,7 +1679,7 @@ await calPage.mouse.move(5, 5);
 const miniRect = await calPage.evaluate(() => { const r = document.querySelector("#minical .mc").getBoundingClientRect(); return { w: r.width, h: r.height }; });
 await calPage.click("#minical .mc__open");
 await calPage.waitForTimeout(1300);
-check("the calendar zooms to full screen: a dialog; the copy has the mini calendar's proportions and its width fills the window; today's row is at the top, under a Mon-Sun header; only whole weeks that fit are left (at least two); dates and event names are shown; the close button has focus",
+check("the calendar zooms to full screen: a dialog; the copy keeps the mini calendar's square days and its width fills the window; today's row is at the top, under a Mon-Sun header; only whole weeks that fit are left (at least two); dates and event names are shown; the close button has focus",
   await calPage.evaluate((mini) => {
     const ov = document.querySelector(".mz"), clone = ov.querySelector(".mc"), r = clone.getBoundingClientRect(), H = innerHeight;
     const days = [...ov.querySelectorAll(".mc__day")], visible = days.filter(d => getComputedStyle(d).opacity !== "0");
@@ -1671,7 +1687,7 @@ check("the calendar zooms to full screen: a dialog; the copy has the mini calend
     const rows = new Set(visible.map(d => Math.round(d.getBoundingClientRect().top)));
     const events = visible.filter(d => d.classList.contains("mc__day--ev"));
     return { dialog: ov.getAttribute("role") === "dialog" && ov.getAttribute("aria-modal") === "true",
-      proportions: Math.abs(r.width / r.height - mini.w / mini.h) < 0.01 * (mini.w / mini.h),
+      proportions: visible.every(d => { const q = d.getBoundingClientRect(); return Math.abs(q.width - q.height) < 1; }),            // a plain scale: the days are still squares
       fillsWidth: Math.abs(r.width - (innerWidth - 80)) < 3,
       todayShown: getComputedStyle(today).opacity !== "0" && tr.top >= 40 && tr.top < 60,
       todayIsFirstRow: visible.every(d => d.getBoundingClientRect().top >= tr.top - 1),
@@ -1684,6 +1700,30 @@ check("the calendar zooms to full screen: a dialog; the copy has the mini calend
       focus: document.activeElement === ov.querySelector(".mz__close") };
   }, miniRect),
   { dialog: true, proportions: true, fillsWidth: true, todayShown: true, todayIsFirstRow: true, allWhole: true, twoOrMoreWeeks: true, header: true, dates: true, names: true, miniHidden: true, focus: true });
+{
+  const info = () => calPage.evaluate(() => {
+    const ov = document.querySelector(".mz"), t = ov.querySelector(".is-today").getBoundingClientRect();
+    const seen = [...ov.querySelectorAll(".mc__day")].filter(d => getComputedStyle(d).opacity === "0").length;      // how many are still hidden
+    const names = [...ov.querySelectorAll(".mc__name")], first = names[0];
+    return { todayTop: Math.round(t.top), seen, firstName: first.textContent.trim(), firstTop: Math.round(first.getBoundingClientRect().top), months: names.length };
+  });
+  const before = await info();
+  await calPage.mouse.move(800, 700); await calPage.mouse.down(); await calPage.mouse.move(800, 600, { steps: 4 }); await calPage.mouse.move(800, 400, { steps: 6 });
+  await calPage.mouse.move(800, 400); await calPage.waitForTimeout(150);                  // still, so it is not flung
+  await calPage.mouse.up(); await calPage.waitForTimeout(300);
+  const dragged = await info();
+  const stillOpen = await calPage.evaluate(() => !!document.querySelector(".mz:not(.is-closing)"));
+  await calPage.keyboard.press("ArrowDown"); await calPage.waitForTimeout(100);
+  const keyed = await info();
+  await calPage.keyboard.press("Home"); await calPage.waitForTimeout(100);
+  const top = await info();
+  await calPage.keyboard.press("End"); await calPage.waitForTimeout(100);
+  const end = await info();
+  check("the open calendar can be grabbed and dragged (and moved with the keys): a 300px drag moves it 300px and shows every week that was hidden (the extra months too); letting go on the backdrop does not close it; Home puts the first month's name at the top, End the last row at the bottom; there are 12 months",
+    { startTop: before.todayTop, draggedBy: dragged.todayTop - before.todayTop, moreWeeks: before.seen > 0 && dragged.seen === 0, stillOpen, keyMoved: keyed.todayTop < dragged.todayTop, homeTop: top.firstTop, homeName: top.firstName, endBelowTop: end.todayTop < -1000, months: before.months },
+    { startTop: 44, draggedBy: -300, moreWeeks: true, stillOpen: true, keyMoved: true, homeTop: 44, homeName: "Aug", endBelowTop: true, months: 12 });
+  await calPage.keyboard.press("Home"); await calPage.waitForTimeout(100);
+}
 await calPage.keyboard.press("Tab");
 await calPage.keyboard.press("Escape");
 await calPage.waitForTimeout(1000);

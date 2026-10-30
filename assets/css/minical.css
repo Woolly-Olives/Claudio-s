@@ -76,7 +76,7 @@
   background: hsl(160 65% 46%);
   transition: transform 160ms var(--ease), box-shadow 160ms var(--ease);
 }
-.mc__day--biosoc { background: hsl(275 60% 60%); }
+.mc__day--biosoc { background: hsl(89 43% 43%); }   /* Study Resources' green on the wheel (user, 2026-10-29) */
 .mc__day--school { background: hsl(168 62% 42%); }
 .mc__day--su     { background: hsl(28 85% 55%); }
 .mc__day--placeholder { background: hsl(0 0% 38%); }
@@ -135,7 +135,7 @@
   background: hsl(160 65% 46%);
   vertical-align: -0.02rem;
 }
-.mc-tip__tag--biosoc::before { background: hsl(275 60% 60%); }
+.mc-tip__tag--biosoc::before { background: hsl(89 43% 43%); }
 .mc-tip__tag--school::before { background: hsl(168 62% 42%); }
 .mc-tip__tag--su::before     { background: hsl(28 85% 55%); }
 .mc-tip__tag--placeholder::before { background: hsl(0 0% 38%); }
