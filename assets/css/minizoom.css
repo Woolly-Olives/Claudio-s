@@ -37,24 +37,19 @@
 .mz .mc__day { cursor: default; }
 
 .mz__n {
-  position: absolute; left: 7%; top: 6%;
+  position: absolute; left: 14%; top: 12%;       /* well inside the day's rounded corner (radius 28% of the day) */
   font-weight: 700; font-size: min(15cqh, 15cqw); line-height: 1;
   color: var(--fg); opacity: var(--zo, 0);
 }
 .mz__t {
-  position: absolute; left: 7%; right: 5%; bottom: 7%;
-  font-weight: 700; font-size: min(8cqh, 8cqw); line-height: 1.15;
+  position: absolute; left: 14%; right: 10%; bottom: 14%;
+  font-weight: 700; font-size: 14px; line-height: 1.15;
   color: #10201a; opacity: var(--zo, 0); overflow: hidden;
 }
 .mz .mc__day--ev .mz__n { color: #10201a; }
-
-.mz__head {
-  position: absolute; left: 40px; right: 40px; top: 14px;
-  display: grid; grid-template-columns: repeat(7, 1fr);
-  font: 700 13px/1 inherit; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--fg-soft); opacity: 0; pointer-events: none;
-}
-.mz__head span { padding-left: 10px; }
+/* white on the fills it reads better on: the blue school days and the dark grey placeholders (dark text is under 3:1 on the grey, and 2.1:1 on the blue) */
+.mz .mc__day--school .mz__n, .mz .mc__day--school .mz__t,
+.mz .mc__day--placeholder .mz__n, .mz .mc__day--placeholder .mz__t { color: #fff; }
 
 .mz__close {
   cursor: pointer;

@@ -1679,7 +1679,7 @@ await calPage.mouse.move(5, 5);
 const miniRect = await calPage.evaluate(() => { const r = document.querySelector("#minical .mc").getBoundingClientRect(); return { w: r.width, h: r.height }; });
 await calPage.click("#minical .mc__open");
 await calPage.waitForTimeout(1300);
-check("the calendar zooms to full screen: a dialog; the copy keeps the mini calendar's square days and its width fills the window; today's row is at the top, under a Mon-Sun header; only whole weeks that fit are left (at least two); dates and event names are shown; the close button has focus",
+check("the calendar zooms to full screen: a dialog; the copy keeps the mini calendar's square days and its width is half the window's (at least 720px); today's row is at the top, with no weekday row; only whole weeks that fit are left (at least two); dates and event names are shown; the close button has focus",
   await calPage.evaluate((mini) => {
     const ov = document.querySelector(".mz"), clone = ov.querySelector(".mc"), r = clone.getBoundingClientRect(), H = innerHeight;
     const days = [...ov.querySelectorAll(".mc__day")], visible = days.filter(d => getComputedStyle(d).opacity !== "0");
@@ -1688,18 +1688,19 @@ check("the calendar zooms to full screen: a dialog; the copy keeps the mini cale
     const events = visible.filter(d => d.classList.contains("mc__day--ev"));
     return { dialog: ov.getAttribute("role") === "dialog" && ov.getAttribute("aria-modal") === "true",
       proportions: visible.every(d => { const q = d.getBoundingClientRect(); return Math.abs(q.width - q.height) < 1; }),            // a plain scale: the days are still squares
-      fillsWidth: Math.abs(r.width - (innerWidth - 80)) < 3,
-      todayShown: getComputedStyle(today).opacity !== "0" && tr.top >= 40 && tr.top < 60,
+      fillsWidth: Math.abs(r.width - Math.min(innerWidth - 80, Math.max(innerWidth / 2, 720))) < 3,
+      todayShown: getComputedStyle(today).opacity !== "0" && tr.top >= 10 && tr.top < 20,
       todayIsFirstRow: visible.every(d => d.getBoundingClientRect().top >= tr.top - 1),
-      allWhole: visible.every(d => { const q = d.getBoundingClientRect(); return q.top >= 43 && q.bottom <= H - 39 && q.left >= 0 && q.right <= innerWidth; }),
+      allWhole: visible.every(d => { const q = d.getBoundingClientRect(); return q.top >= 13 && q.bottom <= H - 13 && q.left >= 0 && q.right <= innerWidth; }),
       twoOrMoreWeeks: rows.size >= 2,
-      header: ov.querySelectorAll(".mz__head span").length === 7 && +getComputedStyle(ov.querySelector(".mz__head")).opacity === 1,
+      noWeekdayRow: !ov.querySelector(".mz__head") && !/MON/i.test(ov.innerText),
+      eventText: [...ov.querySelectorAll(".mz__t")].every(t => getComputedStyle(t).fontSize === "14px"),
       dates: visible.every(d => +getComputedStyle(d.querySelector(".mz__n")).opacity === 1 && /^\d+$/.test(d.querySelector(".mz__n").textContent)),
       names: events.every(d => d.querySelector(".mz__t") && d.querySelector(".mz__t").textContent.length > 0),
       miniHidden: getComputedStyle(document.getElementById("minical")).visibility === "hidden",
       focus: document.activeElement === ov.querySelector(".mz__close") };
   }, miniRect),
-  { dialog: true, proportions: true, fillsWidth: true, todayShown: true, todayIsFirstRow: true, allWhole: true, twoOrMoreWeeks: true, header: true, dates: true, names: true, miniHidden: true, focus: true });
+  { dialog: true, proportions: true, fillsWidth: true, todayShown: true, todayIsFirstRow: true, allWhole: true, twoOrMoreWeeks: true, noWeekdayRow: true, eventText: true, dates: true, names: true, miniHidden: true, focus: true });
 {
   const info = () => calPage.evaluate(() => {
     const ov = document.querySelector(".mz"), t = ov.querySelector(".is-today").getBoundingClientRect();
@@ -1721,7 +1722,7 @@ check("the calendar zooms to full screen: a dialog; the copy keeps the mini cale
   const end = await info();
   check("the open calendar can be grabbed and dragged (and moved with the keys): a 300px drag moves it 300px and shows every week that was hidden (the extra months too); letting go on the backdrop does not close it; Home puts the first month's name at the top, End the last row at the bottom; there are 12 months",
     { startTop: before.todayTop, draggedBy: dragged.todayTop - before.todayTop, moreWeeks: before.seen > 0 && dragged.seen === 0, stillOpen, keyMoved: keyed.todayTop < dragged.todayTop, homeTop: top.firstTop, homeName: top.firstName, endBelowTop: end.todayTop < -1000, months: before.months },
-    { startTop: 44, draggedBy: -300, moreWeeks: true, stillOpen: true, keyMoved: true, homeTop: 44, homeName: "Aug", endBelowTop: true, months: 12 });
+    { startTop: 14, draggedBy: -300, moreWeeks: true, stillOpen: true, keyMoved: true, homeTop: 14, homeName: "Aug", endBelowTop: true, months: 12 });
   await calPage.keyboard.press("Home"); await calPage.waitForTimeout(100);
 }
 await calPage.keyboard.press("Tab");
@@ -1746,7 +1747,7 @@ await calm2.goto(SITE); await calm2.waitForTimeout(600);
 await calm2.click("#minical .mc__open");
 check("with reduced motion the zoom is there at once, with no animation, and closes at once",
   await (async () => {
-    const at = await calm2.evaluate(() => { const o = document.querySelector(".mz"); return !!o && +getComputedStyle(o.querySelector(".mz__head")).opacity === 1; });
+    const at = await calm2.evaluate(() => { const o = document.querySelector(".mz"); return !!o && +getComputedStyle(o.querySelector(".mz__close")).opacity === 1; });
     await calm2.keyboard.press("Escape"); await calm2.waitForTimeout(100);
     return { at, gone: await calm2.evaluate(() => !document.querySelector(".mz")) };
   })(), { at: true, gone: true });

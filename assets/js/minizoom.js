@@ -5,8 +5,8 @@
    clicking anywhere on it that is not an event day (those keep their
    own box), zooms the calendar itself up — a plain scale, so the
    squares keep their shape and the calendar keeps its proportions —
-   until its width fills the window, centred on THIS WEEK (today's row
-   goes to the top, under a Mon-Sun header). As it grows, each day gets
+   until its width is half the window's (at least 720px), centred on THIS
+   WEEK (today's row goes to the top). As it grows, each day gets
    its date and its event names. At the end every week that does not
    fully fit on screen is hidden, so what is left is the current week
    and as many whole weeks after it as there is room for.
@@ -36,7 +36,7 @@
   var mc = root && root.querySelector(".mc");
   if (!mc) { return; }
 
-  var MARGIN = 40, TOP = 44, BOTTOM = 40, OPEN_MS = 900, CLOSE_MS = 650, PRE = 2, POST = 6;
+  var BOTTOM = 14, OPEN_MS = 900, CLOSE_MS = 650, PRE = 2, POST = 6;
   var state = null;            // the open overlay, or null
 
   var btn = document.createElement("button");
@@ -98,24 +98,23 @@
       clone.appendChild(copy);
     });
 
-    var head = document.createElement("div"); head.className = "mz__head";
-    head.innerHTML = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(function (d) { return "<span>" + d + "</span>"; }).join("");
-    ov.appendChild(head);
-
     var close = document.createElement("button");
     close.type = "button"; close.className = "mz__close"; close.setAttribute("aria-label", "Close the calendar");
     close.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
     ov.appendChild(close);
 
     document.body.appendChild(ov);
-    return { ov: ov, bg: bg, cal: cal, clone: clone, cells: cells, isExtra: isExtra, head: head, close: close, dy: 0, free: false };
+    return { ov: ov, bg: bg, cal: cal, clone: clone, cells: cells, isExtra: isExtra, close: close, dy: 0, free: false };
   }
 
   /* where everything goes at the end, for the window's size now */
   function measure(s) {
     var W = window.innerWidth, H = window.innerHeight;
     var r0 = mc.getBoundingClientRect();
-    s.clone.style.setProperty("--s", ((W - 2 * MARGIN) / 8.08) + "px");      // 7 days + 6 gaps = 8.08 squares across
+    var width = Math.min(W - 80, Math.max(W / 2, 720));                      // half the window, never under 720px (the text needs room) nor wider than the window less 40px each side
+    var left = (W - width) / 2, TOP = left >= 60 ? 14 : 52;                  // on a narrow window the close button would sit over the first row, so that starts lower
+    s.top = TOP;
+    s.clone.style.setProperty("--s", (width / 8.08) + "px");                  // 7 days + 6 gaps = 8.08 squares across
     s.clone.style.setProperty("--g", "calc(var(--s) * 0.18)");              // minical.css defines this on .minical, which the copy is not inside
     s.cal.style.transform = "none"; s.cal.style.left = "0"; s.cal.style.top = "0";
     var cw = s.clone.getBoundingClientRect();
@@ -124,7 +123,7 @@
     s.k0 = r0.width / cw.width;
     s.P = { x: cw.width / 2, y: tr.top + tr.height / 2 };
     s.P0 = { x: r0.left + s.k0 * s.P.x, y: r0.top + s.k0 * s.P.y };          // where that point is on the page now
-    s.P1 = { x: MARGIN + s.P.x, y: TOP + (s.P.y - tr.top) };                  // and where it ends up: this week's row at the top
+    s.P1 = { x: left + s.P.x, y: TOP + (s.P.y - tr.top) };                  // and where it ends up: this week's row at the top
     var dy = TOP - tr.top, ty0 = s.P1.y - s.P.y;
     s.maxDy = TOP - (cw.top + ty0);                                           // how far it may be dragged down: the first month's name at the top
     s.minDy = (H - BOTTOM) - (cw.bottom + ty0);                               // and up: the last row at the bottom
@@ -148,7 +147,6 @@
       else if (s.isExtra[i]) { el.style.opacity = "0"; }           // the extra months only exist for dragging
       else { el.style.opacity = s.fit[i] ? "" : String(1 - hide); }
     });
-    s.head.style.opacity = clamp((e - 0.7) / 0.25);
     s.close.style.opacity = clamp((e - 0.7) / 0.25);
   }
 

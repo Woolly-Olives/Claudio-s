@@ -73,12 +73,12 @@
 /* a day with something on */
 .mc__day--ev {
   cursor: pointer;
-  background: hsl(160 65% 46%);
+  background: hsl(175 39.1% 41%);   /* the wheel's Create Your Calendar teal */
   transition: transform 160ms var(--ease), box-shadow 160ms var(--ease);
 }
 .mc__day--biosoc { background: hsl(89 43% 43%); }   /* Study Resources' green on the wheel (user, 2026-10-29) */
-.mc__day--school { background: hsl(168 62% 42%); }
-.mc__day--su     { background: hsl(28 85% 55%); }
+.mc__day--school { background: hsl(223 37% 37%); }   /* the wheel's Connect blue */
+.mc__day--su     { background: hsl(40 72% 56%); }   /* the wheel's Essential Links amber */
 .mc__day--placeholder { background: hsl(0 0% 38%); }
 
 .mc__day--ev:hover,
@@ -132,12 +132,12 @@
   height: 0.55rem;
   margin-right: 0.4rem;
   border-radius: 3px;
-  background: hsl(160 65% 46%);
+  background: hsl(175 39.1% 41%);
   vertical-align: -0.02rem;
 }
 .mc-tip__tag--biosoc::before { background: hsl(89 43% 43%); }
-.mc-tip__tag--school::before { background: hsl(168 62% 42%); }
-.mc-tip__tag--su::before     { background: hsl(28 85% 55%); }
+.mc-tip__tag--school::before { background: hsl(223 37% 37%); }
+.mc-tip__tag--su::before     { background: hsl(40 72% 56%); }
 .mc-tip__tag--placeholder::before { background: hsl(0 0% 38%); }
 
 .mc-tip__title { font-size: 0.92rem; }
