@@ -4,14 +4,14 @@
    Everything is sized off --wheel-size, which .stage in styles.css
    sets and .wheel uses for its own diameter. The calendar's box is
    exactly as tall as the wheel and sits level with it, so nothing in
-   it can rise above the circle; its four months are laid out to fit
+   it can rise above the circle; its three months are laid out to fit
    in that height with six weeks apiece (the worst case) to spare.
 
    A day is a small rounded square with nothing written on it. Colour
    is the only signal: today gets a ring, a day with an event gets its
    tag's colour (the same three hues the Events section uses for its
    tags), and everything else is a quiet neutral — so a stray eye finds
-   the dates that matter. The fourth month is faded on purpose.
+   the dates that matter.
 
    Colours that must work in all three theme states (system dark,
    system light, forced by [data-theme]) are either mid-lightness hues
@@ -20,7 +20,7 @@
    ============================================================= */
 
 .minical {
-  --s: calc(var(--wheel-size) / 32.5);       /* one day's square */
+  --s: calc(var(--wheel-size) / 25.7);       /* one day's square: three months (worst case, six weeks apiece) fill about 93% of the wheel's height */
   --g: calc(var(--s) * 0.18);              /* the gap between squares */
   position: absolute;
   top: calc(50% - var(--wheel-size) / 2);
@@ -88,8 +88,6 @@
   outline: none;
 }
 
-/* the fourth month, almost gone — still hoverable, only fainter */
-.mc__month:nth-child(4) { opacity: 0.38; }
 
 /* ---------- the box ---------- */
 

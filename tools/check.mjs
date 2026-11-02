@@ -1597,16 +1597,16 @@ const dayBefore = new Date(Date.UTC(+firstEvent.start.slice(0, 4), +firstEvent.s
 await calPage.clock.setFixedTime(dayBefore);
 await calPage.goto(SITE);
 await calPage.waitForTimeout(800);
-check("four months, the first being today's",
+check("three months, the first being today's",
   await calPage.evaluate(() => ({
     months: document.querySelectorAll("#minical .mc__month").length,
     todayInFirst: !!document.querySelector("#minical .mc__month:first-child .is-today"),
-  })), { months: 4, todayInFirst: true });
+  })), { months: 3, todayInFirst: true });
 check("days are bare squares — no dates or text written on them",
   await calPage.evaluate(() => [...document.querySelectorAll("#minical .mc__day")].every(d => d.textContent === "")), true);
-check("the fourth month is faded, the others are not",
+check("no month is faded (the old fourth month was dropped when it went to three, drawn larger)",
   await calPage.evaluate(() => [...document.querySelectorAll("#minical .mc__month")].map(m => +getComputedStyle(m).opacity < 0.6)),
-  [false, false, false, true]);
+  [false, false, false]);
 check("it sits level with the wheel — never higher than the circle — and clear of it",
   await calPage.evaluate(() => {
     const c = document.querySelector("#minical .mc").getBoundingClientRect();
@@ -1640,12 +1640,12 @@ await calPage.setViewportSize({ width: 1600, height: 950 });
 await calPage.clock.setFixedTime(new Date("2026-10-07T09:00:00+01:00"));
 await calPage.reload();
 await calPage.waitForTimeout(800);
-check("the three placeholders are drawn dark grey: STEM Fair 1 day, Reading week 7, Exam week 6",
+check("the placeholders in view are drawn dark grey: STEM Fair 1 day and Reading week 7 (Exam week, in January, is the fourth month from October and is no longer drawn)",
   await calPage.evaluate(() => {
     const days = [...document.querySelectorAll("#minical .mc__day--placeholder")];
     const grey = days.every(d => { const [r, g, b] = getComputedStyle(d).backgroundColor.match(/\d+/g).map(Number); return r === g && g === b && r < 110; });
     return { count: days.length, grey };
-  }), { count: 14, grey: true });
+  }), { count: 8, grey: true });
 check("weekends are no lighter than weekdays",
   await calPage.evaluate(() => {
     const plain = [...document.querySelectorAll("#minical .mc__month:first-child .mc__day:not(.is-today):not(.is-past):not(.mc__day--ev)")];

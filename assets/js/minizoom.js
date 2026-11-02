@@ -14,7 +14,7 @@
    Once it is open the calendar can be grabbed and dragged up and down
    (mouse, finger or pen; the wheel and the arrow / Page keys too). It
    then holds PRE months before and POST months after the mini calendar's
-   four (built with the same markup by minical.js), and every week is
+   three (built with the same markup by minical.js), and every week is
    shown, not only the ones that fitted. They are hidden again, and the
    position reset, when it closes.
 
@@ -36,7 +36,7 @@
   var mc = root && root.querySelector(".mc");
   if (!mc) { return; }
 
-  var BOTTOM = 14, OPEN_MS = 900, CLOSE_MS = 650, PRE = 2, POST = 6;
+  var BOTTOM = 14, OPEN_MS = 900, CLOSE_MS = 650, PRE = 2, POST = 7;
   var state = null;            // the open overlay, or null
 
   var btn = document.createElement("button");
@@ -73,7 +73,7 @@
     }
     pull(-PRE, -1);
     [].forEach.call(mc.querySelectorAll(".mc__month"), function (sec) { secs.push({ sec: sec, extra: false }); });
-    pull(4, 3 + POST);
+    pull(3, 2 + POST);
     secs.forEach(function (it) {
       var sec = it.sec;
       function add(el) { cells.push(el); isExtra.push(it.extra); }

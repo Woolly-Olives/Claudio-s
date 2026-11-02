@@ -1,7 +1,7 @@
 /* =============================================================
    Mini calendar — beside the wheel on the main page.
 
-   This month and the next three, one small square per day with no
+   This month and the next two, one small square per day with no
    dates printed on it, so the only things that catch the eye are today
    and the days that have something on. Hovering (or focusing, or
    tapping) a day with an event opens a small box about it. Built from
@@ -135,7 +135,7 @@
     }).join("");
   }
 
-  /* ---------- the four months ---------- */
+  /* ---------- the three months ---------- */
 
   var now = new Date();
   var todayKey = key(now.getFullYear(), now.getMonth(), now.getDate());
@@ -174,9 +174,9 @@
       '</section>';
   }
 
-  root.innerHTML = '<div class="mc">' + [0, 1, 2, 3].map(month).join("") + '</div>';
+  root.innerHTML = '<div class="mc">' + [0, 1, 2].map(month).join("") + '</div>';
 
-  /* the zoom (minizoom.js) builds more months, before and after these four, so a drag can move through them */
+  /* the zoom (minizoom.js) builds more months, before and after these three, so a drag can move through them */
   window.BIOSOC_MINICAL = { month: month };
 
   /* ---------- the box ---------- */
