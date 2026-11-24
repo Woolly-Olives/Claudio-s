@@ -231,7 +231,7 @@ console.log("\nthe noticeboard");
       const b = document.getElementById("board"), w = document.getElementById("wheel-svg").getBoundingClientRect(), r = b.getBoundingClientRect();
       const poster = b.querySelector("a.bd__poster"), reps = b.querySelector("a.bd__note--pink");
       return { rightOfWheel: r.left > w.right + 40 && r.right < innerWidth, levelWithWheel: Math.abs((r.top + r.bottom) / 2 - (w.top + w.bottom) / 2) < 4,
-        posterLink: poster.href === "https://www.instagram.com/biosoc.leics/p/DetxZn2Nti0/" && poster.target === "_blank" && /noopener/.test(poster.rel),
+        posterLink: poster.href === "https://www.instagram.com/biosoc.leics/p/Df-M5yUNUsK/" && poster.target === "_blank" && /noopener/.test(poster.rel),
         posterShown: poster.querySelector("img").naturalWidth > 100, repsLink: reps.href === "https://www.leicesterunion.com/voice/yourvoice/reps/" && reps.textContent === "Vote for your Course Reps now!",
         deadline: /BS1030 deadline/.test(b.textContent) && /approximate/.test(b.textContent) };
     }), { rightOfWheel: true, levelWithWheel: true, posterLink: true, posterShown: true, repsLink: true, deadline: true });

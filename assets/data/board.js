@@ -9,9 +9,9 @@
    ============================================================= */
 window.BIOSOC_BOARD = {
   poster: {
-    img:  "assets/img/poster-project-exodus.webp",
-    alt:  "BioSoc x AstroSoc x MathSoc poster: Project Exodus, a murder mystery, Wednesday 28 October, 18:00 to 21:00, Sir Bob Burgess 0.03. Opens the Instagram post.",
-    href: "https://www.instagram.com/biosoc.leics/p/DetxZn2Nti0/"
+    img:  "assets/img/poster-bio-groove.webp",
+    alt:  "BioSoc poster: Bio Groove, a double bill on Wednesday 25 November, 6pm to 9:30pm: bowling at East Street Lanes (LE1 6NB) from 6pm, then karaoke at Golden Beach Karaoke Bar (LE1 5SH) until 9:30pm. Opens the Instagram post.",
+    href: "https://www.instagram.com/biosoc.leics/p/Df-M5yUNUsK/"
   },
   /* the next deadline of this module, read from assessments.js (so it moves on by itself) */
   deadlineModule: "BS1030",
